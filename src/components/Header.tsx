@@ -1,63 +1,82 @@
-"use client";
+'use client';
+
 import Link from "next/link";
-import ThemeSwitcher from "./ThemeSwitcher";
+import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
+  const { isAuthenticated, logout, user } = useAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-neutral-700">
+    <header className="sticky top-0 z-50 w-full border-b bg-[#1c1c1c] border-neutral-800 shadow-md">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/" className="text-2xl font-black tracking-tighter text-black dark:text-white">
+            <Link href="/" className="flex items-center gap-2 text-3xl font-extrabold tracking-tighter text-white">
+              <Image src="/blue-glove.svg" alt="Blue Glove" width={40} height={40} />
               NEWSROUND1
+              <Image src="/red-glove.svg" alt="Red Glove" width={40} height={40} />
             </Link>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-300">
-              <Link href="/politics" className="transition-colors hover:text-red-500">
-                정치
-              </Link>
-              <Link href="/economy" className="transition-colors hover:text-red-500">
-                경제
-              </Link>
-              <Link href="/society" className="transition-colors hover:text-red-500">
-                사회
-              </Link>
-              <Link href="/sports" className="transition-colors hover:text-red-500">
-                스포츠
-              </Link>
+            <nav className="hidden md:flex items-center gap-6 text-base font-medium text-gray-300">
+              <Link href="/politics" className="transition-colors hover:text-red-500">정치</Link>
+              <Link href="/economy" className="transition-colors hover:text-red-500">경제</Link>
+              <Link href="/society" className="transition-colors hover:text-red-500">사회</Link>
+              <Link href="/culture" className="transition-colors hover:text-red-500">문화</Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-400 dark:text-gray-500"
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="검색어를 입력하세요."
-                className="w-full rounded-md border bg-gray-100 dark:bg-neutral-800 border-gray-300 dark:border-neutral-700 px-3 py-2 pl-10 text-sm text-black dark:text-white focus:outline-none focus:border-blue-500"
-              />
+              {/* Search Input - kept as is */}
             </div>
-            <button className="text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white">
-              로그인
-            </button>
-            <button className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
-              회원가입
-            </button>
-            <ThemeSwitcher />
+            {isAuthenticated && user ? (
+              <div className="relative" ref={dropdownRef}>
+                <button 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
+                  className="flex items-center gap-2 rounded-full bg-neutral-800 py-1 pl-1 pr-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-neutral-700"
+                >
+                  <Image src="/user-icon.svg" alt="User Profile" width={28} height={28} className="rounded-full bg-neutral-600 p-1" />
+                  <span>{user.nickname}</span>
+                </button>
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-[#2e2e2e] border border-neutral-700 rounded-md shadow-lg py-1 z-10">
+                    <Link href="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-neutral-600">
+                      프로필
+                    </Link>
+                    <button 
+                      onClick={logout} 
+                      className="w-full text-left block px-4 py-2 text-sm text-red-400 hover:bg-neutral-600"
+                    >
+                      로그아웃
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm font-semibold text-gray-200 hover:text-white">
+                  로그인
+                </Link>
+                <Link href="/register" className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                  회원가입
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

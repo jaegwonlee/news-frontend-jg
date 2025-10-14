@@ -1,8 +1,8 @@
+import { AuthProvider } from "@/context/AuthContext";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "NewsRound1",
@@ -15,15 +15,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" suppressHydrationWarning>
-      <body className="bg-white dark:bg-[#212121] text-black dark:text-white transition-colors duration-300">
-        <Providers>
+    <html lang="ko">
+      <body>
+        <AuthProvider>
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow w-full">{children}</main>
             <Footer />
           </div>
-        </Providers>
+        </AuthProvider>
       </body>
     </html>
   );
