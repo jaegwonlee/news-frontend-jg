@@ -41,8 +41,12 @@ export default function LoginPage() {
       } else {
         throw new Error('로그인에 성공했지만 필수 정보(토큰 또는 사용자 정보)를 받지 못했습니다.');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      let errorMessage = '알 수 없는 에러가 발생했습니다.';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
       console.error('Login failed:', err);
     } finally {
       setIsLoading(false);
