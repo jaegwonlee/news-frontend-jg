@@ -74,7 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Do not render children until the token validation is complete
   if (loading) {
-    return null; // Or a loading spinner
+    return (
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
   }
 
   return (
