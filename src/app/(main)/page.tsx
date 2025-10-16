@@ -1,11 +1,10 @@
 // src/app/page.tsx
 
-import NewsCard from "@/components/news/NewsCard";
-import MediaNewsList from "@/components/news/MediaNewsList";
-import { Article } from "@/types/article";
 import DebateRoomList from "@/components/main/DebateRoomList";
-import { allDebateRooms, exclusiveNews, flashNews } from "@/lib/mock-data";
 import NewsTabSection from "@/components/main/NewsTabSection";
+import MediaNewsList from "@/components/news/MediaNewsList";
+import { allDebateRooms, exclusiveNews, flashNews } from "@/lib/mock-data";
+import Link from "next/link";
 
 // Mock data for the new media section
 const mediaCompanies = [
@@ -55,9 +54,7 @@ const mediaCompanies = [
 
 export default async function Home() {
   // Get Top 10 Debate Rooms by sorting and slicing
-  const top10DebateRooms = [...allDebateRooms]
-    .sort((a, b) => b.participants - a.participants)
-    .slice(0, 10);
+  const top10DebateRooms = [...allDebateRooms].sort((a, b) => b.participants - a.participants).slice(0, 10);
 
   return (
     <div className="container mx-auto px-4 mt-8">
@@ -69,7 +66,12 @@ export default async function Home() {
               <section className="flex flex-col h-[calc(36rem+44px)]">
                 <div className="flex justify-between items-center border-b-4 border-red-500 pb-2 mb-4">
                   <h2 className="text-xl font-bold">TOP 10 논쟁방</h2>
-                  <a href="/debate" className="text-sm text-neutral-400 hover:text-white">전체보기</a>
+                  {/*
+                    이 부분이 a 태그에서 Link 태그로 수정되었습니다.
+                  */}
+                  <Link href="/debate" className="text-sm text-neutral-400 hover:text-white">
+                    전체보기
+                  </Link>
                 </div>
                 <div className="flex-grow overflow-y-auto pr-2">
                   <DebateRoomList rooms={top10DebateRooms} />
@@ -109,11 +111,7 @@ export default async function Home() {
         <h2 className="text-3xl font-bold text-center mb-8">언론사별 최신뉴스</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mediaCompanies.map((media) => (
-            <MediaNewsList
-              key={media.name}
-              mediaName={media.name}
-              articles={media.articles}
-            />
+            <MediaNewsList key={media.name} mediaName={media.name} articles={media.articles} />
           ))}
         </div>
       </section>
