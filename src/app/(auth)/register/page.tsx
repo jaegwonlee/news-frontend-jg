@@ -106,14 +106,42 @@ export default function RegisterPage() {
 
     setIsLoading(true);
 
-    // ... (기존 백엔드 연동 로직)
+    try {
+      const apiRequestBody = {
+        name: formState.name,
+        nickname: formState.nickname,
+        email: formState.email,
+        password: formState.password,
+        password_confirmation: formState.passwordConfirm,
+        phone: formState.phone,
+      };
 
-    // 임시 성공 처리 (백엔드 연동 전 테스트용)
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
-    router.push("/login");
+      const res = await fetch('https://news-buds.onrender.com/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiRequestBody),
+      });
 
-    setIsLoading(false);
+      if (!res.ok) {
+        const errorData = await res.json();
+        const message = errorData.message || JSON.stringify(errorData);
+        throw new Error(message);
+      }
+
+      alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
+      router.push("/login");
+
+    } catch (error) {
+      if (error instanceof Error) {
+        setServerError(error.message);
+      } else {
+        setServerError("알 수 없는 에러가 발생했습니다.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

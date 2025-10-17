@@ -29,8 +29,15 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 text-3xl font-extrabold tracking-tighter text-white">
-              NEWSROUND1
+            <Link href="/" className="flex items-center">
+              <svg width="280" height="60" viewBox="0 0 280 60" xmlns="http://www.w3.org/2000/svg">
+                <path id="curve" d="M10,50 Q140,5 270,50" fill="transparent" />
+                <text style={{ fill: 'white', fontSize: '1.875rem', fontWeight: 800, letterSpacing: '-0.05em', textAnchor: 'middle' }}>
+                  <textPath href="#curve" startOffset="50%">
+                    NEWSROUND1
+                  </textPath>
+                </text>
+              </svg>
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-base font-medium text-gray-300">
               <Link href="/politics" className="transition-colors hover:text-red-500">

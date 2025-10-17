@@ -6,6 +6,7 @@ interface NewsItem {
   id: string;
   title: string;
   source: string;
+  url: string;
 }
 
 interface NewsTabSectionProps {
@@ -35,7 +36,7 @@ export default function NewsTabSection({ exclusiveNews, flashNews }: NewsTabSect
       </div>
       <div className="flex-grow overflow-y-auto pr-2 space-y-2">
         {newsToShow.map((news) => (
-          <a key={news.id} href="#" className="block p-3 bg-neutral-800 hover:bg-neutral-700 rounded-md transition-colors">
+          <a key={news.id} href={news.url} target="_blank" rel="noopener noreferrer" className="block p-3 bg-neutral-800 hover:bg-neutral-700 rounded-md transition-colors">
             <p className="font-semibold truncate">{news.title}</p>
             <p className="text-xs text-neutral-400 mt-1">{news.source}</p>
           </a>

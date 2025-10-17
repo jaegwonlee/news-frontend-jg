@@ -1,10 +1,12 @@
 export interface Article {
-  id: string;
-  link: string;
-  imageUrl: string;
+  id: number;
+  url: string;
+  thumbnail_url: string;
   title: string;
-  description: string;
+  description?: string; // Optional as it's not in the API response
   source: string;
-  date: string;
-  category: string;
+  source_domain?: string;
+  favicon_url?: string;
+  published_at: string;
+  category?: string; // Optional as it's not in the API response
 }
