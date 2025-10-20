@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import Image from 'next/image';
+import { useAuth } from "@/context/AuthContext";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -11,7 +11,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [isAuthenticated, router]);
 
@@ -30,7 +30,7 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative">
               <Image
-                src={user.profileImage || '/user-icon.svg'}
+                src={user.profileImage || "/user-icon.svg"}
                 alt="Profile"
                 width={180}
                 height={180}

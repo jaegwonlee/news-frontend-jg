@@ -1,10 +1,9 @@
-// src/app/page.tsx
-
 import DebateRoomList from "@/components/main/DebateRoomList";
 import NewsTabSection from "@/components/main/NewsTabSection";
 import { allDebateRooms, economyNews, politicsNews } from "@/lib/mock-data";
 import Link from "next/link";
 import CategoryNewsSection from "@/components/main/CategoryNewsSection";
+import ChatRoom from "@/components/common/ChatRoom";
 
 interface RawNewsArticle {
   id: number;
@@ -79,22 +78,7 @@ export default async function Home() {
 
               {/* Column 2: Round 1 Chat */}
               <section className="md:col-span-2 flex flex-col h-[calc(36rem+44px)]">
-                <h2 className="text-xl font-bold border-b-4 border-red-500 pb-2 mb-4">ROUND 1</h2>
-                <div className="flex-grow flex flex-col bg-[#2e2e2e] rounded-md p-4">
-                  <div className="flex-grow mb-4 text-center text-neutral-400 text-sm overflow-y-auto">
-                    <p className="mt-4">[test]님이 입장했습니다.</p>
-                  </div>
-                  <div className="flex">
-                    <input
-                      type="text"
-                      placeholder="메시지를 입력하세요."
-                      className="w-full p-2 rounded-l-md bg-neutral-700 text-white border border-neutral-600 focus:outline-none focus:border-blue-500"
-                    />
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-r-md font-bold">
-                      전송
-                    </button>
-                  </div>
-                </div>
+                <ChatRoom title="ROUND 1" roomId="1" />
               </section>
 
               {/* Column 3: Breaking/Flash News */}

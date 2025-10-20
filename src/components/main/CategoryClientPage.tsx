@@ -12,6 +12,22 @@ interface CategoryClientPageProps {
 
 const ARTICLE_LIMIT = 10;
 
+// Helper function to get roomId based on categoryName
+const getRoomIdForCategory = (categoryName: string): string => {
+  switch (categoryName) {
+    case "정치":
+      return "2";
+    case "경제":
+      return "3";
+    case "사회":
+      return "4";
+    case "문화":
+      return "5";
+    default:
+      return "unknown"; // Or handle error appropriately
+  }
+};
+
 export default function CategoryClientPage({ categoryName, chatRoomTitle }: CategoryClientPageProps) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [offset, setOffset] = useState(0);
@@ -93,7 +109,7 @@ export default function CategoryClientPage({ categoryName, chatRoomTitle }: Cate
         </div>
       </div>
       <div className="lg:col-span-1 lg:sticky lg:top-24 h-[calc(100vh-150px)]">
-        <ChatRoom title={chatRoomTitle} />
+        <ChatRoom title={chatRoomTitle} roomId={getRoomIdForCategory(categoryName)} />
       </div>
     </div>
   );
