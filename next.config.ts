@@ -16,16 +16,8 @@ const nextConfig: NextConfig = {
         hostname: "www.google.com",
       },
       {
-        protocol: "httpshttps",
+        protocol: "https",
         hostname: "media.livere.org",
-      },
-      {
-        protocol: "https",
-        hostname: "news02.onrender.com",
-      },
-      {
-        protocol: "https",
-        hostname: "via.placeholder.com",
       },
     ],
   },

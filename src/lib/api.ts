@@ -277,24 +277,3 @@ export async function deleteUser(token: string): Promise<User> {
 
   return await res.json();
 }
-
-export async function uploadAvatar(token: string, file: File): Promise<{ avatarUrl: string }> {
-  const formData = new FormData();
-  formData.append('avatar', file);
-
-  const res = await fetch(`${API_BASE_URL}/avatars`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ message: 'No error message from server' }));
-    const errorMessage = errorData.message || JSON.stringify(errorData);
-    throw new Error(`Failed to upload avatar: ${res.status} - ${errorMessage}`);
-  }
-
-  return await res.json();
-}

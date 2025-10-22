@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import io, { Socket } from "socket.io-client";
 import { useAuth } from "@/context/AuthContext";
 
@@ -114,13 +113,10 @@ export default function ChatRoom({ title, roomId }: ChatRoomProps) {
           return (
             <div key={index} className={`flex items-start gap-3 ${isMyMessage ? "justify-end" : "justify-start"}`}>
               {!isMyMessage && (
-                <Image
+                <img
                   src={msg.profileImage || '/placeholder-image.svg'}
                   alt={msg.author}
-                  width={40}
-                  height={40}
                   className="w-10 h-10 rounded-full object-cover border-2 border-neutral-700"
-                  unoptimized
                 />
               )}
 
@@ -140,13 +136,10 @@ export default function ChatRoom({ title, roomId }: ChatRoomProps) {
               </div>
 
               {isMyMessage && (
-                <Image
+                <img
                   src={user?.profileImage || '/placeholder-image.svg'}
                   alt={msg.author}
-                  width={40}
-                  height={40}
                   className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
-                  unoptimized
                 />
               )}
             </div>

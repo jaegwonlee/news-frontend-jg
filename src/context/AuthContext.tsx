@@ -11,7 +11,6 @@ interface AuthContextType {
   token: string | null; // Added token to AuthContextType
   login: (token: string, userData: User) => void;
   logout: () => void;
-  updateUserContext: (partialUser: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,13 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = '/login';
   };
 
-  const updateUserContext = (partialUser: Partial<User>) => {
-    setUser(prevUser => {
-      if (!prevUser) return null;
-      return { ...prevUser, ...partialUser };
-    });
-  };
-
   // Do not render children until the token validation is complete
   if (loading) {
     return (
@@ -78,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, token, login, logout, updateUserContext }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

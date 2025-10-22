@@ -2,33 +2,22 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { useRef, useState, useEffect } from "react";
-import { uploadAvatar, updateUser } from "@/lib/api";
-import toast from "react-hot-toast";
+import { useRef, useState } from "react";
 
 const ProfileClientPage = () => {
-  const { user, logout, token, updateUserContext } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("profile");
 
   // Profile States
-  const [nickname, setNickname] = useState("");
-  const [email, setEmail] = useState("");
-  const [profileImage, setProfileImage] = useState("https://via.placeholder.com/150/000000/FFFFFF?text=User");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+  const [nickname, setNickname] = useState(user?.nickname || "사용자");
+  const [email, setEmail] = useState(user?.email || "user@example.com");
+  const [profileImage, setProfileImage] = useState(
+    user?.profileImage || "https://via.placeholder.com/150/000000/FFFFFF?text=User"
+  );
   const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (user) {
-      setNickname(user.nickname || "사용자");
-      setEmail(user.email || "user@example.com");
-      setProfileImage(user.profileImage || "https://via.placeholder.com/150/000000/FFFFFF?text=User");
-    }
-  }, [user]);
-
 
   // Notification States
   const [breakingNews, setBreakingNews] = useState(true);
@@ -50,7 +39,6 @@ const ProfileClientPage = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
@@ -59,46 +47,11 @@ const ProfileClientPage = () => {
     }
   };
 
-  const handleProfileSave = async () => {
-    if (!token || !user) {
-      toast.error("로그인이 필요합니다.");
-      return;
-    }
-
-    const loadingToast = toast.loading("프로필을 저장하는 중...");
-
-    try {
-      let hasUpdated = false;
-
-      // 1. Update nickname if it has changed
-      if (nickname !== user.nickname) {
-        const updatedUserData = await updateUser(token, user.id, { nickname });
-        updateUserContext({ nickname: updatedUserData.nickname });
-        hasUpdated = true;
-      }
-
-      // 2. Upload new avatar if selected
-      if (selectedFile) {
-        const { avatarUrl } = await uploadAvatar(token, selectedFile);
-        const updatedUserData = await updateUser(token, user.id, { profileImage: avatarUrl });
-        updateUserContext({ profileImage: updatedUserData.profileImage });
-        setProfileImage(updatedUserData.profileImage || "");
-        setSelectedFile(null);
-        hasUpdated = true;
-      }
-
-      toast.dismiss(loadingToast);
-      if (hasUpdated) {
-        toast.success("프로필이 성공적으로 저장되었습니다!");
-      } else {
-        toast.success("변경사항이 없습니다.");
-      }
-      setIsEditingNickname(false);
-
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      toast.error(`프로필 저장에 실패했습니다: ${error instanceof Error ? error.message : String(error)}`);
-    }
+  const handleProfileSave = () => {
+    setIsEditingNickname(false);
+    setIsEditingEmail(false);
+    console.log("Saving profile:", { nickname, email, profileImage });
+    // API call to save profile data
   };
 
   const handleNotificationsSave = () => {
@@ -183,13 +136,10 @@ const ProfileClientPage = () => {
               <h1 className="text-3xl font-extrabold text-white mb-8">프로필 설정</h1>
               <div className="space-y-8">
                 <div className="flex flex-col items-center space-y-4">
-                  <Image
+                  <img
                     className="w-32 h-32 rounded-full object-cover border-4 border-indigo-500"
                     src={profileImage}
                     alt="프로필 이미지"
-                    width={128}
-                    height={128}
-                    unoptimized
                   />
                   <input
                     type="file"
@@ -234,7 +184,23 @@ const ProfileClientPage = () => {
                     이메일
                   </label>
                   <div className="flex items-center space-x-4">
-                    <p className="flex-grow text-gray-400 text-lg">{email}</p>
+                    {isEditingEmail ? (
+                      <input
+                        type="email"
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="flex-grow p-3 rounded-md bg-gray-800 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 text-white"
+                      />
+                    ) : (
+                      <p className="flex-grow text-white text-lg">{email}</p>
+                    )}
+                    <button
+                      onClick={() => setIsEditingEmail(!isEditingEmail)}
+                      className="py-2 px-4 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors duration-200"
+                    >
+                      {isEditingEmail ? "완료" : "수정"}
+                    </button>
                   </div>
                 </div>
                 <button
