@@ -4,6 +4,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -101,10 +102,13 @@ export default function Header() {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex flex-col items-center gap-1 text-xs font-semibold text-gray-200 transition-colors hover:text-white"
                   >
-                    <img 
+                    <Image 
                       src={user.profileImage || "https://via.placeholder.com/150/000000/FFFFFF?text=U"} 
                       alt="프로필" 
+                      width={32}
+                      height={32}
                       className="w-8 h-8 rounded-full object-cover border-2 border-neutral-600"
+                      unoptimized
                     />
                     <span>{user.nickname}</span>
                   </button>

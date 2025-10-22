@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { searchArticles } from '@/lib/api';
 import NewsCard from '@/components/news/NewsCard';
@@ -19,7 +19,7 @@ function SearchPageComponent() {
   const [sortBy, setSortBy] = useState('created_at'); // Default sort by created_at
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // Default sort order desc (latest)
 
-  const performSearch = async (searchQuery: string, newSearch: boolean = false) => {
+  const performSearch = useCallback(async (searchQuery: string, newSearch: boolean = false) => {
     if (!searchQuery.trim()) {
       setArticles([]);
       setLoading(false);
@@ -39,11 +39,11 @@ function SearchPageComponent() {
     setHasMore(fetchedArticles.length === 10);
     setPage(currentPage + 1);
     setLoading(false);
-  };
+  }, [page, sortBy, sortOrder]);
 
   useEffect(() => {
     performSearch(initialQuery, true);
-  }, [initialQuery, sortBy, sortOrder]);
+  }, [initialQuery, sortBy, sortOrder, performSearch]);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -82,7 +82,7 @@ function SearchPageComponent() {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-white">
-          "{initialQuery}" 검색 결과
+          &quot;{initialQuery}&quot; 검색 결과
         </h1>
         <div className="relative">
           <select
@@ -103,7 +103,7 @@ function SearchPageComponent() {
         <div className="text-center text-neutral-400 py-10">검색 결과를 불러오는 중...</div>
       ) : articles.length === 0 ? (
         <div className="text-center text-neutral-400 py-10">
-          <p>"{initialQuery}"에 대한 검색 결과가 없습니다.</p>
+          <p>&quot;{initialQuery}&quot;에 대한 검색 결과가 없습니다.</p>
         </div>
       ) : (
         <>

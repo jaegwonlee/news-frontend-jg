@@ -119,7 +119,7 @@ export async function getCategoryNews(categoryName: string) {
   }
 }
 
-export async function signUpUser(userData: any) {
+export async function signUpUser(userData: Record<string, unknown>) {
   const res = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: 'POST',
     headers: {
@@ -137,7 +137,7 @@ export async function signUpUser(userData: any) {
   return await res.json();
 }
 
-export async function loginUser(credentials: any) {
+export async function loginUser(credentials: Record<string, unknown>) {
   const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: {
@@ -261,7 +261,7 @@ export async function updateUserPassword(token: string, passwordData: UserPasswo
   return await res.json();
 }
 
-export async function deleteUser(token: string, userId: number): Promise<User> {
+export async function deleteUser(token: string): Promise<User> {
   const res = await fetch(`${API_BASE_URL}/user/me`, {
     method: 'DELETE',
     headers: {

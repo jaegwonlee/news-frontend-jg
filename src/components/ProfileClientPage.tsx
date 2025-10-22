@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
 import { uploadAvatar, updateUser } from "@/lib/api";
 import toast from "react-hot-toast";
@@ -182,10 +183,13 @@ const ProfileClientPage = () => {
               <h1 className="text-3xl font-extrabold text-white mb-8">프로필 설정</h1>
               <div className="space-y-8">
                 <div className="flex flex-col items-center space-y-4">
-                  <img
+                  <Image
                     className="w-32 h-32 rounded-full object-cover border-4 border-indigo-500"
                     src={profileImage}
                     alt="프로필 이미지"
+                    width={128}
+                    height={128}
+                    unoptimized
                   />
                   <input
                     type="file"

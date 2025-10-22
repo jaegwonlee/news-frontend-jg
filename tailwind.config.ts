@@ -1,6 +1,7 @@
 // tailwind.config.ts
 
 import type { Config } from "tailwindcss";
+import bgPatterns from 'tailwindcss-bg-patterns';
 
 const config: Config = {
   content: [
@@ -26,7 +27,7 @@ const config: Config = {
     },
   },
   plugins: [
-    require('tailwindcss-bg-patterns'),
+    bgPatterns,
   ],
 };
 export default config;
