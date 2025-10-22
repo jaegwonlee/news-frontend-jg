@@ -18,9 +18,15 @@ export default async function DebateListPage() {
   }));
 
   return (
-    <div className="container mx-auto px-4 mt-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 border-b-4 border-red-500 pb-4">전체 논쟁방</h1>
+    <div className="min-h-screen bg-neutral-900 text-gray-100 py-12">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-extrabold text-white mb-4">전체 논쟁방</h1>
+          <p className="text-lg text-neutral-400 max-w-2xl mx-auto">
+            다양한 주제에 대한 실시간 토론에 참여하고 의견을 나누세요.
+          </p>
+        </div>
+
         <div className="relative min-h-[300px]">
           {fetchError && (
             <p className="text-red-500 text-center absolute inset-0 flex items-center justify-center">{fetchError}</p>

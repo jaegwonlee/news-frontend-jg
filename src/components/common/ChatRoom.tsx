@@ -84,7 +84,7 @@ export default function ChatRoom({ title, roomId }: ChatRoomProps) {
       });
 
       const sentMessage: Message = {
-        author: user.nickname,
+        author: user.nickname || 'Unknown',
         message: newMessage,
         profileImage: user.profileImage,
         timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })

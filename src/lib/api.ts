@@ -1,6 +1,7 @@
 
 
 import { User, UserUpdate, UserPasswordUpdate } from "@/types/user";
+import { Article } from "@/types/article";
 
 export const API_BASE_URL = "https://news02.onrender.com/api";
 
@@ -59,13 +60,13 @@ export async function getTopicById(id: string): Promise<TopicDetailResponse | nu
   }
 }
 
-export async function getExclusiveNews() {
+export async function getExclusiveNews(): Promise<Article[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/articles/exclusives?limit=5&offset=0`, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const rawArticles: RawNewsArticle[] = await res.json();
     return rawArticles.map(article => ({
-      id: article.id.toString(),
+      id: article.id,
       title: article.title,
       source: article.source,
       url: article.url,
@@ -79,13 +80,13 @@ export async function getExclusiveNews() {
   }
 }
 
-export async function getBreakingNews() {
+export async function getBreakingNews(): Promise<Article[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/articles/breaking?limit=10&offset=0`, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const rawArticles: RawNewsArticle[] = await res.json();
     return rawArticles.map(article => ({
-      id: article.id.toString(),
+      id: article.id,
       title: article.title,
       source: article.source,
       url: article.url,
@@ -99,13 +100,13 @@ export async function getBreakingNews() {
   }
 }
 
-export async function getCategoryNews(categoryName: string) {
+export async function getCategoryNews(categoryName: string): Promise<Article[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/articles/by-category?name=${categoryName}&limit=10&offset=0`, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const rawArticles: RawNewsArticle[] = await res.json();
     return rawArticles.map(article => ({
-      id: article.id.toString(),
+      id: article.id,
       title: article.title,
       source: article.source,
       url: article.url,
@@ -155,7 +156,7 @@ export async function loginUser(credentials: Record<string, unknown>) {
   return await res.json();
 }
 
-export async function fetchUser(token: string) {
+export async function fetchUser(token: string): Promise<User> {
   const res = await fetch(`${API_BASE_URL}/user/me`, {
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -184,7 +185,7 @@ export async function searchArticles(query: string, page: number = 1, limit: num
     }
     const rawArticles: RawNewsArticle[] = await res.json();
     return rawArticles.map(article => ({
-      id: article.id.toString(),
+      id: article.id,
       title: article.title,
       source: article.source,
       url: article.url,
@@ -206,7 +207,7 @@ export async function getLatestNews(limit: number = 10): Promise<Article[]> {
 
     // Flatten the array of arrays and create a map to remove duplicates
     const allArticles = results.flat();
-    const uniqueArticlesMap = new Map<string, Article>();
+    const uniqueArticlesMap = new Map<number, Article>(); // Changed to number for id
     allArticles.forEach(article => {
       uniqueArticlesMap.set(article.id, article);
     });
