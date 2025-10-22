@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import NewsCard from "@/components/news/NewsCard";
 import ChatRoom from "@/components/common/ChatRoom";
 import { Article } from "@/types/article";
+import { API_BASE_URL } from '@/lib/api';
 
 interface CategoryClientPageProps {
   categoryName: string;
@@ -11,22 +12,6 @@ interface CategoryClientPageProps {
 }
 
 const ARTICLE_LIMIT = 10;
-
-// Helper function to get roomId based on categoryName
-const getRoomIdForCategory = (categoryName: string): string => {
-  switch (categoryName) {
-    case "정치":
-      return "2";
-    case "경제":
-      return "3";
-    case "사회":
-      return "4";
-    case "문화":
-      return "5";
-    default:
-      return "unknown"; // Or handle error appropriately
-  }
-};
 
 export default function CategoryClientPage({ categoryName, chatRoomTitle }: CategoryClientPageProps) {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -40,7 +25,7 @@ export default function CategoryClientPage({ categoryName, chatRoomTitle }: Cate
     setIsLoading(true);
 
     try {
-      const res = await fetch(`https://news-buds.onrender.com/api/articles/by-category?name=${categoryName}&offset=${currentOffset}&limit=${ARTICLE_LIMIT}`);
+      const res = await fetch(`${API_BASE_URL}/articles/by-category?name=${categoryName}&offset=${currentOffset}&limit=${ARTICLE_LIMIT}`);
       if (!res.ok) {
         throw new Error('Failed to fetch articles');
       }
@@ -109,7 +94,7 @@ export default function CategoryClientPage({ categoryName, chatRoomTitle }: Cate
         </div>
       </div>
       <div className="lg:col-span-1 lg:sticky lg:top-24 h-[calc(100vh-150px)]">
-        <ChatRoom title={chatRoomTitle} roomId={getRoomIdForCategory(categoryName)} />
+        <ChatRoom title={chatRoomTitle} />
       </div>
     </div>
   );

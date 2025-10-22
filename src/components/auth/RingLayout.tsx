@@ -27,7 +27,7 @@ const RingLayout: React.FC<RingLayoutProps> = ({ children, title }) => {
         ))}
       </div>
 
-      <div className="w-full max-w-2xl p-8 pt-12 space-y-6 bg-[#101010] rounded-lg shadow-2xl z-10 relative border-8 border-neutral-600">
+      <div className="w-full max-w-lg p-8 pt-12 space-y-6 bg-[#101010] rounded-lg shadow-2xl z-10 relative border-8 border-neutral-600">
         {/* Ring Ropes - Top (Red) */}
         <div className="absolute -top-4 left-0 w-full h-2 bg-red-500"></div>
         <div className="absolute -top-8 left-0 w-full h-2 bg-red-500"></div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import NewsCard from "@/components/news/NewsCard";
 import { Article } from "@/types/article";
+import { API_BASE_URL } from '@/lib/api';
 
 const ARTICLE_LIMIT = 10;
 
@@ -29,7 +30,7 @@ export default function ExclusivesClientPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`https://news-buds.onrender.com/api/articles/exclusives?offset=${currentOffset}&limit=${ARTICLE_LIMIT}`);
+      const res = await fetch(`${API_BASE_URL}/articles/exclusives?offset=${currentOffset}&limit=${ARTICLE_LIMIT}`);
       if (!res.ok) {
         throw new Error('Failed to fetch exclusive articles');
       }

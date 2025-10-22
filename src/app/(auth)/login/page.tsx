@@ -3,6 +3,7 @@
 import AuthLayout from "@/components/auth/AuthLayout";
 import FormField from "@/components/auth/FormField";
 import { useAuth } from "@/context/AuthContext";
+import { loginUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -86,20 +87,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("https://news-buds.onrender.com/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formState),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "로그인에 실패했습니다.");
-      }
-
-      const data = await res.json();
+      const data = await loginUser(formState);
 
       if (data.token && data.user) {
         login(data.token, data.user);

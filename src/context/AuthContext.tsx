@@ -1,21 +1,17 @@
 'use client';
 
+import { fetchUser } from '@/lib/api';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-// Define the user data structure
-interface User {
-  id: number;
-  nickname: string;
-  email: string;
-  profileImage?: string;
-  // Add other user properties as needed
-}
+import { User } from "@/types/user"; // Import User interface from types/user.ts
+import toast from 'react-hot-toast';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
+  token: string | null; // Added token to AuthContextType
   login: (token: string, userData: User) => void;
   logout: () => void;
+  updateUserContext: (partialUser: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,33 +19,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null); // Added token state
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const validateToken = async () => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
+      const storedToken = localStorage.getItem('authToken');
+      if (storedToken) {
         try {
-          // Assume an endpoint to get user info from token
-          const res = await fetch('https://news-buds.onrender.com/api/users/me', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-
-          if (res.ok) {
-            const userData = await res.json();
-            setUser(userData.user); // Assuming the response is { user: { ... } }
-            setIsAuthenticated(true);
-          } else {
-            // Token is invalid or expired
-            localStorage.removeItem('authToken');
-            setIsAuthenticated(false);
-            setUser(null);
-          }
+          const userData = await fetchUser(storedToken);
+          setToken(storedToken); // Set token state
+          setUser(userData);
+          setIsAuthenticated(true);
         } catch (error) {
           console.error('Failed to validate token', error);
+          toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
           localStorage.removeItem('authToken');
+          setToken(null); // Clear token state on error
           setIsAuthenticated(false);
           setUser(null);
         }
@@ -60,17 +46,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     validateToken();
   }, []);
 
-  const login = (token: string, userData: User) => {
-    localStorage.setItem('authToken', token);
+  const login = (newToken: string, userData: User) => {
+    localStorage.setItem('authToken', newToken);
+    setToken(newToken); // Set token state on login
     setUser(userData);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
     localStorage.removeItem('authToken');
+    setToken(null); // Clear token state on logout
     setUser(null);
     setIsAuthenticated(false);
     window.location.href = '/login';
+  };
+
+  const updateUserContext = (partialUser: Partial<User>) => {
+    setUser(prevUser => {
+      if (!prevUser) return null;
+      return { ...prevUser, ...partialUser };
+    });
   };
 
   // Do not render children until the token validation is complete
@@ -83,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, token, login, logout, updateUserContext }}>
       {children}
     </AuthContext.Provider>
   );

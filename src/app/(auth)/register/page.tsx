@@ -2,6 +2,7 @@
 
 import FormField from "@/components/auth/FormField";
 import RingLayout from "@/components/auth/RingLayout";
+import { signUpUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -116,19 +117,7 @@ export default function RegisterPage() {
         phone: formState.phone,
       };
 
-      const res = await fetch('https://news-buds.onrender.com/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(apiRequestBody),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        const message = errorData.message || JSON.stringify(errorData);
-        throw new Error(message);
-      }
+      await signUpUser(apiRequestBody);
 
       alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
       router.push("/login");

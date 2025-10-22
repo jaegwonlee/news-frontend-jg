@@ -1,8 +1,15 @@
 // src/components/news/MainNewsCard.tsx
+import StyledArticleTitle from "@/components/common/StyledArticleTitle";
 import Image from 'next/image';
 import { Article } from '@/types/article';
+import { FAVICON_URLS } from "@/lib/constants";
 
 const MainNewsCard = ({ article }: { article: Article }) => {
+  const faviconUrl = article.favicon_url 
+    || (article.source_domain && FAVICON_URLS[article.source_domain]) 
+    || FAVICON_URLS[article.source] 
+    || "/favicon.ico";
+
   return (
     <a
       href={article.url}
@@ -19,10 +26,17 @@ const MainNewsCard = ({ article }: { article: Article }) => {
           unoptimized
         />
       </div>
-      <h3 className="text-lg font-bold text-neutral-100 mb-2 group-hover:text-white">
-        {article.title}
-      </h3>
-      <p className="text-sm text-neutral-400">{article.source}</p>
+      <StyledArticleTitle title={article.title} className="text-lg font-bold text-neutral-100 mb-2 group-hover:text-white" />
+      <div className="flex items-center text-sm text-neutral-400">
+        <Image
+          src={faviconUrl}
+          alt={`${article.source} favicon`}
+          width={16}
+          height={16}
+          className="mr-2"
+        />
+        <span>{article.source}</span>
+      </div>
     </a>
   );
 };

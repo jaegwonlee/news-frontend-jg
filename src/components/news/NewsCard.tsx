@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Article } from "@/types/article";
 import { FAVICON_URLS } from "@/lib/constants";
+import StyledArticleTitle from "@/components/common/StyledArticleTitle";
 
 const NewsCard = ({ article }: { article: Article }) => {
   const faviconUrl = article.favicon_url 
@@ -28,9 +29,7 @@ const NewsCard = ({ article }: { article: Article }) => {
       </div>
       <div className="flex flex-col justify-between flex-grow">
         <div>
-          <h3 className="text-lg font-bold text-neutral-100 transition-colors duration-300 group-hover:text-white">
-            {article.title}
-          </h3>
+          <StyledArticleTitle title={article.title} className="text-lg font-bold text-neutral-100 transition-colors duration-300 group-hover:text-white" />
           <p className="text-sm text-neutral-400 mt-2 overflow-hidden h-10">
             {article.description || ''}
           </p>
@@ -44,9 +43,9 @@ const NewsCard = ({ article }: { article: Article }) => {
             className="mr-2"
           />
           <span>{article.source}</span>
+          {article.source_domain && <span className="text-neutral-600 ml-2">({article.source_domain})</span>}
           <span className="mx-2">·</span>
-          {/* Format the date for display */}
-          <span>{new Date(article.published_at).toLocaleDateString()}</span>
+          <span>{new Date(article.published_at).toLocaleString()}</span>
         </div>
       </div>
     </a>
