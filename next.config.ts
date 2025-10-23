@@ -5,11 +5,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "www.chosun.com",
+        hostname: "*.chosun.com",
       },
       {
         protocol: "https",
-        hostname: "img.khan.co.kr",
+        hostname: "*.khan.co.kr",
       },
       {
         protocol: "https",
@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "media.livere.org",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.donga.com",
+      },
+      {
+        protocol: "https",
+        hostname: "flexible.img.hani.co.kr",
       },
     ],
   },

@@ -16,35 +16,32 @@ const NewsCard = ({ article }: { article: Article }) => {
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden transition-all duration-300 hover:border-neutral-700 hover:shadow-lg hover:scale-[1.02] flex mb-4 p-3 cursor-pointer"
+      className="group bg-white border border-neutral-200 rounded-xl overflow-hidden transition-all duration-300 hover:border-neutral-300 hover:shadow-sm hover:scale-[1.02] flex mb-2 p-2 cursor-pointer dark:bg-neutral-900 dark:border-neutral-800 dark:hover:border-neutral-700 dark:hover:shadow-lg"
     >
-      <div className="relative h-24 w-32 flex-shrink-0 mr-5">
+      <div className="relative h-16 w-24 flex-shrink-0 mr-3">
         <Image
           src={article.thumbnail_url || '/placeholder-image.svg'}
           alt={article.title}
           fill
-          className="rounded-lg object-cover"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
           unoptimized
         />
       </div>
       <div className="flex flex-col justify-between flex-grow">
         <div>
-          <StyledArticleTitle title={article.title} className="text-lg font-bold text-neutral-100 transition-colors duration-300 group-hover:text-white" />
-          <p className="text-sm text-neutral-400 mt-2 overflow-hidden h-10">
-            {article.description || ''}
-          </p>
+          <StyledArticleTitle title={article.title} className="text-base font-semibold text-neutral-900 transition-colors duration-300 group-hover:text-neutral-700 dark:text-neutral-100 dark:group-hover:text-white" />
         </div>
-        <div className="text-xs text-neutral-500 mt-2 flex items-center">
+        <div className="text-xs text-neutral-600 mt-1 flex items-center dark:text-neutral-500">
           <Image
             src={faviconUrl}
             alt={`${article.source} favicon`}
-            width={16}
-            height={16}
-            className="mr-2"
+            width={12}
+            height={12}
+            className="mr-1"
           />
           <span>{article.source}</span>
-          {article.source_domain && <span className="text-neutral-600 ml-2">({article.source_domain})</span>}
-          <span className="mx-2">·</span>
+          {article.source_domain && <span className="text-neutral-500 ml-1 dark:text-neutral-600">({article.source_domain})</span>}
+          <span className="mx-1">·</span>
           <span>{new Date(article.published_at).toLocaleString()}</span>
         </div>
       </div>

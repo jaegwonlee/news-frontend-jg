@@ -43,10 +43,10 @@ const CategoryNewsSection = ({ title, articles, linkUrl }: CategoryNewsSectionPr
   return (
     <section className="mb-16">
       <div className="flex justify-between items-center border-b-4 border-red-500 pb-2 mb-6">
-        <h2 className="text-2xl font-bold">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
           {title}
         </h2>
-        <Link href={linkUrl} className="text-sm text-neutral-400 hover:text-white">
+        <Link href={linkUrl} className="text-sm text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">
           전체보기
         </Link>
       </div>
@@ -65,7 +65,7 @@ const CategoryNewsSection = ({ title, articles, linkUrl }: CategoryNewsSectionPr
             {startIndex > 0 && (
               <button 
                 onClick={handlePrev} 
-                className="absolute top-1/2 -left-5 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-200 z-10"
+                className="absolute top-1/2 -left-5 -translate-y-1/2 bg-neutral-300 bg-opacity-70 text-neutral-900 p-2 rounded-full hover:bg-opacity-90 transition-all duration-200 z-10 dark:bg-black dark:bg-opacity-50 dark:text-white dark:hover:bg-opacity-75"
                 aria-label="Previous articles"
               >
                 <ChevronLeftIcon className="h-6 w-6" />
@@ -74,7 +74,7 @@ const CategoryNewsSection = ({ title, articles, linkUrl }: CategoryNewsSectionPr
             {startIndex < articles.length - articlesToShow && (
               <button 
                 onClick={handleNext} 
-                className="absolute top-1/2 -right-5 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-200 z-10"
+                className="absolute top-1/2 -right-5 -translate-y-1/2 bg-neutral-300 bg-opacity-70 text-neutral-900 p-2 rounded-full hover:bg-opacity-90 transition-all duration-200 z-10 dark:bg-black dark:bg-opacity-50 dark:text-white dark:hover:bg-opacity-75"
                 aria-label="Next articles"
               >
                 <ChevronRightIcon className="h-6 w-6" />

@@ -10,4 +10,7 @@ export interface Article {
   published_at: string;
   category?: string; // Optional as it's not in the API response
   side?: 'LEFT' | 'RIGHT' | 'NEUTRAL'; // Added for debate room articles
+  is_featured?: number;
+  view_count?: number;
+  like_count?: number;
 }

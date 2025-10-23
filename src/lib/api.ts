@@ -1,21 +1,19 @@
-
-
-import { User, UserUpdate, UserPasswordUpdate } from "@/types/user";
 import { Article } from "@/types/article";
+import { User, UserPasswordUpdate, UserUpdate } from "@/types/user";
 
 export const API_BASE_URL = "https://news02.onrender.com/api";
 
-export interface Topic {
-  id: number;
-  display_name: string;
-  summary: string;
-  published_at: string;
-  chat_room_id?: string;
-}
+// Helper function to add a timeout to fetch requests
+async function fetchWithTimeout(resource: RequestInfo, options: RequestInit = {}, timeout = 5000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
 
-export interface TopicDetailResponse {
-  topic: Topic;
-  articles: Article[];
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal,
+  });
+  clearTimeout(id);
+  return response;
 }
 
 export interface RawNewsArticle {
@@ -29,43 +27,12 @@ export interface RawNewsArticle {
   favicon_url?: string;
 }
 
-export async function getTopics(): Promise<Topic[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/topics`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data: Topic[] = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch topics:", error);
-    return [];
-  }
-}
-
-export async function getTopicById(id: string): Promise<TopicDetailResponse | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/topics/${id}`);
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null; // Topic not found
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data: TopicDetailResponse = await response.json();
-    return data;
-  } catch (error) {
-    console.error(`Failed to fetch topic with id ${id}:`, error);
-    return null;
-  }
-}
-
 export async function getExclusiveNews(): Promise<Article[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/articles/exclusives?limit=5&offset=0`, { next: { revalidate: 3600 } });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/articles/exclusives?limit=5&offset=0`, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const rawArticles: RawNewsArticle[] = await res.json();
-    return rawArticles.map(article => ({
+    return rawArticles.map((article) => ({
       id: article.id,
       title: article.title,
       source: article.source,
@@ -82,10 +49,10 @@ export async function getExclusiveNews(): Promise<Article[]> {
 
 export async function getBreakingNews(): Promise<Article[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/articles/breaking?limit=10&offset=0`, { next: { revalidate: 3600 } });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/articles/breaking?limit=10&offset=0`, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const rawArticles: RawNewsArticle[] = await res.json();
-    return rawArticles.map(article => ({
+    return rawArticles.map((article) => ({
       id: article.id,
       title: article.title,
       source: article.source,
@@ -102,10 +69,12 @@ export async function getBreakingNews(): Promise<Article[]> {
 
 export async function getCategoryNews(categoryName: string): Promise<Article[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/articles/by-category?name=${categoryName}&limit=10&offset=0`, { next: { revalidate: 3600 } });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/articles/by-category?name=${categoryName}&limit=10&offset=0`, {
+      next: { revalidate: 3600 },
+    });
     if (!res.ok) return [];
     const rawArticles: RawNewsArticle[] = await res.json();
-    return rawArticles.map(article => ({
+    return rawArticles.map((article) => ({
       id: article.id,
       title: article.title,
       source: article.source,
@@ -121,10 +90,10 @@ export async function getCategoryNews(categoryName: string): Promise<Article[]> 
 }
 
 export async function signUpUser(userData: Record<string, unknown>) {
-  const res = await fetch(`${API_BASE_URL}/auth/signup`, {
-    method: 'POST',
+  const res = await fetchWithTimeout(`${API_BASE_URL}/auth/signup`, {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(userData),
   });
@@ -139,10 +108,10 @@ export async function signUpUser(userData: Record<string, unknown>) {
 }
 
 export async function loginUser(credentials: Record<string, unknown>) {
-  const res = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
+  const res = await fetchWithTimeout(`${API_BASE_URL}/auth/login`, {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(credentials),
   });
@@ -157,14 +126,14 @@ export async function loginUser(credentials: Record<string, unknown>) {
 }
 
 export async function fetchUser(token: string): Promise<User> {
-  const res = await fetch(`${API_BASE_URL}/user/me`, {
+  const res = await fetchWithTimeout(`${API_BASE_URL}/user/me`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ message: 'No error message from server' }));
+    const errorData = await res.json().catch(() => ({ message: "No error message from server" }));
     const errorMessage = errorData.message || JSON.stringify(errorData);
     throw new Error(`Failed to fetch user: ${res.status} - ${errorMessage}`);
   }
@@ -172,19 +141,27 @@ export async function fetchUser(token: string): Promise<User> {
   return await res.json();
 }
 
-export async function searchArticles(query: string, page: number = 1, limit: number = 10, sortBy: string = 'created_at', sortOrder: 'asc' | 'desc' = 'desc'): Promise<Article[]> {
+export async function searchArticles(
+  query: string,
+  page: number = 1,
+  limit: number = 10,
+  sortBy: string = "created_at",
+  sortOrder: "asc" | "desc" = "desc"
+): Promise<Article[]> {
   try {
-    const url = `${API_BASE_URL}/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}&sort_by=${sortBy}&order=${sortOrder}`;
+    const url = `${API_BASE_URL}/search?q=${encodeURIComponent(
+      query
+    )}&page=${page}&limit=${limit}&sort_by=${sortBy}&order=${sortOrder}`;
     console.log("Fetching search results from:", url);
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url);
     console.log("Search API response status:", res.status);
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ message: 'No error message from server' }));
+      const errorData = await res.json().catch(() => ({ message: "No error message from server" }));
       const errorMessage = errorData.message || JSON.stringify(errorData);
       throw new Error(`HTTP error! status: ${res.status} - ${errorMessage}`);
     }
     const rawArticles: RawNewsArticle[] = await res.json();
-    return rawArticles.map(article => ({
+    return rawArticles.map((article) => ({
       id: article.id,
       title: article.title,
       source: article.source,
@@ -202,13 +179,13 @@ export async function searchArticles(query: string, page: number = 1, limit: num
 export async function getLatestNews(limit: number = 10): Promise<Article[]> {
   try {
     const categories = ["정치", "경제", "사회", "문화"];
-    const promises = categories.map(category => getCategoryNews(category));
+    const promises = categories.map((category) => getCategoryNews(category));
     const results = await Promise.all(promises);
 
     // Flatten the array of arrays and create a map to remove duplicates
     const allArticles = results.flat();
     const uniqueArticlesMap = new Map<number, Article>(); // Changed to number for id
-    allArticles.forEach(article => {
+    allArticles.forEach((article) => {
       uniqueArticlesMap.set(article.id, article);
     });
 
@@ -225,17 +202,17 @@ export async function getLatestNews(limit: number = 10): Promise<Article[]> {
 }
 
 export async function updateUser(token: string, userId: number, userData: UserUpdate): Promise<User> {
-  const res = await fetch(`${API_BASE_URL}/user/me`, {
-    method: 'PUT',
+  const res = await fetchWithTimeout(`${API_BASE_URL}/user/me`, {
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(userData),
   });
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ message: 'No error message from server' }));
+    const errorData = await res.json().catch(() => ({ message: "No error message from server" }));
     const errorMessage = errorData.message || JSON.stringify(errorData);
     throw new Error(`Failed to update user: ${res.status} - ${errorMessage}`);
   }
@@ -244,17 +221,17 @@ export async function updateUser(token: string, userId: number, userData: UserUp
 }
 
 export async function updateUserPassword(token: string, passwordData: UserPasswordUpdate): Promise<User> {
-  const res = await fetch(`${API_BASE_URL}/user/me/password`, {
-    method: 'PUT',
+  const res = await fetchWithTimeout(`${API_BASE_URL}/user/me/password`, {
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(passwordData),
   });
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ message: 'No error message from server' }));
+    const errorData = await res.json().catch(() => ({ message: "No error message from server" }));
     const errorMessage = errorData.message || JSON.stringify(errorData);
     throw new Error(`Failed to update password: ${res.status} - ${errorMessage}`);
   }
@@ -263,15 +240,15 @@ export async function updateUserPassword(token: string, passwordData: UserPasswo
 }
 
 export async function deleteUser(token: string): Promise<User> {
-  const res = await fetch(`${API_BASE_URL}/user/me`, {
-    method: 'DELETE',
+  const res = await fetchWithTimeout(`${API_BASE_URL}/user/me`, {
+    method: "DELETE",
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ message: 'No error message from server' }));
+    const errorData = await res.json().catch(() => ({ message: "No error message from server" }));
     const errorMessage = errorData.message || JSON.stringify(errorData);
     throw new Error(`Failed to delete user: ${res.status} - ${errorMessage}`);
   }

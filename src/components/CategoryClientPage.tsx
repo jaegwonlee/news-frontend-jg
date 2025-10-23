@@ -2,18 +2,17 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import NewsCard from "@/components/news/NewsCard";
-import ChatRoom from "@/components/common/ChatRoom";
+import MainNewsCard from "@/components/news/MainNewsCard"; // Import MainNewsCard
 import { Article } from "@/types/article";
 import { API_BASE_URL } from '@/lib/api';
 
 interface CategoryClientPageProps {
   categoryName: string;
-  chatRoomTitle: string;
 }
 
 const ARTICLE_LIMIT = 10;
 
-export default function CategoryClientPage({ categoryName, chatRoomTitle }: CategoryClientPageProps) {
+export default function CategoryClientPage({ categoryName }: CategoryClientPageProps) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [offset, setOffset] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,29 +72,35 @@ export default function CategoryClientPage({ categoryName, chatRoomTitle }: Cate
     if (node) observer.current.observe(node);
   }, [isLoading, hasMore, offset, fetchArticles]);
 
+  const featuredArticle = articles.length > 0 ? articles[0] : null;
+  const otherArticles = articles.slice(1);
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 pt-6">
-      <div className="lg:col-span-2">
-        <div className="flex items-center mb-6">
-          <span className="w-3 h-3 bg-blue-500 rounded-full mr-3 flex-shrink-0"></span>
-          <h1 className="text-4xl font-extrabold text-white">{categoryName}</h1>
-        </div>
-        <div>
-          {articles.map((article, index) => {
-            if (articles.length === index + 1) {
-              return <div ref={lastArticleElementRef} key={article.id}><NewsCard article={article} /></div>;
-            } else {
-              return <NewsCard key={article.id} article={article} />;
-            }
-          })}
-          {isLoading && <p className="text-white text-center py-4">Loading more articles...</p>}
-          {!hasMore && articles.length > 0 && <p className="text-neutral-500 text-center py-4">모든 기사를 불러왔습니다.</p>}
-          {!hasMore && articles.length === 0 && !isLoading && <p className="text-neutral-500 text-center py-4">표시할 기사가 없습니다.</p>}
-        </div>
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex items-center mb-6">
+        <span className="w-3 h-3 bg-blue-500 rounded-full mr-3 flex-shrink-0"></span>
+        <h1 className="text-4xl font-extrabold text-neutral-900 dark:text-white">{categoryName}</h1>
       </div>
-      <div className="lg:col-span-1 lg:sticky lg:top-24 h-[calc(100vh-150px)]">
-        <ChatRoom title={chatRoomTitle} />
+
+      {featuredArticle && (
+        <div className="mb-8">
+          <MainNewsCard article={featuredArticle} />
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {otherArticles.map((article, index) => {
+          if (otherArticles.length === index + 1 && hasMore) {
+            return <div ref={lastArticleElementRef} key={article.id}><NewsCard article={article} /></div>;
+          } else {
+            return <NewsCard key={article.id} article={article} />;
+          }
+        })}
       </div>
+
+      {isLoading && <p className="text-neutral-600 dark:text-white text-center py-4">Loading more articles...</p>}
+      {!hasMore && articles.length > 0 && <p className="text-neutral-500 text-center py-4">모든 기사를 불러왔습니다.</p>}
+      {!hasMore && articles.length === 0 && !isLoading && <p className="text-neutral-500 text-center py-4">표시할 기사가 없습니다.</p>}
     </div>
   );
 }

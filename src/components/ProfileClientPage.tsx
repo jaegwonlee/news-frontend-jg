@@ -1,5 +1,6 @@
-'use client';
+"use client";
 
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -136,10 +137,12 @@ const ProfileClientPage = () => {
               <h1 className="text-3xl font-extrabold text-white mb-8">프로필 설정</h1>
               <div className="space-y-8">
                 <div className="flex flex-col items-center space-y-4">
-                  <img
-                    className="w-32 h-32 rounded-full object-cover border-4 border-indigo-500"
+                  <Image
+                    className="rounded-full object-cover border-4 border-indigo-500"
                     src={profileImage}
                     alt="프로필 이미지"
+                    width={128}
+                    height={128}
                   />
                   <input
                     type="file"

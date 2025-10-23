@@ -14,8 +14,8 @@ export default function LatestNewsSection({ articles }: LatestNewsSectionProps) 
   return (
     <section className="flex flex-col h-full">
       <div className="flex justify-between items-center border-b-4 border-red-500 pb-2 mb-4">
-        <h2 className="text-xl font-bold">최신 뉴스</h2>
-        <Link href="/latest-news" className="text-sm text-neutral-400 hover:text-white">
+        <h2 className="text-xl font-bold text-neutral-900 dark:text-white">최신 뉴스</h2>
+        <Link href="/latest-news" className="text-sm text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">
           전체보기
         </Link>
       </div>
@@ -27,9 +27,9 @@ export default function LatestNewsSection({ articles }: LatestNewsSectionProps) 
             || "/favicon.ico";
 
           return (
-            <a key={news.id} href={news.url} target="_blank" rel="noopener noreferrer" className="block p-3 bg-neutral-800 hover:bg-neutral-700 rounded-md transition-colors">
-              <StyledArticleTitle title={news.title} className="font-semibold truncate" />
-              <div className="flex items-center text-xs text-neutral-400 mt-1">
+            <a key={news.id} href={news.url} target="_blank" rel="noopener noreferrer" className="block p-3 bg-white hover:bg-neutral-100 border border-neutral-200 rounded-md transition-colors dark:bg-neutral-800 dark:hover:bg-neutral-700">
+              <StyledArticleTitle title={news.title} className="font-semibold truncate text-neutral-900 dark:text-white" />
+              <div className="flex items-center text-xs text-neutral-600 mt-1 dark:text-neutral-400">
                 <Image
                   src={faviconUrl}
                   alt={`${news.source} favicon`}

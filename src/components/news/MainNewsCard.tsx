@@ -26,8 +26,8 @@ const MainNewsCard = ({ article }: { article: Article }) => {
           unoptimized
         />
       </div>
-      <StyledArticleTitle title={article.title} className="text-lg font-bold text-neutral-100 mb-2 group-hover:text-white" />
-      <div className="flex items-center text-sm text-neutral-400">
+      <StyledArticleTitle title={article.title} className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-neutral-700 dark:text-neutral-100 dark:group-hover:text-white" />
+      <div className="flex items-center text-sm text-neutral-600 dark:text-neutral-400">
         <Image
           src={faviconUrl}
           alt={`${article.source} favicon`}
