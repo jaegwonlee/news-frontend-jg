@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import Image from "next/image";
+import { fetchChatHistory } from "@/lib/api";
 
 interface ChatRoomProps {
   title: string;
@@ -20,7 +21,7 @@ interface Message {
 const SOCKET_URL = "https://news02.onrender.com";
 
 export default function ChatRoom({ title, roomId }: ChatRoomProps) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const socketRef = useRef<Socket | null>(null);
@@ -32,48 +33,77 @@ export default function ChatRoom({ title, roomId }: ChatRoomProps) {
       return;
     }
 
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      setMessages([{ author: "System", message: "채팅에 참여하려면 로그인이 필요합니다.", timestamp: "" }]);
-      return;
+    // Disconnect and clean up existing socket connection if it exists
+    if (socketRef.current) {
+      socketRef.current.disconnect();
     }
+    
+    setMessages([]); // Clear messages when room or user changes
 
-    socketRef.current = io(SOCKET_URL, {
-      auth: { token },
-      transports: ["websocket"],
-    });
+    const loadChatHistoryAndConnectSocket = async () => {
+      // 1. Load chat history
+      try {
+        const history = await fetchChatHistory(roomId);
+        const formattedHistory: Message[] = history.map(msg => ({
+          author: msg.nickname,
+          message: msg.content,
+          timestamp: new Date(msg.created_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }),
+        }));
+        setMessages(formattedHistory);
+      } catch (error) {
+        console.error("Failed to load chat history:", error);
+        setMessages((prev) => [...prev, { author: "System", message: "채팅 기록을 불러오지 못했습니다.", timestamp: "" }]);
+      }
 
-    const socket = socketRef.current;
+      // 2. Connect Socket.IO
+      if (!token) {
+        setMessages((prev) => [...prev, { author: "System", message: "채팅에 참여하려면 로그인이 필요합니다.", timestamp: "" }]);
+        return;
+      }
 
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
-      socket.emit("join_room", roomId);
-      setMessages((prev) => [
-        ...prev,
-        { author: "System", message: `토론방 '${title}'에 연결되었습니다.`, timestamp: "" },
-      ]);
-    });
+      socketRef.current = io(SOCKET_URL, {
+        auth: { token },
+        transports: ["websocket"],
+      });
 
-    socket.on("receive_message", (data: Message) => {
-      // Assuming server sends timestamp, otherwise this needs adjustment
-      const messageData = {
-        ...data,
-        timestamp:
-          data.timestamp ||
-          new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }),
-      };
-      setMessages((prev) => [...prev, messageData]);
-    });
+      const socket = socketRef.current;
 
-    socket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err);
-      setMessages((prev) => [...prev, { author: "System", message: `연결 오류: ${err.message}`, timestamp: "" }]);
-    });
+      socket.on("connect", () => {
+        console.log("Socket connected:", socket.id);
+        socket.emit("join_room", roomId);
+      });
 
-    return () => {
-      socket.disconnect();
+      socket.on("receive_message", (data: Message) => {
+        // Ignore messages from the current user (identified by name) to prevent duplication from server echo
+        if (data.author === user?.name) {
+          return;
+        }
+
+        console.log("Received message:", data);
+        const messageData = {
+          ...data,
+          timestamp:
+            data.timestamp ||
+            new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }),
+        };
+        setMessages((prev) => [...prev, messageData]);
+      });
+
+      socket.on("connect_error", (err) => {
+        console.error("Socket connection error:", err);
+        setMessages((prev) => [...prev, { author: "System", message: `연결 오류: ${err.message}`, timestamp: "" }]);
+      });
     };
-  }, [roomId, title]);
+
+    loadChatHistoryAndConnectSocket();
+
+    // Cleanup function to disconnect socket on component unmount
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, [roomId, title, user, token]);
 
   useEffect(() => {
     if (messageContainerRef.current) {
@@ -84,13 +114,12 @@ export default function ChatRoom({ title, roomId }: ChatRoomProps) {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessage.trim() && socketRef.current && roomId && user) {
-      socketRef.current.emit("send_message", {
-        room: roomId,
-        message: newMessage,
-      });
+      const messageToSend = { room: roomId, message: newMessage };
+      socketRef.current.emit("send_message", messageToSend);
 
+      // Optimistic UI update using nickname for display
       const sentMessage: Message = {
-        author: user.nickname || "Unknown",
+        author: user.nickname || user.name || "Unknown", // Use nickname, fallback to name
         message: newMessage,
         profileImage: user.profileImage,
         timestamp: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }),
@@ -106,7 +135,8 @@ export default function ChatRoom({ title, roomId }: ChatRoomProps) {
       <h2 className="text-2xl font-bold text-neutral-900 px-4 py-2 border-b-2 border-neutral-200 dark:text-white dark:border-neutral-800">{title}</h2>
       <div ref={messageContainerRef} className="flex-grow min-h-0 overflow-y-auto p-3 custom-scrollbar space-y-3">
         {messages.map((msg, index) => {
-          const isMyMessage = msg.author === user?.nickname;
+          // A user's own message is identified by matching either name or nickname.
+          const isMyMessage = msg.author === user?.name || msg.author === user?.nickname;
           if (msg.author === "System") {
             return (
               <div key={index} className="text-center text-sm text-gray-400 py-1">
@@ -142,15 +172,7 @@ export default function ChatRoom({ title, roomId }: ChatRoomProps) {
                 </div>
               </div>
 
-              {isMyMessage && (
-                <Image
-                  src={user?.profileImage || "/placeholder-image.svg"}
-                  alt={msg.author}
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full object-cover border-2 border-blue-400 dark:border-blue-500"
-                />
-              )}
+              {/* Removed profile image for current user's messages */}
             </div>
           );
         })}

@@ -108,7 +108,7 @@ export default function Header() {
                     className="flex flex-col items-center gap-1 text-xs font-semibold text-neutral-600 transition-colors hover:text-neutral-900 dark:text-neutral-200 dark:hover:text-white"
                   >
                     <Image 
-                      src={user.profileImage || "/placeholder-image.svg"} 
+                      src={user.profileImage || "/user-placeholder.svg"} 
                       alt="프로필" 
                       width={32}
                       height={32}

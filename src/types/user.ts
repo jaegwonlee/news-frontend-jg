@@ -1,17 +1,18 @@
 export interface User {
   id: number;
+  name: string; // Added based on login API response
   email: string;
-  is_active: boolean;
-  is_superuser: boolean;
-  is_verified: boolean;
-  nickname?: string; // Added for UI, might not be directly from API
-  profileImage?: string; // Added for UI, might not be directly from API
+  is_active?: boolean; // Made optional
+  is_superuser?: boolean; // Made optional
+  is_verified?: boolean; // Made optional
+  nickname?: string;
+  profileImage?: string;
 }
 
 export interface UserUpdate {
   email?: string;
-  nickname?: string; // Added for UI, might not be directly from API
-  profileImage?: string; // Added for UI, might not be directly from API
+  nickname?: string;
+  profileImage?: string;
   is_active?: boolean;
   is_superuser?: boolean;
   is_verified?: boolean;

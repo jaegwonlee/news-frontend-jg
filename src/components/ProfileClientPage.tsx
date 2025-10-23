@@ -14,7 +14,7 @@ const ProfileClientPage = () => {
   const [nickname, setNickname] = useState(user?.nickname || "사용자");
   const [email, setEmail] = useState(user?.email || "user@example.com");
   const [profileImage, setProfileImage] = useState(
-    user?.profileImage || "https://via.placeholder.com/150/000000/FFFFFF?text=User"
+    user?.profileImage || "/user-placeholder.svg"
   );
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [isEditingEmail, setIsEditingEmail] = useState(false);

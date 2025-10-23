@@ -1,4 +1,5 @@
 import { Article } from "@/types/article";
+import { Topic, TopicDetail } from "@/types/topic";
 import { User, UserPasswordUpdate, UserUpdate } from "@/types/user";
 
 export const API_BASE_URL = "https://news02.onrender.com/api";
@@ -141,6 +142,26 @@ export async function fetchUser(token: string): Promise<User> {
   return await res.json();
 }
 
+export interface ChatHistoryMessage {
+  id: number;
+  content: string;
+  created_at: string;
+  nickname: string;
+}
+
+export async function fetchChatHistory(topicId: string): Promise<ChatHistoryMessage[]> {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/topics/${topicId}/chat`);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch chat history: ${res.status}`);
+    }
+    return await res.json();
+  } catch (error) {
+    console.error("Failed to fetch chat history:", error);
+    return [];
+  }
+}
+
 export async function searchArticles(
   query: string,
   page: number = 1,
@@ -198,6 +219,19 @@ export async function getLatestNews(limit: number = 10): Promise<Article[]> {
   } catch (error) {
     console.error("Failed to fetch latest news:", error);
     return [];
+  }
+}
+
+export async function getTopicById(topicId: number): Promise<TopicDetail | null> {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/topics/${topicId}`);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch topic: ${res.status}`);
+    }
+    return await res.json();
+  } catch (error) {
+    console.error(`Failed to fetch topic with id ${topicId}:`, error);
+    return null;
   }
 }
 

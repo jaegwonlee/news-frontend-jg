@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const validateToken = async () => {
-      const storedToken = localStorage.getItem('authToken');
+      const storedToken = sessionStorage.getItem('authToken');
       if (storedToken) {
         try {
           const userData = await fetchUser(storedToken);
@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
           console.error('Failed to validate token', error);
           toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
-          localStorage.removeItem('authToken');
+    sessionStorage.removeItem('authToken');
           setToken(null); // Clear token state on error
           setIsAuthenticated(false);
           setUser(null);
@@ -46,14 +46,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (newToken: string, userData: User) => {
-    localStorage.setItem('authToken', newToken);
+    sessionStorage.setItem('authToken', newToken);
     setToken(newToken); // Set token state on login
     setUser(userData);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('authToken');
     setToken(null); // Clear token state on logout
     setUser(null);
     setIsAuthenticated(false);

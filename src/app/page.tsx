@@ -2,16 +2,20 @@ import CategoryNewsSection from "@/components/CategoryNewsSection";
 import ChatRoom from "@/components/common/ChatRoom";
 import LatestNewsSection from "@/components/LatestNewsSection";
 import PopularTopics from "@/components/PopularTopics";
-import { getCategoryNews, getLatestNews } from "@/lib/api";
+import { getCategoryNews, getLatestNews, getTopicById } from "@/lib/api";
 
 export default async function Home() {
-  const [latestNews, politicsNewsData, economyNewsData, societyNewsData, cultureNewsData] = await Promise.all([
+  const [latestNews, politicsNewsData, economyNewsData, societyNewsData, cultureNewsData, topicData] = await Promise.all([
     getLatestNews(10),
     getCategoryNews("정치"),
     getCategoryNews("경제"),
     getCategoryNews("사회"),
     getCategoryNews("문화"),
+    getTopicById(1),
   ]);
+
+  const chatRoomTitle = topicData?.topic?.display_name || "메인 토론방";
+  const chatRoomId = topicData?.topic?.id ? String(topicData.topic.id) : "main-room";
 
   return (
     <>
@@ -26,7 +30,7 @@ export default async function Home() {
                 </section>
                 {/* Column 2: Round 1 Chat */}
                 <section className="md:col-span-2 flex flex-col h-[calc(36rem+44px)]">
-                  <ChatRoom title="ROUND 1" roomId="round1" />
+                  <ChatRoom title={chatRoomTitle} roomId={chatRoomId} />
                 </section>
 
                 {/* Column 3: Latest News */}
