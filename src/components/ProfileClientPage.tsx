@@ -78,7 +78,7 @@ const ProfileClientPage = () => {
       <span className="text-gray-300">{label}</span>
       <label className="relative inline-flex items-center cursor-pointer">
         <input type="checkbox" checked={checked} onChange={onChange} className="sr-only peer" />
-        <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-4 peer-focus:ring-indigo-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+        <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-4 peer-focus:ring-indigo-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
       </label>
     </div>
   );
@@ -169,10 +169,10 @@ const ProfileClientPage = () => {
                         id="nickname"
                         value={nickname}
                         onChange={(e) => setNickname(e.target.value)}
-                        className="flex-grow p-3 rounded-md bg-gray-800 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 text-white"
+                        className="grow p-3 rounded-md bg-gray-800 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 text-white"
                       />
                     ) : (
-                      <p className="flex-grow text-white text-lg">{nickname}</p>
+                      <p className="grow text-white text-lg">{nickname}</p>
                     )}
                     <button
                       onClick={() => setIsEditingNickname(!isEditingNickname)}
@@ -193,10 +193,10 @@ const ProfileClientPage = () => {
                         id="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="flex-grow p-3 rounded-md bg-gray-800 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 text-white"
+                        className="grow p-3 rounded-md bg-gray-800 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 text-white"
                       />
                     ) : (
-                      <p className="flex-grow text-white text-lg">{email}</p>
+                      <p className="grow text-white text-lg">{email}</p>
                     )}
                     <button
                       onClick={() => setIsEditingEmail(!isEditingEmail)}

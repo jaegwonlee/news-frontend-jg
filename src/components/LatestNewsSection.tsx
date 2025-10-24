@@ -19,7 +19,7 @@ export default function LatestNewsSection({ articles }: LatestNewsSectionProps) 
           전체보기
         </Link>
       </div>
-      <div className="flex-grow overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+      <div className="grow overflow-y-auto pr-2 space-y-2 custom-scrollbar">
         {articles.map((news) => {
           const faviconUrl = news.favicon_url 
             || (news.source_domain && FAVICON_URLS[news.source_domain]) 

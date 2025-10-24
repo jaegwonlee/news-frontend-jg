@@ -78,7 +78,7 @@ export default function CategoryClientPage({ categoryName }: CategoryClientPageP
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center mb-6">
-        <span className="w-3 h-3 bg-blue-500 rounded-full mr-3 flex-shrink-0"></span>
+        <span className="w-3 h-3 bg-blue-500 rounded-full mr-3 shrink-0"></span>
         <h1 className="text-4xl font-extrabold text-neutral-900 dark:text-white">{categoryName}</h1>
       </div>
 
