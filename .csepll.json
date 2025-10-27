@@ -1,0 +1,31 @@
+{
+  "version": "0.2",
+  "language": "en,ko",
+  "words": [
+    "NEWSROUND",
+    "APEC",
+    "hani",
+    "ohmynews",
+    "chosun",
+    "joongang",
+    "ojsfile",
+    "dimg",
+    "livere",
+    "ojsimg",
+    "kh", // khan.co.kr 용
+    "co", // .co.kr 용
+    "kr", // .kr 용
+    "webp", // 이미지 확장자
+    "signup",
+    "svg",
+    "tailwindcss",
+    "clsx", // 필요시 추가
+    "lucide", // 필요시 추가
+    "commitlint", // 필요시 추가
+    "prettierrc", // 필요시 추가
+    "semibold",
+    "sdfsdfsdfsd", // 임시 허용 또는 제거 권장
+    "sfsffff" // 임시 허용 또는 제거 권장
+  ],
+  "ignorePaths": ["node_modules/**", "package-lock.json"]
+}
