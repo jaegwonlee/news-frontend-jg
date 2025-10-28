@@ -15,7 +15,7 @@ const RingLayout: React.FC<RingLayoutProps> = ({ children, title }) => {
   const spotlightAngles = [-50, -35, -20, 0, 20, 35, 50];
 
   return (
-    <div className="min-h-screen bg-neutral-800 text-white flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4 relative overflow-hidden">
       {/* 스포트라이트 배경 효과 */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[800px] bg-radial-glow from-[rgba(100,120,150,0.15)] to-transparent opacity-70"></div>
@@ -32,7 +32,7 @@ const RingLayout: React.FC<RingLayoutProps> = ({ children, title }) => {
       </div>
 
       {/* 링 형태의 메인 컨테이너 */}
-      <div className="w-full max-w-lg p-8 pt-12 space-y-6 bg-[#101010] rounded-lg shadow-2xl z-10 relative border-8 border-neutral-600">
+      <div className="w-full max-w-lg p-8 pt-12 space-y-6 bg-black rounded-lg shadow-2xl z-10 relative border-8 border-neutral-600">
         {/* 링 로프 (상단 빨강) */}
         <div className="absolute -top-4 left-0 w-full h-2 bg-red-500"></div>
         <div className="absolute -top-8 left-0 w-full h-2 bg-red-500"></div>

@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "image.donga.com",
+      },
+      {
+        protocol: "https",
         hostname: "img.khan.co.kr", // 경향신문 썸네일
       },
       {
@@ -40,6 +44,18 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "ojsimg.ohmynews.com", // 오마이뉴스 이미지
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com", // 구글 유저 컨텐츠
+      },
+      {
+        protocol: "https",
+        hostname: "dimg1.donga.com", // 동아일보 썸네일 (추가)
+      },
+      {
+        protocol: "https",
+        hostname: "img.megazonesoft.com",
       },
       // 다른 뉴스 매체의 이미지 도메인이 있다면 여기에 추가합니다.
       // 예: { protocol: 'https', hostname: 'img.example-news.com' }

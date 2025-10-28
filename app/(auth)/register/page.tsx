@@ -129,9 +129,9 @@ export default function RegisterPage() {
         phone: formState.phone,
       };
 
-      await signUpUser(apiRequestBody); // 회원가입 API 호출
+      const data = await signUpUser(apiRequestBody); // 회원가입 API 호출
 
-      alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
+      alert(data.message || "회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
       router.push("/login"); // 성공 시 로그인 페이지로 이동
     } catch (error) {
       // API 에러 처리
@@ -157,6 +157,7 @@ export default function RegisterPage() {
               id="name"
               label="이름"
               type="text"
+              name="name"
               value={formState.name}
               onChange={handleInputChange}
               onBlur={handleBlur}
@@ -170,6 +171,7 @@ export default function RegisterPage() {
               id="nickname"
               label="닉네임"
               type="text"
+              name="nickname"
               value={formState.nickname}
               onChange={handleInputChange}
               onBlur={handleBlur}
@@ -185,6 +187,7 @@ export default function RegisterPage() {
             id="email"
             label="이메일 (ID)"
             type="email"
+            name="email"
             value={formState.email}
             onChange={handleInputChange}
             onBlur={handleBlur}
@@ -200,6 +203,7 @@ export default function RegisterPage() {
             id="password"
             label="비밀번호"
             type="password"
+            name="password"
             value={formState.password}
             onChange={handleInputChange}
             onBlur={handleBlur}
@@ -215,6 +219,7 @@ export default function RegisterPage() {
             id="passwordConfirm"
             label="비밀번호 확인"
             type="password"
+            name="passwordConfirm"
             value={formState.passwordConfirm}
             onChange={handleInputChange}
             onBlur={handleBlur}
@@ -232,6 +237,7 @@ export default function RegisterPage() {
             id="phone"
             label="휴대폰 번호"
             type="tel"
+            name="phone"
             value={formState.phone}
             onChange={handleInputChange}
             onBlur={handleBlur}

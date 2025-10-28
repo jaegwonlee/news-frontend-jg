@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-// Header 컴포넌트를 가져옵니다.
+import { AuthProvider } from "@/app/context/AuthContext";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
+
+// 1. 추가: API 함수 및 새 컴포넌트 import
+import { getBreakingNews, getExclusiveNews } from "@/lib/api";
+import HorizontalNewsScroller from "./components/common/HorizontalNewsScroller";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,31 +24,46 @@ export const metadata: Metadata = {
   description: "뉴스라운드 메인 페이지",
 };
 
-/**
- * RootLayout (최상위 레이아웃)
- * - 모든 페이지에 공통으로 적용되는 <html>, <body> 태그를 정의합니다.
- * - 폰트, 기본 배경색, <Header> 등 공통 UI를 포함합니다.
- */
-export default function RootLayout({
+// 2. 수정: RootLayout을 async 함수로 변경
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  // 3. 추가: 서버에서 스크롤러용 데이터 미리 가져오기
+  const [breakingNews, exclusiveNews] = await Promise.all([
+    getBreakingNews(),
+    getExclusiveNews(),
+  ]);
+
   return (
     <html lang="ko" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        {/* Header를 {children} 바깥에 두어 모든 페이지에 공통으로 표시되도록 합니다. */}
-        <Header />
+        <AuthProvider>
+          <Header />
+          
+          {/* 4. 추가: HorizontalNewsScroller 컴포넌트 2개 배치 */}
+          {/* 스크롤러 컨테이너 (헤더 아래에 고정) */}
+          <div className="sticky top-16 z-40 shadow-md">
+            
+            {/* 단독 뉴스 스크롤러 (배경색 bg-zinc-900, 경계선 border-zinc-700으로 수정) */}
+            <div className="w-full bg-zinc-900 overflow-hidden border-b border-zinc-700 py-2">
+              <HorizontalNewsScroller news={exclusiveNews} />
+            </div>
+            
+            {/* 속보 뉴스 스크롤러 (배경색 bg-zinc-900, 경계선 border-zinc-700으로 수정) */}
+            <div className="w-full bg-zinc-900 overflow-hidden border-b border-zinc-700 py-2">
+              <HorizontalNewsScroller news={breakingNews} />
+            </div>
 
-        {/* {children}은 각 페이지의 page.tsx 파일을 의미합니다. 
-          flex-1을 가진 main 태그로 감싸 헤더/푸터를 제외한 영역을 채우도록 합니다.
-        */}
-        <main className="flex-1 w-full">{children}</main>
-
-        {/* 나중에 푸터를 추가한다면 이 위치에 넣으면 됩니다. */}
-        {/* <footer> ... </footer> */}
+          </div>
+          
+          <main className="flex-1 w-full">{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

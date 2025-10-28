@@ -17,15 +17,23 @@ const mockMessages: Message[] = [
   { id: 6, user: "sfsffff", text: "sdfsdfsdfsd", time: "17:47" },
 ];
 
-export default function ChatRoom({ className }: { className?: string }) {
+interface ChatRoomProps {
+  className?: string;
+  topicId?: number; // topicId를 선택적(optional) prop으로 변경
+}
+
+export default function ChatRoom({ className, topicId }: ChatRoomProps) {
   const messages = mockMessages;
 
   return (
     <section className={`bg-zinc-900 p-4 rounded-lg flex flex-col ${className}`}>
-      <h2 className="text-lg font-bold text-white mb-4">메인 페이지 채팅방</h2>
+      {/* topicId 유무에 따라 동적으로 제목을 설정 */}
+      <h2 className="text-lg font-bold text-white mb-4">
+        {topicId ? `토론방 (Topic: ${topicId})` : "메인 채팅방"}
+      </h2>
 
       {/* 메시지 목록 (flex-1로 남은 공간 채우기) */}
-      <div className="flex-1 h-96 overflow-y-auto space-y-4 pr-2">
+      <div className="flex-1 h-[300px] overflow-y-auto space-y-4 pr-2">
         {messages.map((msg) => (
           <div key={msg.id} className="flex flex-col">
             <div className="flex justify-between items-center mb-1">

@@ -2,12 +2,60 @@
  * API에서 받아오는 기사(Article) 데이터 구조 정의
  */
 export interface Article {
-  id: number; // 기사 고유 ID
-  source: string; // 언론사 이름
-  source_domain: string; // 언론사 도메인
-  title: string; // 기사 제목
-  url: string; // 기사 원본 URL
-  published_at: string; // 기사 발행 시간 (ISO 8601 형식 문자열)
-  thumbnail_url: string; // 썸네일 이미지 URL
-  favicon_url: string; // 언론사 파비콘 URL
+  id: number;
+  source: string;
+  source_domain: string;
+  title: string;
+  url: string;
+  published_at: string;
+  thumbnail_url: string;
+  favicon_url: string;
+  // 상세 페이지에서 추가되는 필드
+  side?: "LEFT" | "RIGHT";
+  is_featured?: number;
+  view_count?: number;
+  like_count?: number;
+  isLiked?: boolean;
+  isSaved?: boolean;
+}
+
+/**
+ * API에서 받아오는 토픽(Topic) 데이터 구조 정의
+ */
+export interface Topic {
+  id: number;
+  display_name: string;
+  summary: string;
+  published_at: string;
+  view_count: number;
+  popularity_score?: number;
+}
+
+/**
+ * API에서 받아오는 특정 토픽 상세 데이터 구조 정의
+ */
+export interface TopicDetail {
+  topic: Topic;
+  articles: Article[];
+}
+
+/**
+ * API에서 받아오는 사용자(User) 데이터 구조 정의
+ */
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  nickname?: string;
+  phone?: string;
+  profile_image_url?: string; // Changed to match API
+  introduction?: string;
+}
+
+// 👇 프로필 업데이트 시 API 요청 본문에 사용할 타입
+export interface UserUpdate {
+  nickname?: string;
+  introduction?: string;
+  profile_image_url?: string; // API 명세에 맞춰 필드명 사용
+  phone?: string; // API 명세에는 없지만 profile 페이지에서 사용하므로 추가 (선택 사항)
 }

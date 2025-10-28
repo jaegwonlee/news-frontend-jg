@@ -4,11 +4,17 @@
     "baseUrl": ".", // 기준 경로를 프로젝트 루트로 설정
     // --- 수정 ---
     "paths": {
-      "@/*": ["./*"] // @/를 프로젝트 루트 기준으로 매핑
+      "@/*": [
+        "./*"
+      ] // @/를 프로젝트 루트 기준으로 매핑
     },
     // --- 이하 기존 설정 유지 ---
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -35,6 +41,11 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts" // 모든 .mts 파일 포함
+    ,
+    ".next\\dev/types/**/*.ts",
+    ".next\\dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

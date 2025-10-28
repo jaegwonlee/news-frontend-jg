@@ -5,11 +5,13 @@ interface FormFieldProps {
   id: string;
   label: string;
   type: string;
+  name: string; // name 속성 추가
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   required?: boolean;
   autoComplete?: string;
+  disabled?: boolean; // disabled 속성 추가
 }
 
 /**
@@ -21,11 +23,13 @@ const FormField: React.FC<FormFieldProps> = ({
   id,
   label,
   type,
+  name, // name 속성 추가
   value,
   onChange,
   onBlur,
   required = false,
   autoComplete,
+  disabled, // disabled 속성 추가
 }) => {
   return (
     <div>
@@ -36,13 +40,14 @@ const FormField: React.FC<FormFieldProps> = ({
       {/* 입력 필드 */}
       <input
         id={id}
-        name={id} // name 속성 추가 (폼 제출 및 상태 관리 용이)
+        name={name} // name 속성 사용
         type={type}
         autoComplete={autoComplete}
         required={required}
         value={value}
         onChange={onChange}
         onBlur={onBlur} // 유효성 검사를 위해 onBlur 이벤트 핸들러 추가
+        disabled={disabled} // disabled 속성 적용
         // Tailwind CSS 클래스를 이용한 스타일링
         className="w-full px-4 py-2 text-white bg-neutral-800 border-2 border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300"
       />

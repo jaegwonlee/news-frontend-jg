@@ -19,3 +19,5 @@ export const FAVICON_URLS: { [key: string]: string } = {
  * - 여기서는 구글 기본 파비콘 서비스를 예시로 사용합니다.
  */
 export const DEFAULT_FAVICON_URL = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}`;
+
+export const BACKEND_BASE_URL = "https://news02.onrender.com";
