@@ -1,4 +1,4 @@
-import { getTopics } from "@/lib/api";
+import { getLatestTopics } from "@/lib/api";
 import { formatRelativeTime } from "@/lib/utils";
 import { Eye, MessageSquarePlus } from "lucide-react";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import Link from "next/link";
  * - API에서 토픽 목록을 가져와 토론 방 형태로 보여줍니다.
  */
 export default async function DebatePage() {
-  const topics = await getTopics();
+  const topics = await getLatestTopics();
 
   return (
     <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
