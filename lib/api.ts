@@ -233,21 +233,14 @@ export async function updateUserProfile(token: string, updatedData: UserUpdate):
     body: JSON.stringify(updatedData),
   });
 
-  const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(data.message || '프로필 업데이트에 실패했습니다.');
+    const errorData = await response.json();
+    throw new Error(errorData.message || '프로필 업데이트에 실패했습니다.');
   }
 
-  return {
-    id: data.id,
-    email: data.email,
-    name: data.name,
-    nickname: data.nickname,
-    phone: data.phone,
-    profile_image_url: data.profile_image_url,
-    introduction: data.introduction,
-  };
+  // After a successful update, fetch the complete user profile to ensure all fields are up-to-date.
+  // This is necessary if the PUT /api/profile endpoint does not return the full User object.
+  return getUserProfile(token);
 }
 
 /**

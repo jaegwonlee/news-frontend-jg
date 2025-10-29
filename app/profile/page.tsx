@@ -32,16 +32,15 @@ export default function ProfilePage() {
       try {
         setIsLoading(true);
         const userProfile = await getUserProfile(token);
+        console.log("getUserProfile response profile_image_url:", userProfile.profile_image_url);
         setProfile(userProfile);
         setCurrentProfileData(userProfile); // Store original data
         // Construct full URL for selected avatar
-        setSelectedAvatar(userProfile.profile_image_url ? `${BACKEND_BASE_URL}${userProfile.profile_image_url}` : undefined);
+        setSelectedAvatar(userProfile.profile_image_url ? userProfile.profile_image_url : undefined);
 
-        let avatarList = await getAvatars();
-        // Prepend BACKEND_BASE_URL to all avatar URLs
-        avatarList = avatarList.map(url => `${BACKEND_BASE_URL}${url}`);
+                const avatarList = await getAvatars();
 
-        setAvatars(avatarList);
+                setAvatars(avatarList);
 
       } catch (err: any) {
         setError(err.message || "프로필 정보를 불러오는데 실패했습니다.");
@@ -79,10 +78,11 @@ export default function ProfilePage() {
     try {
       setIsUpdating(true); // Set updating state
       const updatedUser = await updateUserProfile(token, updatedData);
+      console.log("updateUserProfile response profile_image_url:", updatedUser.profile_image_url);
       setProfile(updatedUser);
       setCurrentProfileData(updatedUser); // Update original data
       // 👇 선택된 아바타 상태도 업데이트 (전체 URL로)
-      setSelectedAvatar(updatedUser.profile_image_url ? `${BACKEND_BASE_URL}${updatedUser.profile_image_url}` : undefined);
+      setSelectedAvatar(updatedUser.profile_image_url ? updatedUser.profile_image_url : undefined);
       login(token, updatedUser); // Context 업데이트
       setIsEditing(false); // Exit edit mode
       // alert("프로필이 성공적으로 업데이트되었습니다."); // Too intrusive
@@ -96,7 +96,7 @@ export default function ProfilePage() {
   const handleCancelEdit = () => {
     setProfile(currentProfileData); // Revert changes
     //  취소 시에도 전체 URL로 복구
-    setSelectedAvatar(currentProfileData?.profile_image_url ? `${BACKEND_BASE_URL}${currentProfileData.profile_image_url}` : undefined);
+    setSelectedAvatar(currentProfileData?.profile_image_url ? currentProfileData.profile_image_url : undefined);
     setIsEditing(false);
     setError(null); // Clear any edit errors
   };
@@ -121,7 +121,7 @@ export default function ProfilePage() {
           <div className="relative w-32 h-32">
             <Image
               // 👇 전체 URL 사용 (selectedAvatar 또는 profile에서 가져옴)
-              src={isEditing ? (selectedAvatar || "/user-placeholder.svg") : (profile.profile_image_url ? `${BACKEND_BASE_URL}${profile.profile_image_url}` : "/user-placeholder.svg")}
+              src={isEditing ? (selectedAvatar || "/user-placeholder.svg") : (profile.profile_image_url || "/user-placeholder.svg")}
               alt="프로필 이미지"
               width={128}
               height={128}

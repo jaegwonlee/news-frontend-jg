@@ -62,7 +62,8 @@ export default function Header() {
                 <Link href="/profile" className="flex items-center gap-2 group">
                   <div className="relative w-8 h-8">
                     <Image
-                      src={user.profile_image_url ? `${BACKEND_BASE_URL}${user.profile_image_url}` : "/user-placeholder.svg"} 
+                      key={user.profile_image_url} // Add key prop here
+                      src={user.profile_image_url ? user.profile_image_url : "/user-placeholder.svg"} 
                       alt="프로필"
                       width={32}
                       height={32}
