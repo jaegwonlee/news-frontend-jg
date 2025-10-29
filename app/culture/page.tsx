@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // Force dynamic rendering for this page
+
 /**
  * 문화 카테고리 페이지 (경로: /culture)
  * - '문화' 뉴스를 보여주는 페이지입니다.

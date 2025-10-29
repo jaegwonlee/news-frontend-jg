@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // Force dynamic rendering for this page
+
 // app/page.tsx
 
 /**
@@ -28,7 +30,7 @@ export default function Home() {
         <ChatRoom className="lg:col-start-5 lg:col-span-4" />
 
         {/* 오른쪽 사이드바 (최신 뉴스) */}
-        <LatestNews className="lg:col-start-10 lg:col-span-2" />
+        <LatestNews className="lg:col-start-9 lg:col-span-3" />
 
         {/* --- 2. 새로 추가된 카테고리별 뉴스 (하단) --- */}
         <div className="lg:col-start-2 lg:col-span-10">

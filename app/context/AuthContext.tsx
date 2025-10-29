@@ -27,7 +27,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (newToken: string, newUser: User) => {
-    console.log("AuthContext: login called with user:", newUser);
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem('authToken', newToken); // Store token

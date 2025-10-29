@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // Force dynamic rendering for this page
+
 /**
  * 정치 카테고리 페이지 (경로: /politics)
  */

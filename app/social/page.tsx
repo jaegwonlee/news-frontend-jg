@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // Force dynamic rendering for this page
+
 /**
  * 사회 카테고리 페이지 (경로: /social)
  * - '사회' 뉴스를 보여주는 페이지입니다.

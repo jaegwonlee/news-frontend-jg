@@ -10,6 +10,7 @@ export interface Article {
   published_at: string;
   thumbnail_url: string;
   favicon_url: string;
+  description?: string; // Added for search results
   // 상세 페이지에서 추가되는 필드
   side?: "LEFT" | "RIGHT";
   is_featured?: number;

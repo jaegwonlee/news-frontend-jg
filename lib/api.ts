@@ -1,4 +1,5 @@
 import { Topic, TopicDetail, Article, User, UserUpdate } from "@/types";
+import { BACKEND_BASE_URL } from "@/lib/constants"; // Import BACKEND_BASE_URL
 
 export async function signUpUser(userData: any) {
   const response = await fetch('https://news02.onrender.com/api/auth/signup', {
@@ -258,6 +259,28 @@ export async function getAvatars(): Promise<string[]> {
 
   if (!response.ok) {
     throw new Error('아바타 목록을 가져오는데 실패했습니다.');
+  }
+
+  return response.json();
+}
+
+/**
+ * 검색어(q)를 받아 제목과 설명에서 일치하는 기사를 최신순으로 검색합니다.
+ * @param q - 검색할 키워드
+ * @returns 검색 결과 기사 목록 (Article[])
+ */
+export async function getSearchArticles(q: string): Promise<Article[]> {
+  const encodedQuery = encodeURIComponent(q);
+  const response = await fetch(`${BACKEND_BASE_URL}/api/search?q=${encodedQuery}`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+    next: { revalidate: 60 } // Revalidate every minute
+  });
+
+  if (!response.ok) {
+    throw new Error('검색 결과를 가져오는데 실패했습니다.');
   }
 
   return response.json();

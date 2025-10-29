@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // Force dynamic rendering for this page
+
 import CategoryNewsList from "../components/CategoryNewsList";
 // 만약 나중에 사이드바를 다시 추가한다면 import합니다.
 // import TrendingTopics from "../components/TrendingTopics";

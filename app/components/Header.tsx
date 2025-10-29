@@ -3,11 +3,14 @@
 "use client";
 
 import { useAuth } from "@/app/context/AuthContext";
-import { Search, UserCircle } from "lucide-react"; // UserCircle 아이콘 추가
+import { Search, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BACKEND_BASE_URL } from "@/lib/constants"; // Import BACKEND_BASE_URL
+import { useState } from "react"; // Only useState needed
+import { BACKEND_BASE_URL } from "@/lib/constants";
+// Removed: import { getSearchArticles } from "@/lib/api";
+// Removed: import { Article } from "@/types";
 
 const navLinks = [
   { title: "정치", href: "/politics" },
@@ -18,17 +21,42 @@ const navLinks = [
 ];
 
 export default function Header() {
-  // 👇 token 대신 isAuthenticated 사용 (또는 token 직접 사용 유지 가능)
-  const { user, logout } = useAuth(); 
+  const { user, logout } = useAuth();
   const router = useRouter();
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  // Removed: const [searchResults, setSearchResults] = useState<Article[]>([]);
+  // Removed: const [isSearching, setIsSearching] = useState(false);
 
   const handleLogout = () => {
     logout();
-    router.push("/"); 
+    router.push("/");
   };
 
+  const handleSearchIconClick = () => {
+    setIsSearchOpen(!isSearchOpen);
+    if (isSearchOpen) {
+      setSearchQuery("");
+    }
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchSubmit = (e?: React.SyntheticEvent) => { // Make event optional or more generic
+    e?.preventDefault(); // Conditionally prevent default
+    if (searchQuery.trim().length > 0) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setIsSearchOpen(false); // Close search bar after submitting
+      setSearchQuery(""); // Clear search query
+    }
+  };
+
+  // Removed: useEffect for search
+
   return (
-    // 헤더 스타일 유지 (bg-black/80, backdrop-blur-md 등)
     <header className="sticky top-0 z-50 w-full border-b border-zinc-700 bg-black/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -52,9 +80,35 @@ export default function Header() {
 
           {/* 오른쪽 영역: 검색 및 인증 상태 UI */}
           <div className="flex items-center gap-4">
-            <Search className="w-5 h-5 text-zinc-400 cursor-pointer hover:text-white" />
+            {isSearchOpen && (
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  placeholder="검색어를 입력하세요..."
+                  className="w-64 p-2 pl-10 bg-zinc-800 border border-zinc-700 rounded-md text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearchSubmit(e);
+                    }
+                  }}
+                />
+                <Search 
+                  className="absolute left-3 w-4 h-4 text-zinc-400 cursor-pointer"
+                  onClick={() => handleSearchSubmit()} // Call without event, or pass a generic event
+                />
+                {/* Removed: isSearching */} 
+              </div>
+            )}
+            <button onClick={handleSearchIconClick} className="p-1 rounded-full hover:bg-zinc-700 transition-colors">
+              {isSearchOpen ? (
+                <X className="w-5 h-5 text-zinc-400 cursor-pointer hover:text-white" />
+              ) : (
+                <Search className="w-5 h-5 text-zinc-400 cursor-pointer hover:text-white" />
+              )}
+            </button>
 
-            {/* 👇 로그인 상태 확인 (user 객체 존재 여부로 판단) */}
             {user ? (
               // --- 로그인 상태 UI ---
               <div className="flex items-center gap-4">
@@ -62,8 +116,8 @@ export default function Header() {
                 <Link href="/profile" className="flex items-center gap-2 group">
                   <div className="relative w-8 h-8">
                     <Image
-                      key={user.profile_image_url} // Add key prop here
-                      src={user.profile_image_url ? user.profile_image_url : "/user-placeholder.svg"} 
+                      key={user.profile_image_url}
+                      src={user.profile_image_url ? user.profile_image_url : "/user-placeholder.svg"}
                       alt="프로필"
                       width={32}
                       height={32}
@@ -71,12 +125,10 @@ export default function Header() {
                       unoptimized={!!user.profile_image_url}
                     />
                   </div>
-                  {/* 닉네임 표시, 없으면 name 표시 */}
                   <span className="text-sm font-medium text-white group-hover:text-red-500 transition-colors">
                     {user.nickname || user.name}
                   </span>
                 </Link>
-                {/* 로그아웃 버튼 */}
                 <button
                   onClick={handleLogout}
                   className="px-3 py-1.5 text-xs font-semibold text-zinc-300 bg-zinc-700 rounded-md hover:bg-zinc-600 hover:text-white transition-colors"
@@ -103,6 +155,7 @@ export default function Header() {
             )}
           </div>
         </div>
+        {/* Removed: Search Results Dropdown */}
       </div>
     </header>
   );
