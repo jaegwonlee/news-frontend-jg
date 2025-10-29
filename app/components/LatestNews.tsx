@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatRelativeTime } from "@/lib/utils"; 
 import StyledArticleTitle from "./common/StyledArticleTitle"; 
+import ArticleLikeButton from "./ArticleLikeButton"; // Import ArticleLikeButton
+import ArticleImageWithFallback from "./ArticleImageWithFallback"; // Import ArticleImageWithFallback
 
 /**
  * 최신 뉴스 목록 (모든 카테고리 종합)을 API에서 가져와 보여주는 서버 컴포넌트
@@ -32,43 +34,54 @@ export default async function LatestNews({ className }: { className?: string }) 
         )}
 
         {newsItems.map((item) => (
-          <Link 
-            key={item.id} 
-            href={item.url} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="flex gap-3 items-start cursor-pointer group"
+          <div // Changed Link to div to allow ArticleLikeButton to be a separate interactive element
+            key={item.id}
+            className="flex gap-3 items-start group p-2 hover:bg-zinc-800 rounded-md transition-colors"
           >
-            {/* 썸네일 */}
-            <div className="relative w-24 h-16 bg-zinc-700 rounded-md shrink-0 group-hover:opacity-80 overflow-hidden">
-              {item.thumbnail_url && (
-                <Image 
-                  src={item.thumbnail_url} 
-                  alt={item.title} 
-                  fill
-                  sizes="96px"
-                  style={{ objectFit: "cover" }}
-                  className="rounded-md"
-                />
-              )}
-            </div>
-
-            {/* 제목 및 출처 */}
-            <div className="flex-1">
-              <StyledArticleTitle 
-                title={item.title} 
-                className="text-sm font-medium text-white mb-1 group-hover:underline line-clamp-2"
-              />
-              <div className="flex items-center text-xs text-zinc-500">
-                {item.favicon_url && (
-                  <Image src={item.favicon_url} alt={item.source} width={12} height={12} className="mr-1 rounded-sm" />
+            <Link
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex gap-3 items-start flex-1" // Make Link take up available space
+            >
+              {/* 썸네일 */}
+              <div className="relative w-24 h-16 bg-zinc-700 rounded-md shrink-0 group-hover:opacity-80 overflow-hidden">
+                {item.thumbnail_url && (
+                  <ArticleImageWithFallback
+                    src={item.thumbnail_url}
+                    alt={item.title}
+                    sourceDomain={item.source_domain}
+                  />
                 )}
-                <span className="truncate max-w-[80px]">{item.source}</span>
-                <span className="mx-1">·</span>
-                <span>{formatRelativeTime(item.published_at)}</span>
               </div>
-            </div>
-          </Link>
+
+              {/* 제목 및 출처 */}
+              <div className="flex-1">
+                <StyledArticleTitle 
+                  title={item.title} 
+                  className="text-sm font-medium text-white mb-1 group-hover:underline line-clamp-2"
+                />
+                <div className="flex items-center text-xs text-zinc-500">
+                  {item.favicon_url && (
+                    <Image src={item.favicon_url} alt={item.source} width={12} height={12} className="mr-1 rounded-sm" />
+                  )}
+                  <span className="truncate max-w-[80px]">{item.source}</span>
+                  <span className="mx-1">·</span>
+                  <span>{formatRelativeTime(item.published_at)}</span>
+                </div>
+              </div>
+            </Link>
+            {/* Add ArticleLikeButton */}
+            {item.id && item.like_count !== undefined && item.isLiked !== undefined && (
+              <div className="flex-shrink-0 self-end"> {/* Position like button at the bottom right */}
+                <ArticleLikeButton
+                  articleId={item.id}
+                  initialLikes={item.like_count}
+                  initialIsLiked={item.isLiked}
+                />
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </aside>

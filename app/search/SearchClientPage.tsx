@@ -10,6 +10,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import StyledArticleTitle from "@/app/components/common/StyledArticleTitle";
 import { FAVICON_URLS } from "@/lib/constants"; // Import FAVICON_URLS
 import ArticleImageWithFallback from "@/app/components/ArticleImageWithFallback"; // Import new component
+import ArticleLikeButton from "@/app/components/ArticleLikeButton"; // Import ArticleLikeButton
 
 export default function SearchClientPage() {
   const searchParams = useSearchParams();
@@ -68,38 +69,52 @@ export default function SearchClientPage() {
       ) : (
         <div className="space-y-6">
           {searchResults.map((item) => (
-            <Link
+            <div // Changed Link to div to allow ArticleLikeButton to be a separate interactive element
               key={item.id}
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
               className="flex gap-4 items-start p-4 bg-zinc-900 rounded-lg shadow-md hover:bg-zinc-800 transition-colors"
             >
-              {item.thumbnail_url && (
-                <div className="relative w-32 h-20 shrink-0">
-                  <ArticleImageWithFallback
-                    src={item.thumbnail_url}
-                    alt={item.title}
-                    sourceDomain={item.source_domain}
+              <Link
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex gap-4 items-start flex-1" // Make Link take up available space
+              >
+                {item.thumbnail_url && (
+                  <div className="relative w-32 h-20 shrink-0">
+                    <ArticleImageWithFallback
+                      src={item.thumbnail_url}
+                      alt={item.title}
+                      sourceDomain={item.source_domain}
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <StyledArticleTitle
+                    title={item.title}
+                    className="text-lg font-medium text-white mb-2 line-clamp-2"
+                  />
+                  <p className="text-zinc-400 text-sm line-clamp-3 mb-2">{item.description}</p>
+                  <div className="flex items-center text-xs text-zinc-500">
+                    {item.favicon_url && (
+                      <Image src={item.favicon_url} alt={item.source} width={12} height={12} className="mr-1 rounded-sm" />
+                    )}
+                    <span className="truncate max-w-[100px]">{item.source}</span>
+                    <span className="mx-1">·</span>
+                    <span>{formatRelativeTime(item.published_at)}</span>
+                  </div>
+                </div>
+              </Link>
+              {/* Add ArticleLikeButton */}
+              {item.id && item.like_count !== undefined && item.isLiked !== undefined && (
+                <div className="flex-shrink-0 self-end"> {/* Position like button at the bottom right */}
+                  <ArticleLikeButton
+                    articleId={item.id}
+                    initialLikes={item.like_count}
+                    initialIsLiked={item.isLiked}
                   />
                 </div>
               )}
-              <div className="flex-1">
-                <StyledArticleTitle
-                  title={item.title}
-                  className="text-lg font-medium text-white mb-2 line-clamp-2"
-                />
-                <p className="text-zinc-400 text-sm line-clamp-3 mb-2">{item.description}</p>
-                <div className="flex items-center text-xs text-zinc-500">
-                  {item.favicon_url && (
-                    <Image src={item.favicon_url} alt={item.source} width={12} height={12} className="mr-1 rounded-sm" />
-                  )}
-                  <span className="truncate max-w-[100px]">{item.source}</span>
-                  <span className="mx-1">·</span>
-                  <span>{formatRelativeTime(item.published_at)}</span>
-                </div>
-              </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

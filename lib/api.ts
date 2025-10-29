@@ -280,8 +280,33 @@ export async function getSearchArticles(q: string): Promise<Article[]> {
   });
 
   if (!response.ok) {
-    throw new Error('검색 결과를 가져오는데 실패했습니다.');
-  }
-
-  return response.json();
-}
+        throw new Error('검색 결과를 가져오는데 실패했습니다.');
+      }
+    
+      return response.json();
+    }
+    
+    /**
+     * 사용자가 특정 기사에 대해 '좋아요'를 누르거나, 이미 누른 '좋아요'를 취소합니다.
+     * @param token - 사용자 인증 토큰
+     * @param articleId - 기사 ID
+     * @returns 업데이트된 좋아요 상태 (articleId, likes, isLiked)
+     */
+    export async function toggleArticleLike(token: string, articleId: number): Promise<{ data: { articleId: number; likes: number; isLiked: boolean } }> {
+      const response = await fetch(`${BACKEND_BASE_URL}/api/articles/${articleId}/like`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '좋아요 상태 업데이트에 실패했습니다.');
+      }
+    
+      return response.json();
+    }
+    
+    
