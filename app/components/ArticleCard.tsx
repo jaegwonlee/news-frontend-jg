@@ -4,7 +4,7 @@ import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
 import ArticleLikeButton from "./ArticleLikeButton"; // Import ArticleLikeButton
 
-export default function ArticleCard({ article }: { article: Article }) {
+export default function ArticleCard({ article, onLikeToggle }: { article: Article; onLikeToggle?: (articleId: number) => void }) {
   return (
     <div className="block bg-zinc-800 rounded-lg overflow-hidden group"> {/* Changed Link to div to wrap ArticleLikeButton */}
       <Link href={article.url} target="_blank" rel="noopener noreferrer"> {/* Link only for image and title */}
@@ -39,6 +39,7 @@ export default function ArticleCard({ article }: { article: Article }) {
             articleId={article.id}
             initialLikes={article.like_count}
             initialIsLiked={article.isLiked}
+            onLikeToggle={onLikeToggle} // Pass the onLikeToggle prop
           />
         </div>
       )}

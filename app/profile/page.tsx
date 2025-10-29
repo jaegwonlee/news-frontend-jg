@@ -4,10 +4,11 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { User, UserUpdate } from "@/types"; // UserUpdate is now available
-import { getUserProfile, getAvatars, updateUserProfile } from "@/lib/api"; // getAvatars and updateUserProfile are now available
+import { User, UserUpdate, Article } from "@/types"; // UserUpdate is now available, Article added for liked articles
+import { getUserProfile, getAvatars, updateUserProfile, getLikedArticles } from "@/lib/api"; // getAvatars, updateUserProfile, getLikedArticles are now available
 import FormField from "@/app/components/auth/FormField"; // Re-using FormField for consistency and easy input
 import { BACKEND_BASE_URL } from "@/lib/constants"; // Import BACKEND_BASE_URL
+import ArticleCard from "@/app/components/ArticleCard"; // Import ArticleCard
 
 export default function ProfilePage() {
   const { token, logout, login } = useAuth(); // Added login to update context user
@@ -20,6 +21,11 @@ export default function ProfilePage() {
   const [avatars, setAvatars] = useState<string[]>([]);
   const [selectedAvatar, setSelectedAvatar] = useState<string | undefined>(undefined);
   const [isUpdating, setIsUpdating] = useState(false); // For update button loading state
+
+  // State for liked articles
+  const [likedArticles, setLikedArticles] = useState<Article[]>([]);
+  const [isLoadingLikedArticles, setIsLoadingLikedArticles] = useState(true);
+  const [likedArticlesError, setLikedArticlesError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -55,10 +61,39 @@ export default function ProfilePage() {
     fetchProfileAndAvatars();
   }, [token, router, logout]);
 
+  // Effect to fetch liked articles
+  useEffect(() => {
+    if (!token) {
+      setLikedArticles([]);
+      setIsLoadingLikedArticles(false);
+      return;
+    }
+
+    const fetchLiked = async () => {
+      setIsLoadingLikedArticles(true);
+      setLikedArticlesError(null);
+      try {
+        const articles = await getLikedArticles(token);
+        setLikedArticles(articles);
+      } catch (err: any) {
+        setLikedArticlesError(err.message || "좋아요한 기사를 불러오는데 실패했습니다.");
+      } finally {
+        setIsLoadingLikedArticles(false);
+      }
+    };
+    fetchLiked();
+  }, [token]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!profile) return;
     const { name, value } = e.target;
     setProfile({ ...profile, [name]: value });
+  };
+
+  const handleArticleUnlike = (articleId: number) => {
+    setLikedArticles((prevArticles) =>
+      prevArticles.filter((article) => article.id !== articleId)
+    );
   };
 
   const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -236,6 +271,24 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Liked Articles Section */}
+      <section className="mt-12 bg-zinc-900 rounded-lg shadow-lg p-8 border border-zinc-700">
+        <h2 className="text-2xl font-bold text-white mb-6 border-b border-zinc-700 pb-3">좋아요한 기사</h2>
+        {isLoadingLikedArticles ? (
+          <div className="text-center py-10 text-zinc-400">좋아요한 기사 로딩 중...</div>
+        ) : likedArticlesError ? (
+          <div className="text-center py-10 text-red-500">오류: {likedArticlesError}</div>
+        ) : likedArticles.length === 0 ? (
+          <div className="text-center py-10 text-zinc-400">아직 좋아요한 기사가 없습니다.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {likedArticles.map((article) => (
+              <ArticleCard key={article.id} article={article} onLikeToggle={handleArticleUnlike} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

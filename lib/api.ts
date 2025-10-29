@@ -257,6 +257,28 @@ export async function updateUserProfile(token: string, updatedData: UserUpdate):
 }
 
 /**
+ * 토큰을 사용하여 현재 로그인된 사용자가 좋아요한 기사 목록을 조회합니다.
+ * @param token - 사용자 인증 토큰
+ * @returns 좋아요한 기사 목록 (Article[] 타입)
+ */
+export async function getLikedArticles(token: string): Promise<Article[]> {
+  const response = await fetch(`${BACKEND_BASE_URL}/api/user/likes`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    },
+    next: { revalidate: 60 } // Revalidate every minute
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || '좋아요한 기사를 가져오는데 실패했습니다.');
+  }
+  return response.json();
+}
+
+/**
  * 선택 가능한 프로필 아바타 목록을 조회합니다.
  * @returns 아바타 이미지 URL 배열 (string[])
  */
@@ -306,21 +328,22 @@ export async function getSearchArticles(q: string, token?: string): Promise<Arti
      * @param articleId - 기사 ID
      * @returns 업데이트된 좋아요 상태 (articleId, likes, isLiked)
      */
-    export async function toggleArticleLike(token: string, articleId: number): Promise<{ data: { articleId: number; likes: number; isLiked: boolean } }> {
-      const response = await fetch(`${BACKEND_BASE_URL}/api/articles/${articleId}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-      });
-    
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '좋아요 상태 업데이트에 실패했습니다.');
-      }
-    
-      return response.json();
-    }
+    export async function toggleArticleLike(token: string, articleId: number, currentIsLiked: boolean): Promise<{ data: { articleId: number; likes: number; isLiked: boolean } }> {
+  const method = currentIsLiked ? 'DELETE' : 'POST'; // If currently liked, DELETE (unlike); otherwise POST (like)
+  const response = await fetch(`${BACKEND_BASE_URL}/api/articles/${articleId}/like`, {
+    method: method,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || '좋아요 상태 업데이트에 실패했습니다.');
+  }
+
+  return response.json();
+}
     
     
