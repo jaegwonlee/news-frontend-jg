@@ -7,6 +7,7 @@ import ChatRoom from "@/app/components/ChatRoom";
 import TopicViewCounter from "@/app/components/TopicViewCounter";
 import { getTopicDetail } from "@/lib/api";
 import { TopicDetail } from "@/types";
+import { useAuth } from "@/app/context/AuthContext"; // 👈 1. useAuth 임포트
 
 /**
  * =====================================================================================
@@ -20,6 +21,7 @@ export default function TopicDetailPage() {
   // -------------------------------------------------------------------------------------
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const { token } = useAuth(); // 👈 2. useAuth로 토큰 가져오기
 
   // 2. 데이터 상태 관리
   // -------------------------------------------------------------------------------------
@@ -35,7 +37,8 @@ export default function TopicDetailPage() {
       const fetchData = async () => {
         try {
           setIsLoading(true);
-          const data = await getTopicDetail(id);
+          // 👇 3. API 호출 시 token 전달
+          const data = await getTopicDetail(id, token || undefined);
           setTopicDetail(data);
         } catch (err) {
           setError("토픽 정보를 불러오는 데 실패했습니다.");
@@ -46,7 +49,7 @@ export default function TopicDetailPage() {
       };
       fetchData();
     }
-  }, [id]); // id가 변경될 때마다 이 effect를 다시 실행합니다.
+  }, [id, token]); // 👈 4. useEffect 의존성 배열에 token 추가
 
   // 4. 로딩 및 에러 상태 처리
   // -------------------------------------------------------------------------------------

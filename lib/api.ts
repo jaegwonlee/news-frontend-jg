@@ -53,9 +53,16 @@ export async function getTopics(): Promise<Topic[]> {
   return response.json();
 }
 
-export async function getTopicDetail(topicId: string): Promise<TopicDetail> {
+export async function getTopicDetail(topicId: string, token?: string): Promise<TopicDetail> {
   const url = `https://news02.onrender.com/api/topics/${topicId}`;
-  const response = await fetch(url, { next: { revalidate: 60 } });
+  const headers: HeadersInit = { 'Accept': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const response = await fetch(url, {
+    next: { revalidate: 60 },
+    headers: headers
+  });
 
   if (!response.ok) {
     const errorBody = await response.text();
@@ -135,19 +142,25 @@ export async function getExclusiveNews(): Promise<Article[]> {
  * 특정 카테고리의 뉴스 목록을 가져옵니다.
  * (getLatestNews 함수가 사용합니다)
  */
-export async function getCategoryNews(categoryName: string, limit: number = 10): Promise<Article[]> {
+export async function getCategoryNews(categoryName: string, limit: number = 10, token?: string): Promise<Article[]> {
   const encodedCategoryName = encodeURIComponent(categoryName);
   const apiUrl = `https://news02.onrender.com/api/articles/by-category?name=${encodedCategoryName}&limit=${limit}&offset=0`;
+  const headers: HeadersInit = { 'Accept': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   try {
-    // CategoryNewsList와 동일하게 no-store 사용 (빌드 로그 관련)
-    const response = await fetch(apiUrl, { cache: "no-store" }); 
+    const response = await fetch(apiUrl, {
+      cache: "no-store",
+      headers: headers
+    });
     if (!response.ok) {
       throw new Error(`API 호출 실패 (${categoryName}): ${response.status}`);
     }
     return await response.json();
   } catch (error) {
     console.error(`${categoryName} 뉴스 로드 실패:`, error);
-    return []; // 에러 시 빈 배열 반환
+    return [];
   }
 }
 
@@ -157,11 +170,10 @@ export async function getCategoryNews(categoryName: string, limit: number = 10):
  * (LatestNews 컴포넌트에서 사용)
  * @param limit 반환할 최대 기사 수 (기본값: 10)
  */
-export async function getLatestNews(limit: number = 10): Promise<Article[]> {
+export async function getLatestNews(limit: number = 10, token?: string): Promise<Article[]> {
   try {
     const categories = ["정치", "경제", "사회", "문화"];
-    // 각 카테고리별로 기사를 가져오는 Promise들을 생성 (limit은 넉넉하게 가져옴)
-    const promises = categories.map((category) => getCategoryNews(category, limit)); 
+    const promises = categories.map((category) => getCategoryNews(category, limit, token));
     const results = await Promise.all(promises);
 
     // 모든 결과를 하나의 배열로 합칩니다.
@@ -269,13 +281,15 @@ export async function getAvatars(): Promise<string[]> {
  * @param q - 검색할 키워드
  * @returns 검색 결과 기사 목록 (Article[])
  */
-export async function getSearchArticles(q: string): Promise<Article[]> {
+export async function getSearchArticles(q: string, token?: string): Promise<Article[]> {
   const encodedQuery = encodeURIComponent(q);
+  const headers: HeadersInit = { 'Accept': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   const response = await fetch(`${BACKEND_BASE_URL}/api/search?q=${encodedQuery}`, {
     method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-    },
+    headers: headers,
     next: { revalidate: 60 } // Revalidate every minute
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart } from "lucide-react"; // Only import Heart
 import { useAuth } from "@/app/context/AuthContext";
 import { toggleArticleLike } from "@/lib/api";
@@ -22,6 +22,12 @@ export default function ArticleLikeButton({
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Add this useEffect to update internal state when initial props change
+  useEffect(() => {
+    setLikes(initialLikes);
+    setIsLiked(initialIsLiked);
+  }, [initialLikes, initialIsLiked]); // Re-run when these props change
 
   const handleLikeToggle = async () => {
     if (!token) {

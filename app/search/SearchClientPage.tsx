@@ -11,10 +11,12 @@ import StyledArticleTitle from "@/app/components/common/StyledArticleTitle";
 import { FAVICON_URLS } from "@/lib/constants"; // Import FAVICON_URLS
 import ArticleImageWithFallback from "@/app/components/ArticleImageWithFallback"; // Import new component
 import ArticleLikeButton from "@/app/components/ArticleLikeButton"; // Import ArticleLikeButton
+import { useAuth } from "@/app/context/AuthContext"; // 👈 1. useAuth 임포트
 
 export default function SearchClientPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q");
+  const { token } = useAuth(); // 👈 2. useAuth로 토큰 가져오기
 
   const [searchResults, setSearchResults] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +33,8 @@ export default function SearchClientPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const results = await getSearchArticles(searchQuery);
+        // 👇 3. API 호출 시 token 전달
+        const results = await getSearchArticles(searchQuery, token || undefined);
         setSearchResults(results);
       } catch (err: any) {
         setError(err.message || "검색 결과를 불러오는데 실패했습니다.");
@@ -41,7 +44,7 @@ export default function SearchClientPage() {
     };
 
     fetchResults();
-  }, [searchQuery]);
+  }, [searchQuery, token]); // 👈 4. useEffect 의존성 배열에 token 추가
 
   if (isLoading) {
     return (
