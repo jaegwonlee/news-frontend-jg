@@ -43,13 +43,26 @@ export async function loginUser(credentials: any) {
   return data;
 }
 
-export async function getTopics(): Promise<Topic[]> {
-  // Revalidate every minute
-  const response = await fetch('https://news02.onrender.com/api/topics', { next: { revalidate: 60 } });
+/**
+ * 가장 최근에 발행된 토픽 10개를 가져옵니다.
+ * @returns 최신 토픽 목록 (Topic[] 타입)
+ */
+export async function getLatestTopics(): Promise<Topic[]> {
+  const response = await fetch(`${BACKEND_BASE_URL}/api/topics/latest`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json', // API 명세에는 */* 이지만 json 명시 권장
+    },
+    // 최신 토픽은 자주 변경될 수 있으므로 캐시 시간 짧게 설정 (예: 1분)
+    next: { revalidate: 60 }
+  });
+
   if (!response.ok) {
-    // This will activate the closest `error.js` Error Boundary
-    throw new Error('Failed to fetch topics');
+    console.error('Failed to fetch latest topics'); // 에러 로그 추가
+    return []; // 에러 시 빈 배열 반환
+    // throw new Error('최신 토픽을 가져오는데 실패했습니다.'); // 필요 시 에러 throw
   }
+
   return response.json();
 }
 
