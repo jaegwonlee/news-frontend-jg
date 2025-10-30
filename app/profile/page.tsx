@@ -10,12 +10,13 @@ import FormField from "@/app/components/auth/FormField"; // Re-using FormField f
 import { BACKEND_BASE_URL } from "@/lib/constants"; // Import BACKEND_BASE_URL
 import ArticleCard from "@/app/components/ArticleCard"; // Import ArticleCard
 
+
 export default function ProfilePage() {
-  const { token, logout, login } = useAuth(); // Added login to update context user
+  const { token, logout, login, isLoading: isAuthLoading } = useAuth(); // Rename to avoid conflict
   const router = useRouter();
   const [profile, setProfile] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // This is for profile data loading
   const [error, setError] = useState<string | null>(null);
   const [currentProfileData, setCurrentProfileData] = useState<User | null>(null); // To hold original data when entering edit mode
   const [avatars, setAvatars] = useState<string[]>([]);
@@ -28,6 +29,11 @@ export default function ProfilePage() {
   const [likedArticlesError, setLikedArticlesError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Wait until auth state is determined
+    if (isAuthLoading) {
+      return;
+    }
+    // If not loading and no token, redirect
     if (!token) {
       router.push("/login");
       return;
@@ -59,7 +65,7 @@ export default function ProfilePage() {
     };
 
     fetchProfileAndAvatars();
-  }, [token, router, logout]);
+  }, [token, isAuthLoading, router, logout]);
 
   // Effect to fetch liked articles
   useEffect(() => {
@@ -136,7 +142,7 @@ export default function ProfilePage() {
     setError(null); // Clear any edit errors
   };
 
-  if (isLoading) {
+  if (isAuthLoading || isLoading) {
     return <div className="text-center py-10 text-white">프로필 로딩 중...</div>;
   }
 
@@ -289,6 +295,8 @@ export default function ProfilePage() {
           </div>
         )}
       </section>
+
+
     </div>
   );
 }

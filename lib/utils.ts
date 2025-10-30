@@ -1,3 +1,10 @@
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 /**
  * ISO 8601 형식의 날짜 문자열을 상대 시간(예: "1시간 전")으로 변환하는 함수
  * @param dateString - ISO 8601 형식의 날짜 문자열 (예: "2025-10-27T05:00:00.000Z")

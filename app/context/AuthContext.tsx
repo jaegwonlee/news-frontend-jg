@@ -5,7 +5,8 @@ import { User } from '@/types'; // Import User type
 
 interface AuthContextType {
   token: string | null;
-  user: User | null; // Use User type
+  user: User | null;
+  isLoading: boolean; // Add isLoading state
   login: (token: string, user: User) => void;
   logout: () => void;
 }
@@ -14,15 +15,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null); // Use User type
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Initialize isLoading to true
 
   // Load token and user from localStorage on initial load
   useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
-    const storedUser = localStorage.getItem('authUser');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedToken = localStorage.getItem('authToken');
+      const storedUser = localStorage.getItem('authUser');
+      if (storedToken && storedUser) {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Failed to parse auth user from localStorage", error);
+      // If parsing fails, treat as logged out
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+    } finally {
+      setIsLoading(false); // Set isLoading to false after checking
     }
   }, []);
 
@@ -41,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout }}>
+    <AuthContext.Provider value={{ token, user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

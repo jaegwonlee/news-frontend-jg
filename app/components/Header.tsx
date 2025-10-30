@@ -21,7 +21,7 @@ const navLinks = [
 ];
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -109,7 +109,10 @@ export default function Header() {
               )}
             </button>
 
-            {user ? (
+            {isAuthLoading ? (
+              // Render a placeholder or nothing while auth is loading
+              <div className="h-8 w-24" /> // Placeholder with similar height
+            ) : user ? (
               // --- 로그인 상태 UI ---
               <div className="flex items-center gap-4">
                 {/* 프로필 이미지와 닉네임 (프로필 페이지 링크) */}

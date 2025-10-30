@@ -274,8 +274,12 @@ export async function updateUserProfile(token: string, updatedData: UserUpdate):
  * @param token - 사용자 인증 토큰
  * @returns 좋아요한 기사 목록 (Article[] 타입)
  */
-export async function getLikedArticles(token: string): Promise<Article[]> {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/user/likes`, {
+export async function getLikedArticles(token: string, limit: number = 20, offset: number = 0): Promise<Article[]> {
+  const url = new URL(`${BACKEND_BASE_URL}/api/user/me/liked-articles`);
+  url.searchParams.append('limit', String(limit));
+  url.searchParams.append('offset', String(offset));
+
+  const response = await fetch(url.toString(), {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -358,5 +362,41 @@ export async function getSearchArticles(q: string, token?: string): Promise<Arti
 
   return response.json();
 }
+
+/**
+ * 인기 기사 목록을 가져옵니다.
+ * @param category - 조회할 카테고리 (미지정 시 전체)
+ * @param token - 사용자 인증 토큰
+ * @returns 인기 기사 목록 (Article[] 타입)
+ */
+export async function getPopularNews(category?: string, token?: string): Promise<Article[]> {
+  const url = new URL(`${BACKEND_BASE_URL}/api/articles/popular`);
+  if (category) {
+    url.searchParams.append('category', category);
+  }
+
+  const headers: HeadersInit = { 'Accept': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  try {
+    const response = await fetch(url.toString(), {
+      cache: 'no-store',
+      headers: headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API 호출 실패 (인기 기사): ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('인기 기사 로드 실패:', error);
+    return [];
+  }
+}
+
+
+
     
     

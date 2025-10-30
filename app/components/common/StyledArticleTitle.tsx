@@ -1,6 +1,8 @@
-"use client";
+'use client';
 
 import React from 'react';
+import { Tooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
 
 interface StyledArticleTitleProps {
   title: string;
@@ -33,7 +35,16 @@ const StyledArticleTitle: React.FC<StyledArticleTitleProps> = ({ title, classNam
     return title;
   };
 
-  return <div className={className}>{renderStyledTitle()}</div>;
+  return (
+    <div 
+      className={className}
+      data-tooltip-id="article-title-tooltip"
+      data-tooltip-content={title}
+    >
+      <Tooltip id="article-title-tooltip" />
+      {renderStyledTitle()}
+    </div>
+  );
 };
 
 export default StyledArticleTitle;

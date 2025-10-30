@@ -17,7 +17,7 @@ export interface Article {
   view_count?: number;
   like_count?: number;
   isLiked?: boolean;
-  isSaved?: boolean;
+
 }
 
 /**

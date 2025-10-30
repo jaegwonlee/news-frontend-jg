@@ -9,6 +9,9 @@ import { Eye } from "lucide-react";
 import Link from "next/link";
 import { Topic } from "@/types"; // 👈 4. Topic 타입 임포트 (경로 확인 필요)
 import { formatRelativeTime } from "@/lib/utils";
+import { Tooltip } from 'react-tooltip'
+import 'react-tooltip/dist/react-tooltip.css'
+
 
 /**
  * [수정] 인기 토픽 및 최신 토픽 목록을 탭으로 보여주는 클라이언트 컴포넌트
@@ -51,6 +54,7 @@ export default function TrendingTopics({ className }: { className?: string }) {
 
   return (
     <aside className={`bg-zinc-900 p-4 rounded-lg h-full flex flex-col ${className}`}>
+      <Tooltip id="trending-topic-tooltip" />
       {/* 👇 7. 탭 버튼 UI 추가 */}
       <div className="flex border-b border-zinc-700 mb-4">
         <button
@@ -115,7 +119,13 @@ export default function TrendingTopics({ className }: { className?: string }) {
                   )}
 
                   <span className="flex-1 text-base text-white">
-                    <div className="line-clamp-1 group-hover:underline">{topic.display_name}</div>
+                  <div 
+                    className="line-clamp-1 group-hover:underline"
+                    data-tooltip-id="trending-topic-tooltip"
+                    data-tooltip-content={topic.display_name}
+                  >
+                    {topic.display_name}
+                  </div>
                     {activeTab === 'latest' && (
                       <div className="text-xs text-zinc-500 mt-1">
                         {formatRelativeTime(topic.published_at)}
