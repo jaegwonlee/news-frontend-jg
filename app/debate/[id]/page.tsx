@@ -1,12 +1,12 @@
-"use client"; // 이 페이지를 클라이언트 컴포넌트로 전환합니다.
+"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation"; // URL 파라미터를 읽기 위한 hook
 import ArticleCard from "@/app/components/ArticleCard";
 import ChatRoom from "@/app/components/ChatRoom";
 import TopicViewCounter from "@/app/components/TopicViewCounter";
-import { getTopicDetail } from "@/lib/api";
-import { TopicDetail } from "@/types";
+import { getTopicDetail, toggleArticleLike, toggleArticleSave } from "@/lib/api";
+import { TopicDetail, Article } from "@/types";
 import { useAuth } from "@/app/context/AuthContext"; // 👈 1. useAuth 임포트
 
 /**
@@ -51,6 +51,47 @@ export default function TopicDetailPage() {
     }
   }, [id, token]); // 👈 4. useEffect 의존성 배열에 token 추가
 
+  const handleLikeToggle = useCallback(async (articleToToggle: Article) => {
+    if (!token) return;
+    try {
+      const response = await toggleArticleLike(token, articleToToggle.id, articleToToggle.isLiked || false);
+      setTopicDetail(prevDetail => {
+        if (!prevDetail) return null;
+        return {
+          ...prevDetail,
+          articles: prevDetail.articles.map(article => 
+            article.id === articleToToggle.id 
+              ? { ...article, isLiked: response.data.isLiked, like_count: response.data.likes }
+              : article
+          ),
+        };
+      });
+    } catch (error) {
+      console.error("Failed to toggle like:", error);
+    }
+  }, [token]);
+
+  const handleSaveToggle = useCallback(async (articleToToggle: Article) => {
+    if (!token) return;
+    const newIsSaved = !articleToToggle.isSaved;
+    try {
+      await toggleArticleSave(token, articleToToggle.id, articleToToggle.isSaved || false);
+      setTopicDetail(prevDetail => {
+        if (!prevDetail) return null;
+        return {
+          ...prevDetail,
+          articles: prevDetail.articles.map(article => 
+            article.id === articleToToggle.id 
+              ? { ...article, isSaved: newIsSaved }
+              : article
+          ),
+        };
+      });
+    } catch (error) {
+      console.error("Failed to toggle save:", error);
+    }
+  }, [token]);
+
   // 4. 로딩 및 에러 상태 처리
   // -------------------------------------------------------------------------------------
   if (isLoading) {
@@ -84,7 +125,12 @@ export default function TopicDetailPage() {
           <h2 className="text-2xl font-bold text-blue-500 mb-4 pb-2 border-b-2 border-blue-500">좌측 기사</h2>
           <div className="space-y-6">
             {leftArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
+              <ArticleCard 
+                key={article.id} 
+                article={article} 
+                onLikeToggle={() => handleLikeToggle(article)}
+                onSaveToggle={() => handleSaveToggle(article)}
+              />
             ))}
           </div>
         </aside>
@@ -95,7 +141,12 @@ export default function TopicDetailPage() {
           <h2 className="text-2xl font-bold text-red-500 mb-4 pb-2 border-b-2 border-red-500">우측 기사</h2>
           <div className="space-y-6">
             {rightArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
+              <ArticleCard 
+                key={article.id} 
+                article={article} 
+                onLikeToggle={() => handleLikeToggle(article)}
+                onSaveToggle={() => handleSaveToggle(article)}
+              />
             ))}
           </div>
         </aside>

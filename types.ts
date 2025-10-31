@@ -17,6 +17,10 @@ export interface Article {
   view_count?: number;
   like_count?: number;
   isLiked?: boolean;
+  isSaved?: boolean;
+  saved_article_id?: number; // For category management
+  category_id?: number | null; // Added for category management
+
 
 }
 
