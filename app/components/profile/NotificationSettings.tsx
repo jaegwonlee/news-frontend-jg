@@ -7,15 +7,15 @@ export default function NotificationSettings() {
 
   if (isLoading) {
     return (
-      <div className="bg-zinc-900 rounded-lg shadow-lg p-8 border border-zinc-700 mb-8">
+      <>
         <h2 className="text-2xl font-bold text-white mb-6 border-b border-zinc-700 pb-3">알림 설정</h2>
         <p className="text-zinc-400">로딩 중...</p>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="bg-zinc-900 rounded-lg shadow-lg p-8 border border-zinc-700 mb-8">
+    <>
       <h2 className="text-2xl font-bold text-white mb-6 border-b border-zinc-700 pb-3">알림 설정</h2>
       <div className="flex items-center justify-between">
         <span className="text-lg">알림 받기</span>
@@ -32,6 +32,6 @@ export default function NotificationSettings() {
       {error && (
         <p className="text-red-400 text-sm mt-2">{error}</p>
       )}
-    </div>
+    </>
   );
 }

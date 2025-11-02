@@ -1,4 +1,3 @@
-
 import { Article } from "@/types";
 import { BACKEND_BASE_URL } from "@/lib/constants";
 
@@ -132,28 +131,82 @@ export async function toggleArticleLike(token: string, articleId: number, curren
  * 인기 기사 목록을 가져옵니다.
  */
 export async function getPopularNews(category?: string, token?: string): Promise<Article[]> {
-  const url = new URL(`${BACKEND_BASE_URL}/api/articles/popular`);
+  const fetchByCategory = async (cat: string) => {
+    const url = new URL(`${BACKEND_BASE_URL}/api/articles/popular`);
+    url.searchParams.append('category', cat);
+    const headers: HeadersInit = { 'Accept': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    try {
+      const response = await fetch(url.toString(), {
+        cache: 'no-store',
+        headers: headers,
+      });
+      if (!response.ok) {
+        console.error(`API 호출 실패 (인기 기사 - ${cat}): ${response.status}`);
+        return [];
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`인기 기사 로드 실패 (${cat}):`, error);
+      return [];
+    }
+  };
+
   if (category) {
-    url.searchParams.append('category', category);
+    return fetchByCategory(category);
   }
 
-  const headers: HeadersInit = { 'Accept': 'application/json' };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
+  // 카테고리가 주어지지 않은 경우, 모든 카테고리의 인기 뉴스를 가져와 합칩니다.
   try {
-    const response = await fetch(url.toString(), {
-      cache: 'no-store',
-      headers: headers,
+    const categories = ["정치", "경제", "사회", "문화"];
+    const promises = categories.map(fetchByCategory);
+    const results = await Promise.all(promises);
+
+    const allArticles = results.flat();
+
+    // 기사 ID를 기준으로 중복 제거
+    const uniqueArticlesMap = new Map<number, Article>();
+    allArticles.forEach((article) => {
+      uniqueArticlesMap.set(article.id, article);
     });
 
-    if (!response.ok) {
-      throw new Error(`API 호출 실패 (인기 기사): ${response.status}`);
-    }
-    return await response.json();
+    const uniqueArticles = Array.from(uniqueArticlesMap.values());
+
+    // 좋아요(like_count)가 많은 순으로 정렬
+    uniqueArticles.sort((a, b) => (b.like_count || 0) - (a.like_count || 0));
+
+    return uniqueArticles.slice(0, 20); // 상위 20개만 반환
+
   } catch (error) {
-    console.error('인기 기사 로드 실패:', error);
+    console.error("전체 인기 뉴스 종합 실패:", error);
     return [];
   }
+}
+
+/**
+ * 사용자가 특정 기사를 저장하거나, 저장을 취소합니다.
+ */
+export async function toggleArticleSave(token: string, articleId: number, currentIsSaved: boolean): Promise<any> {
+  const method = currentIsSaved ? 'DELETE' : 'POST';
+  const response = await fetch(`${BACKEND_BASE_URL}/api/articles/${articleId}/save`, {
+    method: method,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || '기사 저장 상태 업데이트에 실패했습니다.');
+  }
+
+  // The DELETE endpoint returns 204 No Content, so we can't .json() it.
+  if (response.status === 204) {
+    return { success: true };
+  }
+
+  return response.json();
 }

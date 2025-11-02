@@ -7,12 +7,13 @@ import 'react-tooltip/dist/react-tooltip.css';
 interface StyledArticleTitleProps {
   title: string;
   className?: string;
+  disableTooltip?: boolean; // 툴팁 비활성화 prop 추가
 }
 
 /**
  * 기사 제목에 [속보], [단독]이 있을 경우 색상을 적용하는 컴포넌트
  */
-const StyledArticleTitle: React.FC<StyledArticleTitleProps> = ({ title, className }) => {
+const StyledArticleTitle: React.FC<StyledArticleTitleProps> = ({ title, className, disableTooltip = false }) => {
   const renderStyledTitle = () => {
     if (title.startsWith('[속보]')) {
       return (
@@ -35,13 +36,14 @@ const StyledArticleTitle: React.FC<StyledArticleTitleProps> = ({ title, classNam
     return title;
   };
 
+  const tooltipId = `article-title-tooltip-${Math.random()}`;
+
   return (
     <div 
       className={className}
-      data-tooltip-id="article-title-tooltip"
-      data-tooltip-content={title}
+      {...(!disableTooltip && { 'data-tooltip-id': tooltipId, 'data-tooltip-content': title })}
     >
-      <Tooltip id="article-title-tooltip" />
+      {!disableTooltip && <Tooltip id={tooltipId} />}
       {renderStyledTitle()}
     </div>
   );

@@ -105,6 +105,7 @@ export default function LatestNews({ className }: { className?: string }) {
                   <StyledArticleTitle
                     title={item.title}
                     className="text-sm font-medium text-white mb-1 group-hover:underline line-clamp-2"
+                    disableTooltip={true} // 툴팁 비활성화
                   />
                   <div className="flex items-center text-xs text-zinc-500">
                     {item.favicon_url && (

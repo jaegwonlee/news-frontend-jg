@@ -1,4 +1,3 @@
-
 import { User, UserUpdate, Article } from "@/types";
 import { BACKEND_BASE_URL } from "@/lib/constants";
 
@@ -114,6 +113,12 @@ export async function getNotificationSettings(token: string): Promise<{ enabled:
     cache: 'no-store',
   });
 
+  // If the endpoint doesn't exist, gracefully return a default value.
+  if (response.status === 404) {
+    console.warn('Notification settings endpoint not found (404). Returning default value.');
+    return { enabled: false };
+  }
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.message || '알림 설정을 가져오는데 실패했습니다.');
@@ -169,6 +174,7 @@ export async function getSavedArticles(token: string, limit: number = 20, offset
   return data.map((item: any) => ({
     id: item.article_id,
     saved_article_id: item.saved_article_id, // Add this ID for category management
+    category_id: item.category_id, // <<< CRITICAL FIX
     source: item.source,
     source_domain: item.source_domain,
     title: item.title,
@@ -185,30 +191,4 @@ export async function getSavedArticles(token: string, limit: number = 20, offset
     like_count: 0,
     isLiked: false, // Assuming we don't know if the user liked it from this endpoint
   }));
-}
-
-/**
- * 사용자가 특정 기사를 저장하거나, 저장을 취소합니다.
- */
-export async function toggleArticleSave(token: string, articleId: number, currentIsSaved: boolean): Promise<any> {
-  const method = currentIsSaved ? 'DELETE' : 'POST';
-  const response = await fetch(`${BACKEND_BASE_URL}/api/articles/${articleId}/save`, {
-    method: method,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || '기사 저장 상태 업데이트에 실패했습니다.');
-  }
-
-  // The DELETE endpoint returns 204 No Content, so we can't .json() it.
-  if (response.status === 204) {
-    return { success: true };
-  }
-
-  return response.json();
 }

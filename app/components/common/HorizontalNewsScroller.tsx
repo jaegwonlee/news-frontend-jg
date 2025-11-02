@@ -31,7 +31,7 @@ const HorizontalNewsScroller: React.FC<HorizontalNewsScrollerProps> = ({ news })
             title={article.title}
           >
             {/* StyledArticleTitle을 사용하여 [속보], [단독] 색상 적용 */}
-            <StyledArticleTitle title={article.title} />
+            <StyledArticleTitle title={article.title} disableTooltip={true} />
           </Link>
         ))}
       </div>

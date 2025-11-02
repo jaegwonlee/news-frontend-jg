@@ -1,12 +1,7 @@
 'use client';
 
 import { BACKEND_BASE_URL } from "@/lib/constants";
-
-export interface SavedArticleCategory {
-  id: number;
-  name: string;
-  created_at?: string;
-}
+import { SavedArticleCategory } from "@/types";
 
 /**
  * GET /api/saved/categories
@@ -97,10 +92,11 @@ export async function updateArticleCategory(token: string, savedArticleId: numbe
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ categoryId }),
+    body: JSON.stringify({ categoryId: categoryId }), // Corrected to camelCase 'categoryId' in JSON body
   });
+
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(errorData.message || '기사 카테고리 변경에 실패했습니다.');
   }
 }

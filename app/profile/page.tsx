@@ -1,12 +1,7 @@
 'use client';
 
 import { useUserProfile } from '@/hooks/useUserProfile';
-import LikedArticles from '@/app/components/profile/LikedArticles';
-import NotificationSettings from '@/app/components/profile/NotificationSettings';
-import ProfileHeader from '@/app/components/profile/ProfileHeader';
-import ProfileEditForm from '@/app/components/profile/ProfileEditForm';
-
-import SavedArticles from '@/app/components/profile/SavedArticles';
+import ProfileTabs from '@/app/components/profile/ProfileTabs';
 
 export default function ProfilePage() {
   const {
@@ -27,7 +22,7 @@ export default function ProfilePage() {
     return <div className="text-center py-10 text-white">프로필 로딩 중...</div>;
   }
 
-  if (error && !isEditing) {
+  if (error && !profile) { // Show error only if profile fails to load
     return <div className="text-center py-10 text-red-500">{error}</div>;
   }
 
@@ -36,41 +31,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 text-white">
-      <NotificationSettings />
-
-      <div className="bg-zinc-900 rounded-lg shadow-lg p-8 border border-zinc-700">
-        {!isEditing ? (
-          <ProfileHeader profile={profile} />
-        ) : (
-          <ProfileEditForm
-            profile={profile}
-            avatars={avatars}
-            selectedAvatar={selectedAvatar}
-            isUpdating={isUpdating}
-            error={error}
-            onInputChange={handleInputChange}
-            onUpdateProfile={handleUpdateProfile}
-            onCancelEdit={() => setIsEditing(false)}
-            onSetSelectedAvatar={setSelectedAvatar}
-          />
-        )}
-        <div className="border-t border-zinc-700 pt-8">
-          {!isEditing && (
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700"
-              >
-                프로필 수정
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <LikedArticles />
-      <SavedArticles />
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 text-white">
+      <ProfileTabs
+        profile={profile}
+        isEditing={isEditing}
+        avatars={avatars}
+        selectedAvatar={selectedAvatar}
+        isUpdating={isUpdating}
+        error={error}
+        handleInputChange={handleInputChange}
+        handleUpdateProfile={handleUpdateProfile}
+        setIsEditing={setIsEditing}
+        setSelectedAvatar={setSelectedAvatar}
+      />
     </div>
   );
 }

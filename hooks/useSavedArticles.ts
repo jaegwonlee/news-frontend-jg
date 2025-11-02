@@ -3,15 +3,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { Article } from '@/types';
-import { 
-  getSavedArticles, 
-  getCategories, 
-  createCategory, 
-  deleteCategory, 
-  updateCategory, 
-  updateArticleCategory, 
-  SavedArticleCategory
-} from '@/lib/api';
+import { getSavedArticles } from '@/lib/api/user';
+import { getCategories, createCategory, deleteCategory, updateCategory, updateArticleCategory } from '@/lib/api/categories';
+import { SavedArticleCategory } from '@/types';
 
 export const useSavedArticlesManager = () => {
   const { token } = useAuth();
@@ -46,18 +40,30 @@ export const useSavedArticlesManager = () => {
   }, [fetchData]);
 
   const handleCreateCategory = useCallback(async (name: string) => {
-    if (!token) return;
-    const newCategory = await createCategory(token, name);
-    setCategories(prev => [...prev, newCategory]);
+    if (!token) return undefined;
+    try {
+      const newCategory = await createCategory(token, name);
+      setCategories(prev => [...prev, newCategory]);
+      return newCategory;
+    } catch (error) {
+      console.error("Failed to create category:", error);
+      return undefined;
+    }
   }, [token]);
 
   const handleDeleteCategory = useCallback(async (categoryId: number) => {
     if (!token) return;
-    await deleteCategory(token, categoryId);
-    setCategories(prev => prev.filter(c => c.id !== categoryId));
-    // Also update articles that were in this category
-    setArticles(prev => prev.map(a => ({ ...a, category_id: undefined })))
-  }, [token]);
+    try {
+      await deleteCategory(token, categoryId);
+      setCategories(prev => prev.filter(c => c.id !== categoryId));
+      setArticles(prev => prev.map(a => a.category_id === categoryId ? { ...a, category_id: null } : a));
+      if (selectedCategoryId === categoryId) {
+        setSelectedCategoryId(null);
+      }
+    } catch (error) {
+      console.error("Failed to delete category:", error);
+    }
+  }, [token, selectedCategoryId]);
 
   const handleRenameCategory = useCallback(async (categoryId: number, newName: string) => {
     if (!token) return;
@@ -68,7 +74,6 @@ export const useSavedArticlesManager = () => {
   const handleUpdateArticleCategory = useCallback(async (savedArticleId: number, categoryId: number | null) => {
     if (!token) return;
     await updateArticleCategory(token, savedArticleId, categoryId);
-    // Optimistically update the article in the local state
     setArticles(prev => prev.map(a => 
       a.saved_article_id === savedArticleId 
         ? { ...a, category_id: categoryId } 
@@ -76,8 +81,9 @@ export const useSavedArticlesManager = () => {
     ));
   }, [token]);
 
-  const handleUnsaveArticle = useCallback((articleId: number) => {
-    setArticles(prev => prev.filter(a => a.id !== articleId));
+  const handleUnsaveArticle = useCallback(async (articleId: number) => {
+    // This should be implemented with a real API call
+    setArticles(prev => prev.filter(a => a.saved_article_id !== articleId));
   }, []);
 
   const filteredArticles = useMemo(() => {
@@ -100,5 +106,6 @@ export const useSavedArticlesManager = () => {
     handleRenameCategory,
     handleUpdateArticleCategory,
     handleUnsaveArticle,
+    fetchData, // Return fetchData to allow manual refetching
   };
 };

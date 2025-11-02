@@ -64,3 +64,9 @@ export interface UserUpdate {
   profile_image_url?: string; // API 명세에 맞춰 필드명 사용
   phone?: string; // API 명세에는 없지만 profile 페이지에서 사용하므로 추가 (선택 사항)
 }
+
+export interface SavedArticleCategory {
+  id: number;
+  name: string;
+  created_at?: string;
+}
