@@ -45,6 +45,7 @@ export default function SavedArticles() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<SavedArticleCategory | null>(null);
+  const [showCategoryList, setShowCategoryList] = useState(false); // New state for category list visibility
   const articlesPerPage = 6;
 
   useEffect(() => {
@@ -111,32 +112,43 @@ export default function SavedArticles() {
   return (
     <>
       <div className="flex flex-col md:flex-row gap-8">
-        {/* Left Sidebar for Categories */}
-        <aside className="md:w-1/4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-white">카테고리</h3>
-            <button 
-              onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
-              title="새 카테고리 만들기"
-            >
-              <Plus size={16} />
-              추가
-            </button>
-          </div>
-          <div className="bg-zinc-900 p-2 rounded-lg border border-zinc-800">
-            <CategorySelector
-              categories={categories}
-              selectedCategoryId={selectedCategoryId}
-              onSelectCategory={setSelectedCategoryId}
-              onDeleteCategory={handleDeleteCategory}
-              onEditCategory={handleOpenEditModal}
-            />
-          </div>
-        </aside>
-
         {/* Right Main Content for Articles */}
         <main className="flex-1">
+          {/* Moved Category Section */}
+          <div className="mb-8 bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">카테고리</h3>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowCategoryList(!showCategoryList)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-semibold bg-zinc-700 text-white hover:bg-zinc-600 transition-colors"
+                  title="카테고리 목록 토글"
+                >
+                  {showCategoryList ? '목록 닫기' : '목록 보기'}
+                </button>
+                <button 
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
+                  title="새 카테고리 만들기"
+                >
+                  <Plus size={16} />
+                  추가
+                </button>
+              </div>
+            </div>
+            {showCategoryList && (
+              <div className="mt-4 bg-zinc-800 p-2 rounded-lg border border-zinc-700">
+                <CategorySelector
+                  categories={categories}
+                  selectedCategoryId={selectedCategoryId}
+                  onSelectCategory={setSelectedCategoryId}
+                  onDeleteCategory={handleDeleteCategory}
+                  onEditCategory={handleOpenEditModal}
+                />
+              </div>
+            )}
+          </div>
+
           {articles.length === 0 ? (
             <EmptyState message={"아직 저장된 기사가 없습니다."} />
           ) : filteredArticles.length === 0 ? (

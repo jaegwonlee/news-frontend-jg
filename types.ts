@@ -70,3 +70,10 @@ export interface SavedArticleCategory {
   name: string;
   created_at?: string;
 }
+
+export type NotificationType = "NEW_TOPIC" | "BREAKING_NEWS" | "EXCLUSIVE_NEWS";
+
+export interface NotificationSetting {
+  notification_type: NotificationType;
+  is_enabled: boolean;
+}

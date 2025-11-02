@@ -34,7 +34,7 @@ const FormField: React.FC<FormFieldProps> = ({
   return (
     <div>
       {/* 입력 필드 라벨 */}
-      <label htmlFor={id} className="block text-sm font-medium text-gray-300 mb-1">
+      <label htmlFor={id} className="block text-sm font-medium text-zinc-400 mb-1">
         {label}
       </label>
       {/* 입력 필드 */}
@@ -49,7 +49,7 @@ const FormField: React.FC<FormFieldProps> = ({
         onBlur={onBlur} // 유효성 검사를 위해 onBlur 이벤트 핸들러 추가
         disabled={disabled} // disabled 속성 적용
         // Tailwind CSS 클래스를 이용한 스타일링
-        className="w-full px-4 py-2 text-white bg-neutral-800 border-2 border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300"
+        className="w-full px-3 py-2 text-white bg-zinc-900 border border-zinc-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
       />
     </div>
   );

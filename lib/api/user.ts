@@ -103,8 +103,8 @@ export async function getAvatars(): Promise<string[]> {
   return response.json();
 }
 
-export async function getNotificationSettings(token: string): Promise<{ enabled: boolean }> {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/user/me/notification_settings`, {
+export async function getNotificationSettings(token: string): Promise<NotificationSetting[]> {
+  const response = await fetch(`${BACKEND_BASE_URL}/api/user/me/notification-settings`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -112,12 +112,6 @@ export async function getNotificationSettings(token: string): Promise<{ enabled:
     },
     cache: 'no-store',
   });
-
-  // If the endpoint doesn't exist, gracefully return a default value.
-  if (response.status === 404) {
-    console.warn('Notification settings endpoint not found (404). Returning default value.');
-    return { enabled: false };
-  }
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -127,15 +121,15 @@ export async function getNotificationSettings(token: string): Promise<{ enabled:
   return response.json();
 }
 
-export async function updateNotificationSettings(token: string, enabled: boolean): Promise<{ enabled: boolean }> {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/user/me/notification_settings`, {
+export async function updateNotificationSettings(token: string, settings: NotificationSetting[]): Promise<NotificationSetting[]> {
+  const response = await fetch(`${BACKEND_BASE_URL}/api/user/me/notification-settings`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
-    body: JSON.stringify({ enabled }),
+    body: JSON.stringify(settings),
   });
 
   if (!response.ok) {

@@ -20,29 +20,37 @@ export const useUserProfile = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
+    console.log("useUserProfile useEffect triggered. token:", token, "isAuthLoading:", isAuthLoading);
     if (isAuthLoading) return;
     if (!token) {
+      console.log("No token found, redirecting to login.");
       router.push("/login");
       return;
     }
 
     const fetchProfileAndAvatars = async () => {
+      console.log("Fetching profile and avatars...");
       setError(null);
       try {
         setIsLoading(true);
         const userProfile = await getUserProfile(token);
+        console.log("Fetched user profile:", userProfile);
         setProfile(userProfile);
         setCurrentProfileData(userProfile);
         setSelectedAvatar(userProfile.profile_image_url || undefined);
 
         const avatarList = await getAvatars();
+        console.log("Fetched avatar list:", avatarList);
         setAvatars(avatarList);
       } catch (err: any) {
+        console.error("Error fetching profile or avatars:", err);
         setError(err.message || "프로필 정보를 불러오는데 실패했습니다.");
         if (String(err.message).includes("401")) {
+          console.log("401 error, logging out.");
           logout();
         }
       } finally {
+        console.log("fetchProfileAndAvatars finished. Setting isLoading to false.");
         setIsLoading(false);
       }
     };
@@ -99,6 +107,7 @@ export const useUserProfile = () => {
     }
   }, [handleCancelEdit]);
 
+  console.log("useUserProfile return values: isLoading:", isLoading, "error:", error, "profile:", profile);
   return {
     profile,
     isEditing,

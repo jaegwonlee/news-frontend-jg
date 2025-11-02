@@ -34,9 +34,9 @@ export default function ArticleCard({
             className="group-hover:scale-105 transition-transform duration-300"
           />
         </div>
-        <div className="p-4">
+        <div className="p-5">
           <h3 className="font-bold text-lg text-zinc-100 mb-2 group-hover:text-red-500 transition-colors line-clamp-2">{article.title}</h3>
-          <div className="flex items-center text-xs text-zinc-400">
+          <div className="flex items-center text-sm text-zinc-400">
             {article.favicon_url && (
               <Favicon src={article.favicon_url} alt={`${article.source} favicon`} size={16} />
             )}
@@ -47,7 +47,7 @@ export default function ArticleCard({
         </div>
       </Link>
       
-      <div className="p-4 pt-0 flex justify-end items-center">
+      <div className="px-5 pb-5 pt-2 flex justify-end items-center">
         <div className="flex gap-2">
           { onLikeToggle && (article.id && article.like_count !== undefined && article.isLiked !== undefined) &&
             <ArticleLikeButton
