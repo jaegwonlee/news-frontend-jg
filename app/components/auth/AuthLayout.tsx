@@ -16,7 +16,7 @@ interface AuthLayoutProps {
  */
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = 'default' }) => {
   return (
-    <div className="min-h-screen bg-neutral-900 text-white flex items-start justify-center p-4 pt-10 relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white flex items-start justify-center p-4 pt-10 relative overflow-hidden">
       {/* Spotlight Effect */}
       <div className="absolute top-0 left-0 w-full h-full bg-radial-gradient-t from-neutral-900 to-transparent opacity-50"></div>
       <div className="absolute bottom-0 right-0 w-full h-full bg-radial-gradient-b from-transparent to-neutral-900 opacity-50"></div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
 import ArticleLikeButton from "./ArticleLikeButton";
 import ArticleSaveButton from "./ArticleSaveButton";
+import Favicon from "./common/Favicon";
 
 interface ArticleCardProps {
   article: Article;
@@ -37,9 +38,9 @@ export default function ArticleCard({
           <h3 className="font-bold text-lg text-zinc-100 mb-2 group-hover:text-red-500 transition-colors line-clamp-2">{article.title}</h3>
           <div className="flex items-center text-xs text-zinc-400">
             {article.favicon_url && (
-              <Image src={article.favicon_url} alt={`${article.source} favicon`} width={16} height={16} className="mr-2 rounded" />
+              <Favicon src={article.favicon_url} alt={`${article.source} favicon`} size={16} />
             )}
-            <span>{article.source}</span>
+            <span className="ml-2">{article.source}</span>
             <span className="mx-1.5">·</span>
             <time dateTime={article.published_at}>{formatRelativeTime(article.published_at)}</time>
           </div>

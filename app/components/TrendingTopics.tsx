@@ -16,14 +16,12 @@ import 'react-tooltip/dist/react-tooltip.css'
 /**
  * [수정] 인기 토픽 및 최신 토픽 목록을 탭으로 보여주는 클라이언트 컴포넌트
  */
-export default function TrendingTopics({ className }: { className?: string }) {
-  // 👇 5. 상태 변수들 선언
-  const [activeTab, setActiveTab] = useState<'popular' | 'latest'>('popular'); // 현재 활성화된 탭 ('popular' 또는 'latest')
-  const [topics, setTopics] = useState<Topic[]>([]); // 표시될 토픽 목록
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태
-  const [error, setError] = useState<string | null>(null); // 에러 상태
+export default function TrendingTopics() {
+  const [activeTab, setActiveTab] = useState<'popular' | 'latest'>('popular');
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 👇 6. useEffect: activeTab이 변경될 때마다 적절한 API 호출
   useEffect(() => {
     const fetchTopics = async () => {
       setIsLoading(true);
@@ -32,30 +30,28 @@ export default function TrendingTopics({ className }: { className?: string }) {
         let fetchedTopics: Topic[];
         if (activeTab === 'popular') {
           fetchedTopics = await getPopularTopics();
-          // 인기 토픽은 조회수(view_count) 순으로 정렬
           fetchedTopics.sort((a, b) => b.view_count - a.view_count);
-        } else { // activeTab === 'latest'
+          setTopics(fetchedTopics.slice(0, 10));
+        } else {
           fetchedTopics = await getLatestTopics();
-          // 최신 토픽은 API에서 이미 최신순으로 제공 (별도 정렬 불필요)
+          setTopics(fetchedTopics.slice(0, 10));
         }
-        // 상위 10개만 표시
-        setTopics(fetchedTopics.slice(0, 10));
       } catch (err) {
         setError("토픽 목록을 불러오는 데 실패했습니다.");
         console.error(err);
-        setTopics([]); // 에러 발생 시 목록 비우기
+        setTopics([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchTopics();
-  }, [activeTab]); // activeTab이 변경될 때마다 이 effect 실행
+  }, [activeTab]);
 
   return (
-    <aside className={`bg-zinc-900 p-4 rounded-lg h-full flex flex-col ${className}`}>
+    <>
       <Tooltip id="trending-topic-tooltip" />
-      {/* 👇 7. 탭 버튼 UI 추가 */}
+      {/* Tabs */}
       <div className="flex border-b border-zinc-700 mb-4">
         <button
           onClick={() => setActiveTab('popular')}
@@ -79,41 +75,33 @@ export default function TrendingTopics({ className }: { className?: string }) {
         </button>
       </div>
 
-      {/* 👇 8. 로딩 및 에러 처리 UI */}
+      {/* Content */}
       {isLoading ? (
-        <div className="flex-1 flex justify-center items-center text-zinc-400">
+        <div className="flex-1 flex justify-center items-center text-zinc-400 h-[576px]">
           로딩 중...
         </div>
       ) : error ? (
-        <div className="flex-1 flex justify-center items-center text-red-500">
+        <div className="flex-1 flex justify-center items-center text-red-500 h-[576px]">
           {error}
         </div>
       ) : (
-        // 👇 9. 토픽 목록 렌더링 (topics 상태 사용)
-        <ol className="space-y-4 flex-1 overflow-y-auto p-2 border border-zinc-700 rounded-md">
+        <ol className="space-y-2 h-[576px] overflow-y-auto pr-2">
           {topics.length === 0 ? (
             <p className="text-zinc-500 text-center pt-10">표시할 토픽이 없습니다.</p>
           ) : (
             topics.map((topic, index) => (
-              <li key={topic.id} className={`bg-zinc-800 p-3 rounded-lg border border-zinc-700 hover:bg-zinc-700 transition-colors ${activeTab === 'popular' && index === 0 ? 'animate-glow-border' : activeTab === 'popular' && index === 1 ? 'animate-glow-border-2nd' : activeTab === 'popular' && index === 2 ? 'animate-glow-border-3rd' : ''}`}>
+              <li key={topic.id} className={`bg-zinc-800 p-3 rounded-lg border border-zinc-700 hover:bg-zinc-700 transition-colors ${activeTab === 'popular' && index === 0 ? 'animate-glow-border' : ''} ${activeTab === 'popular' && index === 1 ? 'animate-glow-border-2nd' : ''} ${activeTab === 'popular' && index === 2 ? 'animate-glow-border-3rd' : ''}`}>
                 <Link
                   href={`/debate/${topic.id}`}
                   className="flex items-center gap-3"
                 >
-                  {/* 인기 토픽 탭일 때만 순위 표시 */}
                   {activeTab === 'popular' && (
                      <span
-                      className={`font-bold w-5 text-center shrink-0 ${
-                        index === 0 ? "text-red-500 text-3xl" : // 1st place: larger text, red
-                        index === 1 ? "text-orange-400 text-2xl" : // 2nd place: slightly smaller, orange
-                        index === 2 ? "text-yellow-300 text-xl" : // 3rd place: even smaller, yellow
-                        "text-zinc-400 text-lg" // Others: default size, gray
-                      }`}
+                      className={`font-bold w-5 text-center shrink-0 ${activeTab === 'popular' && index === 0 ? 'text-red-500' : ''} ${activeTab === 'popular' && index === 1 ? 'text-orange-400' : ''} ${activeTab === 'popular' && index === 2 ? 'text-yellow-300' : ''}`}
                      >
                       {index + 1}
                      </span>
                   )}
-                  {/* 최신 토픽 탭일 때는 순위 대신 점 표시 (선택 사항) */}
                   {activeTab === 'latest' && (
                     <span className="text-zinc-400 w-5 text-center shrink-0">•</span>
                   )}
@@ -126,13 +114,12 @@ export default function TrendingTopics({ className }: { className?: string }) {
                   >
                     {topic.display_name}
                   </div>
-                    {activeTab === 'latest' && (
-                      <div className="text-xs text-zinc-500 mt-1">
-                        {formatRelativeTime(topic.published_at)}
-                      </div>
-                    )}
                   </span>
-                  {/* 조회수 표시는 유지 (최신 토픽도 조회수 보여줌) */}
+                  {activeTab === 'latest' && (
+                    <div className="flex items-center text-xs text-zinc-500 shrink-0">
+                      <span>{formatRelativeTime(topic.published_at)}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1 text-xs text-zinc-500 shrink-0">
                     <Eye className="w-3 h-3" />
                     <span>{topic.view_count}</span>
@@ -143,6 +130,6 @@ export default function TrendingTopics({ className }: { className?: string }) {
           )}
         </ol>
       )}
-    </aside>
+    </>
   );
 }

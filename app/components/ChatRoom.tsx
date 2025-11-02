@@ -22,17 +22,12 @@ interface ChatRoomProps {
   topicId?: number; // topicId를 선택적(optional) prop으로 변경
 }
 
-export default function ChatRoom({ className, topicId }: ChatRoomProps) {
+export default function ChatRoom({ topicId }: ChatRoomProps) {
   const messages = mockMessages;
 
   return (
-    <section className={`bg-zinc-900 p-4 rounded-lg flex flex-col ${className}`}>
-      {/* topicId 유무에 따라 동적으로 제목을 설정 */}
-      <h2 className="text-lg font-bold text-white mb-4">
-        {topicId ? `토론방 (Topic: ${topicId})` : "메인 채팅방"}
-      </h2>
-
-      {/* 메시지 목록 (flex-1로 남은 공간 채우기) */}
+    <div className="flex flex-col h-full">
+      {/* Message List */}
       <div className="flex-1 h-[300px] overflow-y-auto space-y-4 pr-2">
         {messages.map((msg) => (
           <div key={msg.id} className="flex flex-col">
@@ -45,7 +40,7 @@ export default function ChatRoom({ className, topicId }: ChatRoomProps) {
         ))}
       </div>
 
-      {/* 입력창 */}
+      {/* Input Area */}
       <div className="mt-4">
         <p className="text-xs text-zinc-500 text-center mb-2">채팅에 참여하려면 로그인이 필요합니다.</p>
         <div className="flex items-center gap-2">
@@ -63,6 +58,6 @@ export default function ChatRoom({ className, topicId }: ChatRoomProps) {
           </button>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
