@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Bookmark } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import { toggleArticleSave } from '@/lib/api';
+import { useRouter } from "next/navigation"; // 👈 useRouter 임포트
 
 interface ArticleSaveButtonProps {
   articleId: number;
@@ -16,7 +17,8 @@ export default function ArticleSaveButton({
   initialIsSaved,
   onSaveToggle,
 }: ArticleSaveButtonProps) {
-  const { token } = useAuth();
+  const { token, logout } = useAuth(); // 👈 logout 함수 가져오기
+  const router = useRouter(); // 👈 router 선언하기
   const [isSaved, setIsSaved] = useState(initialIsSaved);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,16 @@ export default function ArticleSaveButton({
         onSaveToggle(articleId);
       }
     } catch (err: any) {
-      setError(err.message || "저장 상태 변경에 실패했습니다.");
+      console.error("Save toggle error:", err);
+      // 401 에러(토큰 만료) 감지 및 처리
+      if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        logout(); // AuthContext의 logout 함수를 호출해 토큰/유저 정보 삭제
+        router.push("/login"); // 로그인 페이지로 강제 이동
+      } else {
+        // 그 외 다른 에러
+        setError(err.message || "저장 상태 변경에 실패했습니다.");
+      }
     } finally {
       setIsLoading(false);
     }

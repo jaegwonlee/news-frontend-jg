@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Heart } from "lucide-react"; // Only import Heart
 import { useAuth } from "@/app/context/AuthContext";
 import { toggleArticleLike } from "@/lib/api";
+import { useRouter } from "next/navigation"; // 👈 1. useRouter 임포트
 
 interface ArticleLikeButtonProps {
   articleId: number;
@@ -18,7 +19,8 @@ export default function ArticleLikeButton({
   initialIsLiked,
   onLikeToggle, // Destructure onLikeToggle prop
 }: ArticleLikeButtonProps) {
-  const { token } = useAuth();
+  const { token, logout } = useAuth(); // 👈 2. useAuth에서 logout 함수 가져오기
+  const router = useRouter(); // 👈 3. router 선언하기
   console.log("ArticleLikeButton - articleId:", articleId, "token:", token, "initialLikes:", initialLikes, "initialIsLiked:", initialIsLiked);
   const [likes, setLikes] = useState(initialLikes);
   const [isLiked, setIsLiked] = useState(initialIsLiked);
@@ -52,9 +54,18 @@ export default function ArticleLikeButton({
         onLikeToggle(articleId);
       }
     } catch (err: any) {
-      setError(err.message || "좋아요 상태 변경에 실패했습니다.");
       console.error("Like toggle error:", err);
-      // Optionally revert UI state if API call fails
+
+      // 5. 401 에러(토큰 만료) 감지 및 처리
+      if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+        // 401 에러가 발생하면 (토큰 만료)
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        logout(); // (A) AuthContext의 logout 함수를 호출해 토큰/유저 정보 삭제
+        router.push("/login"); // (B) 로그인 페이지로 강제 이동
+      } else {
+        // 그 외 다른 에러 (예: 500 서버 에러)
+        setError(err.message || "좋아요 상태 변경에 실패했습니다.");
+      }
     } finally {
       setIsLoading(false);
       console.log("Like toggle finished. isLoading:", false);

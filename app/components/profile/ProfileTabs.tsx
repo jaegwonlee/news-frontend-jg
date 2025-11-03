@@ -8,9 +8,11 @@ import LikedArticles from '@/app/components/profile/LikedArticles';
 import SavedArticles from '@/app/components/profile/SavedArticles';
 import NotificationSettings from '@/app/components/profile/NotificationSettings';
 import InquiryForm from '@/app/components/profile/InquiryForm';
+import ChangePasswordForm from '@/app/components/profile/ChangePasswordForm'; // New import
+import DeleteAccountSection from '@/app/components/profile/DeleteAccountSection'; // New import
 import { User } from '@/types';
 
-type Tab = 'profile' | 'liked' | 'saved' | 'notifications' | 'inquiry';
+type Tab = 'profile' | 'liked' | 'saved' | 'notifications' | 'inquiry' | 'changePassword' | 'deleteAccount';
 
 interface ProfileTabsProps {
   profile: User;
@@ -45,6 +47,8 @@ export default function ProfileTabs({
     { id: 'saved', label: '저장된 기사' },
     { id: 'notifications', label: '알림 설정' },
     { id: 'inquiry', label: '문의하기' },
+    { id: 'changePassword', label: '비밀번호 변경' },
+    { id: 'deleteAccount', label: '계정 삭제' },
   ];
 
   const renderContent = () => {
@@ -89,6 +93,10 @@ export default function ProfileTabs({
         return <NotificationSettings />;
       case 'inquiry':
         return <InquiryForm />;
+      case 'changePassword':
+        return <ChangePasswordForm />;
+      case 'deleteAccount':
+        return <DeleteAccountSection />;
       default:
         return null;
     }

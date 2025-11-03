@@ -45,9 +45,11 @@ export const useUserProfile = () => {
       } catch (err: any) {
         console.error("Error fetching profile or avatars:", err);
         setError(err.message || "프로필 정보를 불러오는데 실패했습니다.");
-        if (String(err.message).includes("401")) {
-          console.log("401 error, logging out.");
+        if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+          console.log("401 error, logging out and redirecting.");
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
           logout();
+          router.push("/login");
         }
       } finally {
         console.log("fetchProfileAndAvatars finished. Setting isLoading to false.");
@@ -87,11 +89,18 @@ export const useUserProfile = () => {
       login(token, updatedUser);
       setIsEditing(false);
     } catch (err: any) {
-      setError(err.message || "프로필 업데이트 중 오류가 발생했습니다.");
+      console.error("Profile update error:", err);
+      if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        logout();
+        router.push("/login");
+      } else {
+        setError(err.message || "프로필 업데이트 중 오류가 발생했습니다.");
+      }
     } finally {
       setIsUpdating(false);
     }
-  }, [token, profile, selectedAvatar, login]);
+  }, [token, profile, selectedAvatar, login, logout, router]); // Added logout and router to dependency array
 
   const handleCancelEdit = useCallback(() => {
     setProfile(currentProfileData);

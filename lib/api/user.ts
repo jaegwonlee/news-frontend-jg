@@ -17,6 +17,10 @@ export async function getUserProfile(token: string): Promise<User> {
   const data = await response.json();
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Unauthorized: Invalid or expired token.');
+    }
+    const data = await response.json();
     throw new Error(data.message || '프로필 정보를 가져오는데 실패했습니다.');
   }
 
@@ -185,4 +189,52 @@ export async function getSavedArticles(token: string, limit: number = 20, offset
     like_count: 0,
     isLiked: false, // Assuming we don't know if the user liked it from this endpoint
   }));
+}
+
+/**
+ * 사용자의 비밀번호를 변경합니다.
+ */
+export async function changePassword(token: string, currentPassword: string, newPassword: string): Promise<void> {
+  const response = await fetch(`${BACKEND_BASE_URL}/api/user/me/password`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Unauthorized: Invalid or expired token.');
+    }
+    const errorData = await response.json();
+    throw new Error(errorData.message || '비밀번호 변경에 실패했습니다.');
+  }
+  // No content on successful password change, so no return value
+}
+
+/**
+ * 사용자 계정을 삭제합니다.
+ */
+export async function deleteAccount(token: string, password: string): Promise<void> {
+  const response = await fetch(`${BACKEND_BASE_URL}/api/user/me`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ password }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Unauthorized: Invalid or expired token.');
+    }
+    const errorData = await response.json();
+    throw new Error(errorData.message || '계정 삭제에 실패했습니다.');
+  }
+  // No content on successful account deletion, so no return value
 }
