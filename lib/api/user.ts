@@ -1,4 +1,4 @@
-import { User, UserUpdate, Article } from "@/types";
+import { User, UserUpdate, Article, NotificationSetting } from "@/types";
 import { BACKEND_BASE_URL } from "@/lib/constants";
 
 /**

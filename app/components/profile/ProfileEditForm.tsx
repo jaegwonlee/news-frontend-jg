@@ -43,7 +43,7 @@ export default function ProfileEditForm({
         <div className="flex justify-center mb-6">
           <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-blue-500">
             <Image
-              src={selectedAvatar || profile.avatar_url || "/user-placeholder.svg"}
+              src={selectedAvatar || profile.profile_image_url || "/user-placeholder.svg"}
               alt="Current Avatar"
               layout="fill"
               objectFit="cover"
