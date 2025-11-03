@@ -30,7 +30,7 @@ export default function TrendingTopics() {
         let fetchedTopics: Topic[];
         if (activeTab === 'popular') {
           fetchedTopics = await getPopularTopics();
-          fetchedTopics.sort((a, b) => b.view_count - a.view_count);
+          fetchedTopics.sort((a, b) => (b.popularity_score || 0) - (a.popularity_score || 0));
           setTopics(fetchedTopics.slice(0, 10));
         } else {
           fetchedTopics = await getLatestTopics();

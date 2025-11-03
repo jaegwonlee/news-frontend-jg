@@ -1,17 +1,18 @@
 import { Article } from "@/types";
-import { BACKEND_BASE_URL } from "@/lib/constants";
+import { fetchWrapper } from "./fetchWrapper";
 
 /**
  * [속보] 기사 목록을 가져옵니다 (10개)
  */
 export async function getBreakingNews(): Promise<Article[]> {
   try {
-    const res = await fetch(`${BACKEND_BASE_URL}/api/articles/breaking?limit=10&offset=0`, {
+    const res = await fetchWrapper(`/api/articles/breaking?limit=10&offset=0`, {
       next: { revalidate: 300 } // 5분마다 캐시 갱신
     });
     if (!res.ok) return [];
     return await res.json();
   } catch (error) {
+    if ((error as Error).message === 'Session expired') return []; // 세션 만료 시 빈 배열 반환
     console.error("Failed to fetch breaking news:", error);
     return [];
   }
@@ -22,12 +23,13 @@ export async function getBreakingNews(): Promise<Article[]> {
  */
 export async function getExclusiveNews(): Promise<Article[]> {
   try {
-    const res = await fetch(`${BACKEND_BASE_URL}/api/articles/exclusives?limit=10&offset=0`, { 
+    const res = await fetchWrapper(`/api/articles/exclusives?limit=10&offset=0`, { 
       next: { revalidate: 300 } // 5분마다 캐시 갱신
     });
     if (!res.ok) return [];
     return await res.json();
   } catch (error) {
+    if ((error as Error).message === 'Session expired') return [];
     console.error("Failed to fetch exclusive news:", error);
     return [];
   }
@@ -38,13 +40,13 @@ export async function getExclusiveNews(): Promise<Article[]> {
  */
 export async function getCategoryNews(categoryName: string, limit: number = 10, token?: string): Promise<Article[]> {
   const encodedCategoryName = encodeURIComponent(categoryName);
-  const apiUrl = `${BACKEND_BASE_URL}/api/articles/by-category?name=${encodedCategoryName}&limit=${limit}&offset=0`;
-  const headers: HeadersInit = { 'Accept': 'application/json' };
+  const apiUrl = `/api/articles/by-category?name=${encodedCategoryName}&limit=${limit}&offset=0`;
+  const headers: HeadersInit = {};
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
   try {
-    const response = await fetch(apiUrl, {
+    const response = await fetchWrapper(apiUrl, {
       cache: "no-store",
       headers: headers
     });
@@ -53,6 +55,7 @@ export async function getCategoryNews(categoryName: string, limit: number = 10, 
     }
     return await response.json();
   } catch (error) {
+    if ((error as Error).message === 'Session expired') return [];
     console.error(`${categoryName} 뉴스 로드 실패:`, error);
     return [];
   }
@@ -79,6 +82,7 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
 
     return uniqueArticles.slice(0, limit);
   } catch (error) {
+    if ((error as Error).message === 'Session expired') return [];
     console.error("최신 뉴스 종합 실패:", error);
     return [];
   }
@@ -89,11 +93,11 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
  */
 export async function getSearchArticles(q: string, token?: string): Promise<Article[]> {
   const encodedQuery = encodeURIComponent(q);
-  const headers: HeadersInit = { 'Accept': 'application/json' };
+  const headers: HeadersInit = {};
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  const response = await fetch(`${BACKEND_BASE_URL}/api/search?q=${encodedQuery}`, {
+  const response = await fetchWrapper(`/api/search?q=${encodedQuery}`, {
     method: 'GET',
     headers: headers,
     next: { revalidate: 60 }
@@ -111,11 +115,10 @@ export async function getSearchArticles(q: string, token?: string): Promise<Arti
  */
 export async function toggleArticleLike(token: string, articleId: number, currentIsLiked: boolean): Promise<{ data: { articleId: number; likes: number; isLiked: boolean } }> {
   const method = currentIsLiked ? 'DELETE' : 'POST';
-  const response = await fetch(`${BACKEND_BASE_URL}/api/articles/${articleId}/like`, {
+  const response = await fetchWrapper(`/api/articles/${articleId}/like`, {
     method: method,
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json',
     },
   });
 
@@ -132,14 +135,14 @@ export async function toggleArticleLike(token: string, articleId: number, curren
  */
 export async function getPopularNews(category?: string, token?: string): Promise<Article[]> {
   const fetchByCategory = async (cat: string) => {
-    const url = new URL(`${BACKEND_BASE_URL}/api/articles/popular`);
+    const url = new URL(`/api/articles/popular`, 'http://localhost'); // Base is needed for URL object, but will be replaced by fetchWrapper
     url.searchParams.append('category', cat);
-    const headers: HeadersInit = { 'Accept': 'application/json' };
+    const headers: HeadersInit = {};
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
     try {
-      const response = await fetch(url.toString(), {
+      const response = await fetchWrapper(url.pathname + url.search, {
         cache: 'no-store',
         headers: headers,
       });
@@ -149,6 +152,7 @@ export async function getPopularNews(category?: string, token?: string): Promise
       }
       return await response.json();
     } catch (error) {
+      if ((error as Error).message === 'Session expired') return [];
       console.error(`인기 기사 로드 실패 (${cat}):`, error);
       return [];
     }
@@ -158,7 +162,6 @@ export async function getPopularNews(category?: string, token?: string): Promise
     return fetchByCategory(category);
   }
 
-  // 카테고리가 주어지지 않은 경우, 모든 카테고리의 인기 뉴스를 가져와 합칩니다.
   try {
     const categories = ["정치", "경제", "사회", "문화"];
     const promises = categories.map(fetchByCategory);
@@ -166,7 +169,6 @@ export async function getPopularNews(category?: string, token?: string): Promise
 
     const allArticles = results.flat();
 
-    // 기사 ID를 기준으로 중복 제거
     const uniqueArticlesMap = new Map<number, Article>();
     allArticles.forEach((article) => {
       uniqueArticlesMap.set(article.id, article);
@@ -174,12 +176,12 @@ export async function getPopularNews(category?: string, token?: string): Promise
 
     const uniqueArticles = Array.from(uniqueArticlesMap.values());
 
-    // 좋아요(like_count)가 많은 순으로 정렬
     uniqueArticles.sort((a, b) => (b.like_count || 0) - (a.like_count || 0));
 
-    return uniqueArticles.slice(0, 20); // 상위 20개만 반환
+    return uniqueArticles.slice(0, 20);
 
   } catch (error) {
+    if ((error as Error).message === 'Session expired') return [];
     console.error("전체 인기 뉴스 종합 실패:", error);
     return [];
   }
@@ -190,11 +192,10 @@ export async function getPopularNews(category?: string, token?: string): Promise
  */
 export async function toggleArticleSave(token: string, articleId: number, currentIsSaved: boolean): Promise<any> {
   const method = currentIsSaved ? 'DELETE' : 'POST';
-  const response = await fetch(`${BACKEND_BASE_URL}/api/articles/${articleId}/save`, {
+  const response = await fetchWrapper(`/api/articles/${articleId}/save`, {
     method: method,
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json',
     },
   });
 
@@ -203,7 +204,6 @@ export async function toggleArticleSave(token: string, articleId: number, curren
     throw new Error(errorData.message || '기사 저장 상태 업데이트에 실패했습니다.');
   }
 
-  // The DELETE endpoint returns 204 No Content, so we can't .json() it.
   if (response.status === 204) {
     return { success: true };
   }

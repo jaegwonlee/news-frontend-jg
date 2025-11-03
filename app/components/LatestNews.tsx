@@ -38,6 +38,12 @@ export default function LatestNews() {
 
   return (
     <>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-white">최신 뉴스</h2>
+        <Link href="/latest-news" className="text-sm text-zinc-400 hover:text-white transition-colors">
+          전체보기
+        </Link>
+      </div>
       {isLoading ? (
         <div className="flex-1 flex justify-center items-center text-zinc-400 h-[560px]">
           로딩 중...
@@ -88,16 +94,7 @@ export default function LatestNews() {
                   </div>
                 </div>
               </Link>
-              <div className="flex-shrink-0 self-end flex gap-2">
-                {item.id && item.like_count !== undefined && item.isLiked !== undefined && (
-                    <ArticleLikeButton
-                      articleId={item.id}
-                      initialLikes={item.like_count}
-                      initialIsLiked={item.isLiked}
-                    />
-                )}
-
-              </div>
+              
             </div>
           ))}
         </div>

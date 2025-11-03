@@ -66,7 +66,7 @@ export default function CategorySelector({
         onClick={() => onSelectCategory(null)}
         className={`${baseStyle} ${selectedCategoryId === null ? activeStyle : inactiveStyle}`}
       >
-        미분류
+        전체
       </button>
       {categories.map(category => (
         <CategoryItem

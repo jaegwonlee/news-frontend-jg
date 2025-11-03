@@ -1,12 +1,9 @@
 
-import { BACKEND_BASE_URL } from "@/lib/constants";
+import { fetchWrapper } from "./fetchWrapper";
 
 export async function signUpUser(userData: any) {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/auth/signup`, {
+  const response = await fetchWrapper(`/api/auth/signup`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(userData),
   });
 
@@ -20,11 +17,8 @@ export async function signUpUser(userData: any) {
 }
 
 export async function loginUser(credentials: any) {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/auth/login`, {
+  const response = await fetchWrapper(`/api/auth/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(credentials),
   });
 

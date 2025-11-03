@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { User } from '@/types'; // Import User type
 
 interface AuthContextType {
@@ -13,12 +13,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+import { addSessionExpiredListener } from '@/lib/api/fetchWrapper';
+
+// ... (existing imports)
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Initialize isLoading to true
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load token and user from localStorage on initial load
   useEffect(() => {
     try {
       const storedToken = localStorage.getItem('authToken');
@@ -29,28 +32,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error("Failed to parse auth user from localStorage", error);
-      // If parsing fails, treat as logged out
       setToken(null);
       setUser(null);
       localStorage.removeItem('authToken');
       localStorage.removeItem('authUser');
     } finally {
-      setIsLoading(false); // Set isLoading to false after checking
+      setIsLoading(false);
     }
   }, []);
+
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
+    // Redirect to login page after logout
+    window.location.href = '/login';
+  }, []);
+
+  // Add a listener for session expiration
+  useEffect(() => {
+    const cleanup = addSessionExpiredListener(logout);
+    return cleanup; // Cleanup the listener when the component unmounts
+  }, [logout]);
 
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
-    localStorage.setItem('authToken', newToken); // Store token
-    localStorage.setItem('authUser', JSON.stringify(newUser)); // Store user
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('authToken'); // Remove token
-    localStorage.removeItem('authUser'); // Remove user
+    localStorage.setItem('authToken', newToken);
+    localStorage.setItem('authUser', JSON.stringify(newUser));
   };
 
   return (

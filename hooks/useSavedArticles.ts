@@ -128,7 +128,7 @@ export const useSavedArticlesManager = () => {
 
   const filteredArticles = useMemo(() => {
     if (selectedCategoryId === null) {
-      return articles.filter(a => !a.category_id);
+      return articles;
     }
     return articles.filter(a => a.category_id === selectedCategoryId);
   }, [articles, selectedCategoryId]);

@@ -1,6 +1,6 @@
 'use client';
 
-import { BACKEND_BASE_URL } from "@/lib/constants";
+import { fetchWrapper } from "./fetchWrapper";
 import { SavedArticleCategory } from "@/types";
 
 /**
@@ -8,11 +8,10 @@ import { SavedArticleCategory } from "@/types";
  * 로그인한 사용자가 생성한 모든 카테고리 목록을 반환합니다.
  */
 export async function getCategories(token: string): Promise<SavedArticleCategory[]> {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/saved/categories`, {
+  const response = await fetchWrapper(`/api/saved/categories`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json',
     },
     cache: 'no-store',
   });
@@ -27,12 +26,10 @@ export async function getCategories(token: string): Promise<SavedArticleCategory
  * 새로운 카테고리를 생성합니다.
  */
 export async function createCategory(token: string, name: string): Promise<SavedArticleCategory> {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/saved/categories`, {
+  const response = await fetchWrapper(`/api/saved/categories`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
     },
     body: JSON.stringify({ name }),
   });
@@ -48,12 +45,10 @@ export async function createCategory(token: string, name: string): Promise<Saved
  * 카테고리 이름을 변경합니다.
  */
 export async function updateCategory(token: string, categoryId: number, name: string): Promise<SavedArticleCategory> {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/saved/categories/${categoryId}`, {
+  const response = await fetchWrapper(`/api/saved/categories/${categoryId}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
     },
     body: JSON.stringify({ name }),
   });
@@ -69,7 +64,7 @@ export async function updateCategory(token: string, categoryId: number, name: st
  * 카테고리를 삭제합니다.
  */
 export async function deleteCategory(token: string, categoryId: number): Promise<void> {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/saved/categories/${categoryId}`, {
+  const response = await fetchWrapper(`/api/saved/categories/${categoryId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -86,11 +81,10 @@ export async function deleteCategory(token: string, categoryId: number): Promise
  * 저장된 기사의 카테고리를 변경합니다.
  */
 export async function updateArticleCategory(token: string, savedArticleId: number, categoryId: number | null): Promise<void> {
-  const response = await fetch(`${BACKEND_BASE_URL}/api/saved/articles/${savedArticleId}`, {
+  const response = await fetchWrapper(`/api/saved/articles/${savedArticleId}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
     },
     body: JSON.stringify({ categoryId: categoryId }), // Corrected to camelCase 'categoryId' in JSON body
   });

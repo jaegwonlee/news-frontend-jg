@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://news02.onrender.com';
+import { fetchWrapper } from "./fetchWrapper";
 
 export const submitInquiry = async (
   token: string,
@@ -12,19 +10,27 @@ export const submitInquiry = async (
   const formData = new FormData();
   formData.append('subject', subject);
   formData.append('content', content);
-  formData.append('privacy_agreement', String(privacy_agreement)); // API expects string "true" or "false"
+  formData.append('privacy_agreement', String(privacy_agreement));
 
   if (attachment) {
     formData.append('attachment', attachment);
   }
 
-  const response = await axios.post(`${API_BASE_URL}/api/inquiry`, formData, {
+  const response = await fetchWrapper(`/api/inquiry`, {
+    method: 'POST',
     headers: {
-      'Content-Type': 'multipart/form-data',
       Authorization: `Bearer ${token}`,
+      // 'Content-Type': 'multipart/form-data' is set automatically by the browser for FormData
     },
+    body: formData,
   });
-  return response.data;
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || '문의 제출에 실패했습니다.');
+  }
+
+  return response.json();
 };
 
 export interface InquiryReply {
@@ -36,36 +42,48 @@ export interface InquiryReply {
 export interface Inquiry {
   id: number;
   subject: string;
-  content?: string; // Optional, only in detail
-  status: 'SUBMITTED' | 'ANSWERED' | 'CLOSED'; // Updated based on API
+  content?: string;
+  status: 'SUBMITTED' | 'ANSWERED' | 'CLOSED';
   created_at: string;
-  updated_at?: string; // Optional
-  file_path?: string; // Optional, only in detail
-  file_originalname?: string; // Optional, only in detail
-  reply?: InquiryReply; // Optional, only in detail
+  updated_at?: string;
+  file_path?: string;
+  file_originalname?: string;
+  reply?: InquiryReply;
 }
 
 /**
  * 로그인한 사용자의 문의 내역 목록을 조회합니다.
  */
 export const getInquiries = async (token: string): Promise<Inquiry[]> => {
-  const response = await axios.get(`${API_BASE_URL}/api/inquiry`, {
+  const response = await fetchWrapper(`/api/inquiry`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data;
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || '문의 내역을 불러오는데 실패했습니다.');
+  }
+
+  return response.json();
 };
 
 /**
  * 특정 문의 내역의 상세 정보를 조회합니다.
  */
 export const getInquiryDetail = async (token: string, inquiryId: number): Promise<Inquiry> => {
-  const response = await axios.get(`${API_BASE_URL}/api/inquiry/${inquiryId}`, {
+  const response = await fetchWrapper(`/api/inquiry/${inquiryId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  const { inquiry, reply } = response.data;
-  return { ...inquiry, reply: reply || undefined }; // Combine inquiry and reply into a single Inquiry object
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || '문의 상세 정보를 불러오는데 실패했습니다.');
+  }
+
+  const { inquiry, reply } = await response.json();
+  return { ...inquiry, reply: reply || undefined };
 };

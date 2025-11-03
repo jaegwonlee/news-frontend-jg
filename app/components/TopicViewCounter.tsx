@@ -1,30 +1,33 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
-import { incrementTopicView } from "@/lib/api";
+import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { incrementTopicView } from '@/lib/api';
 
 interface TopicViewCounterProps {
   topicId: string;
 }
 
 export default function TopicViewCounter({ topicId }: TopicViewCounterProps) {
-  const router = useRouter(); // Get the router instance
+  const router = useRouter();
+  const incrementedTopics = useRef(new Set<string>());
 
   useEffect(() => {
-    const handleViewIncrement = async () => { // Make the callback async
-      // This effect runs once on the client when the component mounts.
-      try {
-        await incrementTopicView(topicId);
-        router.refresh(); // Refresh the current route to re-fetch data
-      } catch (error) {
-        console.error("Failed to increment view count or refresh page:", error);
+    const handleViewIncrement = async () => {
+      if (topicId && !incrementedTopics.current.has(topicId)) {
+        incrementedTopics.current.add(topicId);
+        try {
+          await incrementTopicView(topicId);
+          router.refresh();
+        } catch (error) {
+          console.error('Failed to increment view count or refresh page:', error);
+          incrementedTopics.current.delete(topicId);
+        }
       }
     };
 
     handleViewIncrement();
-  }, [topicId, router]); // Add router to dependency array
+  }, [topicId, router]);
 
-  // This component does not render any UI.
   return null;
 }
