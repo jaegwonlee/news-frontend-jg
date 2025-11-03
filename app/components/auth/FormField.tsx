@@ -49,7 +49,7 @@ const FormField: React.FC<FormFieldProps> = ({
         onBlur={onBlur} // 유효성 검사를 위해 onBlur 이벤트 핸들러 추가
         disabled={disabled} // disabled 속성 적용
         // Tailwind CSS 클래스를 이용한 스타일링
-        className="w-full px-3 py-2 text-white bg-zinc-900 border border-zinc-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+        className="w-full px-3 py-2 text-white bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 transition-all duration-300"
       />
     </div>
   );

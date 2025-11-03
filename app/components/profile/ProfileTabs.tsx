@@ -8,11 +8,12 @@ import LikedArticles from '@/app/components/profile/LikedArticles';
 import SavedArticles from '@/app/components/profile/SavedArticles';
 import NotificationSettings from '@/app/components/profile/NotificationSettings';
 import InquiryForm from '@/app/components/profile/InquiryForm';
-import ChangePasswordForm from '@/app/components/profile/ChangePasswordForm'; // Add this
-import DeleteAccountSection from '@/app/components/profile/DeleteAccountSection'; // Add this
+import ChangePasswordForm from '@/app/components/profile/ChangePasswordForm';
+import DeleteAccountSection from '@/app/components/profile/DeleteAccountSection';
+import InquiryHistory from '@/app/components/profile/InquiryHistory'; // New import
 import { User } from '@/types';
 
-type Tab = 'profile' | 'liked' | 'saved' | 'notifications' | 'inquiry' | 'changePassword' | 'deleteAccount';
+type Tab = 'profile' | 'liked' | 'saved' | 'notifications' | 'inquiry' | 'inquiryHistory' | 'changePassword' | 'deleteAccount';
 
 interface ProfileTabsProps {
   profile: User;
@@ -47,6 +48,7 @@ export default function ProfileTabs({
     { id: 'saved', label: '저장된 기사' },
     { id: 'notifications', label: '알림 설정' },
     { id: 'inquiry', label: '문의하기' },
+    { id: 'inquiryHistory', label: '문의 내역' }, // New tab
     { id: 'changePassword', label: '비밀번호 변경' },
     { id: 'deleteAccount', label: '계정 삭제' },
   ];
@@ -97,6 +99,8 @@ export default function ProfileTabs({
         return <ChangePasswordForm />;
       case 'deleteAccount':
         return <DeleteAccountSection />;
+      case 'inquiryHistory': // New case
+        return <InquiryHistory />;
       default:
         return null;
     }
