@@ -8,8 +8,8 @@ import LikedArticles from '@/app/components/profile/LikedArticles';
 import SavedArticles from '@/app/components/profile/SavedArticles';
 import NotificationSettings from '@/app/components/profile/NotificationSettings';
 import InquiryForm from '@/app/components/profile/InquiryForm';
-import ChangePasswordForm from '@/app/components/profile/ChangePasswordForm'; // New import
-import DeleteAccountSection from '@/app/components/profile/DeleteAccountSection'; // New import
+import ChangePasswordForm from '@/app/components/profile/ChangePasswordForm'; // Add this
+import DeleteAccountSection from '@/app/components/profile/DeleteAccountSection'; // Add this
 import { User } from '@/types';
 
 type Tab = 'profile' | 'liked' | 'saved' | 'notifications' | 'inquiry' | 'changePassword' | 'deleteAccount';
