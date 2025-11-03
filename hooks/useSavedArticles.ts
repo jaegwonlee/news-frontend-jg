@@ -31,14 +31,10 @@ export const useSavedArticlesManager = () => {
       setArticles(fetchedArticles);
       setCategories(fetchedCategories);
     } catch (err: any) {
-      console.error("Failed to fetch saved articles or categories 자체가 에러 나면 리디렉션 해야 해서 여기에 추가함:", err);
-      // 401 에러(토큰 만료) 감지 및 처리
-      if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        logout(); // AuthContext의 logout 함수를 호출해 토큰/유저 정보 삭제
-        router.push("/login"); // 로그인 페이지로 강제 이동
-      } else {
-        // 그 외 다른 에러
+      // The fetchWrapper will throw an error on 401, which is caught here.
+      // The sessionExpired event is dispatched by the wrapper, and the AuthContext handles the logout.
+      // We just need to handle other potential errors.
+      if ((err as Error).message !== 'Session expired') {
         setError(err.message || "데이터를 불러오는 데 실패했습니다.");
       }
     } finally {
@@ -58,11 +54,8 @@ export const useSavedArticlesManager = () => {
       return newCategory;
     } catch (error: any) {
       console.error("Failed to create category:", error);
-      // 401 에러(토큰 만료) 감지 및 처리
-      if (String(error.message).includes("401") || String(error.message).includes("Unauthorized")) {
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        logout();
-        router.push("/login");
+      if ((error as Error).message !== 'Session expired') {
+        // Handle other errors if needed
       }
       return undefined;
     }
@@ -79,10 +72,8 @@ export const useSavedArticlesManager = () => {
       }
     } catch (error: any) {
       console.error("Failed to delete category:", error);
-      if (String(error.message).includes("401") || String(error.message).includes("Unauthorized")) {
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        logout();
-        router.push("/login");
+      if ((error as Error).message !== 'Session expired') {
+        // Handle other errors if needed
       }
     }
   }, [token, selectedCategoryId, logout, router]);
@@ -94,10 +85,8 @@ export const useSavedArticlesManager = () => {
       setCategories(prev => prev.map(c => c.id === categoryId ? updated : c));
     } catch (error: any) {
       console.error("Failed to rename category:", error);
-      if (String(error.message).includes("401") || String(error.message).includes("Unauthorized")) {
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        logout();
-        router.push("/login");
+      if ((error as Error).message !== 'Session expired') {
+        // Handle other errors if needed
       }
     }
   }, [token, logout, router]);
@@ -113,10 +102,8 @@ export const useSavedArticlesManager = () => {
       ));
     } catch (error: any) {
       console.error("Failed to update article category:", error);
-      if (String(error.message).includes("401") || String(error.message).includes("Unauthorized")) {
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        logout();
-        router.push("/login");
+      if ((error as Error).message !== 'Session expired') {
+        // Handle other errors if needed
       }
     }
   }, [token, logout, router]);
