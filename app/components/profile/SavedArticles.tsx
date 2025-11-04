@@ -29,6 +29,8 @@ export default function SavedArticles() {
     articles,
     categories,
     filteredArticles,
+    totalCount, // Get totalCount
+    categoryCounts, // Get categoryCounts
     isLoading,
     error,
     selectedCategoryId,
@@ -117,7 +119,12 @@ export default function SavedArticles() {
           {/* Moved Category Section */}
           <div className="mb-8 bg-zinc-900 p-4 rounded-lg border border-zinc-800">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">카테고리</h3>
+              <h3 className="text-xl font-bold text-white">
+                카테고리
+                <span className="text-lg font-medium text-zinc-400 ml-2">
+                  (총 {totalCount}개)
+                </span>
+              </h3>
               <div className="flex gap-2">
                 <button 
                   onClick={() => setShowCategoryList(!showCategoryList)}
@@ -141,6 +148,7 @@ export default function SavedArticles() {
                 <CategorySelector
                   categories={categories}
                   selectedCategoryId={selectedCategoryId}
+                  categoryCounts={categoryCounts} // Pass counts
                   onSelectCategory={setSelectedCategoryId}
                   onDeleteCategory={handleDeleteCategory}
                   onEditCategory={handleOpenEditModal}

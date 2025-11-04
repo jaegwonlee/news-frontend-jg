@@ -8,6 +8,8 @@ import TopicViewCounter from "@/app/components/TopicViewCounter";
 import { getTopicDetail, toggleArticleLike, toggleArticleSave } from "@/lib/api";
 import { TopicDetail, Article } from "@/types";
 import { useAuth } from "@/app/context/AuthContext"; // 👈 1. useAuth 임포트
+import ContentSection from "@/app/components/common/ContentSection";
+import { MessageCircle } from "lucide-react";
 
 /**
  * =====================================================================================
@@ -135,7 +137,9 @@ export default function TopicDetailPage() {
           </div>
         </aside>
         <main className="lg:col-span-6">
-          <ChatRoom topicId={topic.id} />
+          <ContentSection title="실시간 채팅" icon={<MessageCircle />}>
+            <ChatRoom topicId={topic.id} />
+          </ContentSection>
         </main>
         <aside className="lg:col-span-3">
           <h2 className="text-2xl font-bold text-red-500 mb-4 pb-2 border-b-2 border-red-500">우측 기사</h2>

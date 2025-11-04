@@ -6,13 +6,15 @@ import { MoreVertical, Edit, Trash2 } from 'lucide-react';
 interface CategorySelectorProps {
   categories: SavedArticleCategory[];
   selectedCategoryId: number | null;
+  categoryCounts: Record<string, number>; // Add this
   onSelectCategory: (id: number | null) => void;
   onDeleteCategory: (id: number) => void;
-  onEditCategory: (category: SavedArticleCategory) => void; // New prop to open the edit modal
+  onEditCategory: (category: SavedArticleCategory) => void;
 }
 
-const CategoryItem = ({ category, isActive, onSelect, onEdit, onDelete }: {
+const CategoryItem = ({ category, count, isActive, onSelect, onEdit, onDelete }: {
   category: SavedArticleCategory;
+  count: number;
   isActive: boolean;
   onSelect: () => void;
   onEdit: () => void;
@@ -26,7 +28,10 @@ const CategoryItem = ({ category, isActive, onSelect, onEdit, onDelete }: {
         onClick={onSelect}
         className={`w-full text-left px-4 py-3 rounded-lg transition-colors flex justify-between items-center cursor-pointer ${isActive ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}
       >
-        <span>{category.name}</span>
+        <div className="flex items-center">
+          <span>{category.name}</span>
+          <span className="text-zinc-500 ml-2">({count})</span>
+        </div>
         <button 
           onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
           className="p-1 rounded-full hover:bg-zinc-600"
@@ -51,6 +56,7 @@ const CategoryItem = ({ category, isActive, onSelect, onEdit, onDelete }: {
 export default function CategorySelector({ 
   categories, 
   selectedCategoryId, 
+  categoryCounts,
   onSelectCategory, 
   onDeleteCategory,
   onEditCategory
@@ -72,6 +78,7 @@ export default function CategorySelector({
         <CategoryItem
           key={category.id}
           category={category}
+          count={categoryCounts[category.name] || 0}
           isActive={selectedCategoryId === category.id}
           onSelect={() => onSelectCategory(category.id)}
           onEdit={() => onEditCategory(category)}

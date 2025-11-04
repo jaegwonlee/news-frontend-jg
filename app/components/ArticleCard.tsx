@@ -32,6 +32,7 @@ export default function ArticleCard({
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             style={{ objectFit: "cover" }}
             className="group-hover:scale-105 transition-transform duration-300"
+            unoptimized={true}
           />
         </div>
         <div className="p-5">

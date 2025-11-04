@@ -1,11 +1,10 @@
-
 import { BACKEND_BASE_URL } from "@/lib/constants";
 
 // 1. 세션 만료 커스텀 이벤트 정의
 const SESSION_EXPIRED_EVENT = 'sessionExpired';
 
 // 2. API 호출을 위한 통합 fetch 래퍼 함수
-export async function fetchWrapper(url: string, options: RequestInit = {}): Promise<Response> {
+export async function fetchWrapper(url: string, options: RequestInit & { skipAuthCheckFor401?: boolean } = {}): Promise<Response> {
   // 기본 헤더 설정
   const defaultHeaders: HeadersInit = {
     'Accept': 'application/json',
@@ -24,6 +23,11 @@ export async function fetchWrapper(url: string, options: RequestInit = {}): Prom
 
   // 401 Unauthorized 에러 처리
   if (response.status === 401) {
+    // skipAuthCheckFor401 옵션이 true이면 세션 만료 처리를 건너뛰고 응답을 반환
+    if (options.skipAuthCheckFor401) {
+      return response; // 호출자(loginUser)가 401을 직접 처리하도록 함
+    }
+
     // 커스텀 이벤트를 발생시켜 AuthContext가 처리하도록 함
     console.log("Fetch wrapper: 401 Unauthorized. Dispatching sessionExpired event.");
     window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));

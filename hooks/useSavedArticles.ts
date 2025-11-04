@@ -9,10 +9,12 @@ import { SavedArticleCategory } from '@/types';
 import { useRouter } from "next/navigation"; // 👈 useRouter 임포트
 
 export const useSavedArticlesManager = () => {
-  const { token, logout } = useAuth(); // 👈 logout 함수 가져오기
-  const router = useRouter(); // 👈 router 선언하기
+  const { token, logout } = useAuth();
+  const router = useRouter();
   const [articles, setArticles] = useState<Article[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [categories, setCategories] = useState<SavedArticleCategory[]>([]);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,23 +26,30 @@ export const useSavedArticlesManager = () => {
     }
     setIsLoading(true);
     try {
-      const [fetchedArticles, fetchedCategories] = await Promise.all([
+      const [savedArticlesResponse, fetchedCategories] = await Promise.all([
         getSavedArticles(token),
         getCategories(token),
       ]);
-      setArticles(fetchedArticles);
+      
+      setArticles(savedArticlesResponse.articles);
+      setTotalCount(savedArticlesResponse.totalCount);
       setCategories(fetchedCategories);
+
+      // Process byCategory into a lookup map
+      const counts = savedArticlesResponse.byCategory.reduce((acc, item) => {
+        acc[item.category] = item.count;
+        return acc;
+      }, {} as Record<string, number>);
+      setCategoryCounts(counts);
+
     } catch (err: any) {
-      // The fetchWrapper will throw an error on 401, which is caught here.
-      // The sessionExpired event is dispatched by the wrapper, and the AuthContext handles the logout.
-      // We just need to handle other potential errors.
       if ((err as Error).message !== 'Session expired') {
         setError(err.message || "데이터를 불러오는 데 실패했습니다.");
       }
     } finally {
       setIsLoading(false);
     }
-  }, [token, logout, router]); // Add logout and router to dependency array
+  }, [token, logout, router]);
 
   useEffect(() => {
     fetchData();
@@ -122,7 +131,9 @@ export const useSavedArticlesManager = () => {
 
   return {
     articles,
+    totalCount,
     categories,
+    categoryCounts, // Add this
     filteredArticles,
     isLoading,
     error,

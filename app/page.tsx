@@ -19,13 +19,13 @@ export default function Home() {
   return (
     <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8">
       <main className="flex flex-col gap-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           <ContentSection title="인기 토픽" icon={<Flame />} className="xl:col-span-1">
             <TrendingTopics />
           </ContentSection>
 
-          <ContentSection title="ROUND1" icon={<MessageCircle />} className="md:col-span-2 xl:col-span-1">
-            <ChatRoom />
+          <ContentSection title="ROUND1" icon={<MessageCircle />} className="md:col-span-2 xl:col-span-2">
+            <ChatRoom topicId={1} />
           </ContentSection>
 
           <ContentSection title="최신 뉴스" icon={<Newspaper />} className="xl:col-span-1">

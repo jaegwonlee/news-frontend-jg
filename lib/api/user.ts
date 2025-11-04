@@ -53,7 +53,7 @@ export async function updateUserProfile(token: string, updatedData: UserUpdate):
 /**
  * 토큰을 사용하여 현재 로그인된 사용자가 좋아요한 기사 목록을 조회합니다.
  */
-export async function getLikedArticles(token: string, limit: number = 20, offset: number = 0): Promise<Article[]> {
+export async function getLikedArticles(token: string, limit: number = 20, offset: number = 0): Promise<{ articles: Article[], totalCount: number }> {
   const url = new URL(`/api/user/me/liked-articles`, 'http://localhost');
   url.searchParams.append('limit', String(limit));
   url.searchParams.append('offset', String(offset));
@@ -73,10 +73,19 @@ export async function getLikedArticles(token: string, limit: number = 20, offset
   
   const data = await response.json();
 
-  return data.map((item: any) => ({
+  const articles = data.articles;
+
+  if (!Array.isArray(articles)) {
+    console.error("API response for liked articles is not an array or 'articles' property is missing:", articles);
+    return { articles: [], totalCount: 0 };
+  }
+
+  const mappedArticles = articles.map((item: any) => ({
     ...item,
     isSaved: false,
   }));
+
+  return { articles: mappedArticles, totalCount: data.totalCount || 0 };
 }
 
 /**
@@ -132,7 +141,7 @@ export async function updateNotificationSettings(token: string, settings: Notifi
 /**
  * 토큰을 사용하여 현재 로그인된 사용자가 저장한 기사 목록을 조회합니다.
  */
-export async function getSavedArticles(token: string, limit: number = 20, offset: number = 0): Promise<Article[]> {
+export async function getSavedArticles(token: string, limit: number = 20, offset: number = 0): Promise<{ articles: Article[], totalCount: number, byCategory: { category: string, count: number }[] }> {
   const url = new URL(`/api/saved/articles`, 'http://localhost');
   url.searchParams.append('limit', String(limit));
   url.searchParams.append('offset', String(offset));
@@ -152,7 +161,14 @@ export async function getSavedArticles(token: string, limit: number = 20, offset
   
   const data = await response.json();
 
-  return data.map((item: any) => ({
+  const articles = data.articles;
+
+  if (!Array.isArray(articles)) {
+    console.error("API response for saved articles is not an array or 'articles' property is missing:", articles);
+    return { articles: [], totalCount: 0, byCategory: [] };
+  }
+
+  const mappedArticles = articles.map((item: any) => ({
     id: item.article_id,
     saved_article_id: item.saved_article_id,
     category_id: item.category_id,
@@ -171,6 +187,8 @@ export async function getSavedArticles(token: string, limit: number = 20, offset
     like_count: 0,
     isLiked: false,
   }));
+
+  return { articles: mappedArticles, totalCount: data.totalCount || 0, byCategory: data.byCategory || [] };
 }
 
 /**
@@ -187,7 +205,15 @@ export async function changePassword(token: string, currentPassword: string, new
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || '비밀번호 변경에 실패했습니다.');
+    let errorMessage = errorData.message || '비밀번호 변경에 실패했습니다.';
+
+    // Check for specific password mismatch messages from backend
+    if (errorMessage.toLowerCase().includes('password') && 
+        (errorMessage.toLowerCase().includes('incorrect') || errorMessage.toLowerCase().includes('mismatch'))) {
+      errorMessage = '비밀번호가 일치하지 않습니다.';
+    }
+
+    throw new Error(errorMessage);
   }
 }
 
