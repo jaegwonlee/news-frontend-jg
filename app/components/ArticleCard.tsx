@@ -2,10 +2,10 @@
 import { Article } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
-import { formatRelativeTime } from "@/lib/utils";
 import ArticleLikeButton from "./ArticleLikeButton";
 import ArticleSaveButton from "./ArticleSaveButton";
 import Favicon from "./common/Favicon";
+import ClientOnlyTime from "./common/ClientOnlyTime"; // Import the new component
 
 interface ArticleCardProps {
   article: Article;
@@ -43,7 +43,7 @@ export default function ArticleCard({
             )}
             <span className="ml-2">{article.source}</span>
             <span className="mx-1.5">·</span>
-            <time dateTime={article.published_at}>{formatRelativeTime(article.published_at)}</time>
+            <ClientOnlyTime date={article.published_at} />
           </div>
         </div>
       </Link>

@@ -5,17 +5,19 @@ import { Send, Loader2, AlertTriangle } from 'lucide-react';
 import { useSocket } from '@/app/context/SocketContext';
 import { useAuth } from '@/app/context/AuthContext';
 import Image from 'next/image';
-import { getChatHistory, ApiChatMessage } from '@/lib/api/topics';
+import { getChatHistory, ApiChatMessage, sendChatMessage } from '@/lib/api/topics';
 
-// Unified message type for the component
+// 1. API 응답과 UI에서 사용할 메시지 타입을 통일합니다.
+// (lib/api/topics.ts의 ApiChatMessage와 UI용 Message를 합침)
 type Message = {
+  id: number;
   author: string;
   message: string;
   profile_image_url?: string;
-  timestamp: string;
+  created_at: string; // ISO 문자열 원본을 저장
 };
 
-// Helper to format date string into HH:MM
+// 2. 시간 포맷 헬퍼 함수
 const formatTimestamp = (dateString: string) => {
   try {
     return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -30,10 +32,11 @@ interface ChatRoomProps {
 
 export default function ChatRoom({ topicId }: ChatRoomProps) {
   const { socket, isConnected, error: socketError } = useSocket();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoadingHistory, setIsLoadingHistory] = useState(!!topicId);
+  const [isSending, setIsSending] = useState(false); // 3. 메시지 전송 중 상태 추가
   const room = topicId ? `topic-${topicId}` : 'mainpage';
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -41,18 +44,24 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
-  // Fetch chat history on mount
+  // 4. [수정] 과거 기록(History) 불러오기
+  // (백엔드 GET /chat의 응답 형식 { id, content, created_at, nickname }에 맞춤)
   useEffect(() => {
     if (topicId) {
       const fetchHistory = async () => {
         setIsLoadingHistory(true);
-        const history = await getChatHistory(topicId, 100);
-        const formattedHistory = history.map((msg: ApiChatMessage) => ({
-          author: msg.nickname,
-          message: msg.content,
+        // lib/api/topics.ts의 getChatHistory가 백엔드 응답을 변환해줍니다.
+        const history: ApiChatMessage[] = await getChatHistory(topicId, 100);
+        
+        // 5. 프론트엔드 Message 타입으로 완전 변환
+        const formattedHistory: Message[] = history.map((msg) => ({
+          id: msg.id,
+          author: msg.author,
+          message: msg.message,
           profile_image_url: msg.profile_image_url,
-          timestamp: formatTimestamp(msg.created_at),
+          created_at: msg.created_at, // 원본 ISO 문자열 저장
         }));
+        
         setMessages(formattedHistory);
         setIsLoadingHistory(false);
         setTimeout(() => scrollToBottom('auto'), 100);
@@ -61,40 +70,62 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
     }
   }, [topicId]);
 
-  // Setup socket listeners
+  // 6. 소켓 리스너 설정
+  // (백엔드 POST /chat -> emit "receive_message" 이벤트 수신)
   useEffect(() => {
     if (socket) {
+      // 6-1. 백엔드 socket.ts의 "join_room" 이벤트에 연결
       socket.emit('join_room', room);
-      const messageListener = (data: Omit<Message, 'timestamp' | 'profile_image_url'> & { profile_image_url?: string }) => {
-        const messageWithTimestamp: Message = {
-          ...data,
+
+      // 6-2. 백엔드 chat.ts의 "receive_message" 이벤트 수신
+      const messageListener = (data: ApiChatMessage) => {
+        // 6-3. 백엔드 POST 응답 페이로드 { id, message, created_at, author, profile_image_url } 수신
+        const receivedMessage: Message = {
+          id: data.id,
+          author: data.author,
+          message: data.message,
           profile_image_url: data.profile_image_url,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          created_at: data.created_at,
         };
-        setMessages((prevMessages) => [...prevMessages, messageWithTimestamp]);
+        // 6-4. 새 메시지를 상태에 추가
+        setMessages((prevMessages) => [...prevMessages, receivedMessage]);
       };
       socket.on('receive_message', messageListener);
+
       return () => {
         socket.off('receive_message', messageListener);
       };
     }
   }, [socket, room]);
 
-  // Scroll to bottom when new messages are added
+  // 7. 새 메시지 추가 시 스크롤
   useEffect(() => {
     if (!isLoadingHistory) {
       scrollToBottom();
     }
   }, [messages, isLoadingHistory]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  // 8. [수정] 메시지 전송 핸들러
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (socket && isConnected && newMessage.trim() && user) {
-      socket.emit('send_message', {
-        room: room,
-        message: newMessage,
-      });
-      setNewMessage('');
+    if (topicId && isConnected && newMessage.trim() && user && token && !isSending) {
+      const messageToSend = newMessage;
+      setNewMessage(''); // 9. 입력창 즉시 비우기
+      setIsSending(true); // 10. 전송 중 상태로 변경
+
+      try {
+        // 11. [수정] Optimistic Update(setMessages) 제거!
+        // 서버에 POST 요청만 보냅니다. (lib/api/topics.ts)
+        await sendChatMessage(topicId, messageToSend, token);
+        // 12. 성공! 메시지는 백엔드가 "receive_message" 소켓으로 다시 보내줄 것임.
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        // 13. 실패 시, 입력했던 메시지를 다시 입력창에 복원
+        setNewMessage(messageToSend);
+        alert("메시지 전송에 실패했습니다. 다시 시도해주세요.");
+      } finally {
+        setIsSending(false); // 14. 전송 중 상태 해제
+      }
     }
   };
 
@@ -120,7 +151,7 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
               const isMyMessage = user ? msg.author === (user.nickname || user.name) : false;
               return (
                 <div
-                  key={index}
+                  key={msg.id || `msg-${index}`} // 15. DB ID 사용
                   className={`flex items-end gap-2 ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
                   {!isMyMessage && (
                     <Image
@@ -137,15 +168,17 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
                     )}
                     <div className={`flex gap-2 items-end ${isMyMessage ? 'flex-row-reverse' : 'flex-row'}`}>
                       <div
-                        className={`p-3 rounded-lg max-w-xs lg:max-w-md wrap-break-word ${isMyMessage ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-white'}`}>
+                        className={`p-3 rounded-lg max-w-xs lg:max-w-md break-words ${isMyMessage ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-white'}`}>
                         <p>{msg.message}</p>
                       </div>
-                      <span className="text-xs text-zinc-500 whitespace-nowrap">{msg.timestamp}</span>
+                      {/* 16. 포맷팅된 시간 사용 */}
+                      <span className="text-xs text-zinc-500 whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
                     </div>
                   </div>
                 </div>
               );
-            })}<div ref={messagesEndRef} /> {/* Added newline before this div */} 
+            })}
+            <div ref={messagesEndRef} />
           </>
         )}
       </div>
@@ -162,17 +195,18 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
           <input
             type="text"
             placeholder={getPlaceholderText()}
-            disabled={!isConnected || !user || !!socketError}
+            disabled={!isConnected || !user || !!socketError || isSending} // 17. 전송 중(isSending)일 때 비활성화
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 disabled:cursor-not-allowed"
           />
           <button
             type="submit"
-            disabled={!isConnected || !user || !!socketError || !newMessage.trim()}
+            disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending} // 18. 전송 중(isSending)일 때 비활성화
             className="p-2 bg-blue-600 rounded-md text-white disabled:bg-zinc-700 disabled:cursor-not-allowed"
           >
-            <Send className="w-5 h-5" />
+            {/* 19. 전송 중일 때 로딩 스피너 표시 */}
+            {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </form>
       </div>

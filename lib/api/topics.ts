@@ -5,10 +5,10 @@ import { fetchWrapper } from "./fetchWrapper";
 // Define the type for a single chat message from the API
 export interface ApiChatMessage {
   id: number;
-  content: string;
+  message: string; // Changed from 'content'
   created_at: string;
-  nickname: string;
-  profile_image_url?: string; // Add profile image URL
+  author: string;   // Changed from 'nickname'
+  profile_image_url?: string; // Added as per POST response
 }
 
 
@@ -110,10 +110,43 @@ export async function getChatHistory(
       return [];
     }
 
-    return response.json();
+    return response.json().then((rawMessages: any[]) => {
+      return rawMessages.map(rawMsg => ({
+        id: rawMsg.id,
+        message: rawMsg.content,
+        created_at: rawMsg.created_at,
+        author: rawMsg.nickname,
+        profile_image_url: rawMsg.profile_image_url, // Assuming this might come from backend
+      }));
+    });
+
   } catch (error) {
     if ((error as Error).message === 'Session expired') return [];
     console.error('Failed to fetch chat history', error);
     return [];
   }
+}
+
+/**
+ * Sends a new chat message to a specific topic.
+ * @param topicId The ID of the topic.
+ * @param content The content of the message.
+ * @param token The user's authentication token.
+ * @returns The newly created message object.
+ */
+export async function sendChatMessage(topicId: number, content: string, token: string): Promise<ApiChatMessage> {
+  const response = await fetchWrapper(`/api/topics/${topicId}/chat`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ content }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || '메시지 전송에 실패했습니다.');
+  }
+
+  return response.json();
 }
