@@ -24,7 +24,7 @@ export default function Home() {
             <TrendingTopics />
           </ContentSection>
 
-          <ContentSection title="실시간 채팅" icon={<MessageCircle />} className="md:col-span-2 xl:col-span-1">
+          <ContentSection title="ROUND1" icon={<MessageCircle />} className="md:col-span-2 xl:col-span-1">
             <ChatRoom />
           </ContentSection>
 
