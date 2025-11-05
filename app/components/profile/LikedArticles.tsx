@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useLikedArticles } from '@/hooks/useLikedArticles';
 import ArticleCard from '@/app/components/ArticleCard';
-import PaginationControls from '@/app/components/common/PaginationControls';
+import PaginationControls from '@/app/components/common/ClientPaginationControls';
 
 export default function LikedArticles() {
   const { articles, totalCount, isLoading, error, handleUnlike } = useLikedArticles();

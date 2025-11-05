@@ -52,7 +52,7 @@ export default async function Home() {
             <ChatRoom topicId={1} />
           </ContentSection>
 
-          <ContentSection title="최신 뉴스" icon={<Newspaper />} className="xl:col-span-1">
+          <ContentSection title="최신 뉴스" icon={<Newspaper />} className="xl:col-span-1" action={<ViewAllLink href="/latest-news" />}>
             <LatestNews articles={latestNews} />
           </ContentSection>
         </div>

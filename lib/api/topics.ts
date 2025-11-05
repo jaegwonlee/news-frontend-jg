@@ -1,4 +1,3 @@
-
 import { Topic, TopicDetail } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
 
@@ -116,10 +115,9 @@ export async function getChatHistory(
         message: rawMsg.content,
         created_at: rawMsg.created_at,
         author: rawMsg.nickname,
-        profile_image_url: rawMsg.profile_image_url, // Assuming this might come from backend
+        profile_image_url: rawMsg.profile_image_url,
       }));
     });
-
   } catch (error) {
     if ((error as Error).message === 'Session expired') return [];
     console.error('Failed to fetch chat history', error);
@@ -149,4 +147,45 @@ export async function sendChatMessage(topicId: number, content: string, token: s
   }
 
   return response.json();
+}
+
+/**
+ * Deletes a specific chat message.
+ * @param messageId The ID of the message to delete.
+ * @param token The user's authentication token.
+ */
+export async function deleteChatMessage(messageId: number, token: string): Promise<void> {
+  const response = await fetchWrapper(`/api/chat/${messageId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || '메시지 삭제에 실패했습니다.');
+  }
+  // No content expected for 200 OK on DELETE
+}
+
+/**
+ * Reports a chat message.
+ * @param messageId The ID of the message to report.
+ * @param message The content of the message being reported.
+ * @param reason The reason for the report.
+ * @param token The user's authentication token.
+ */
+export async function reportChatMessage(messageId: number, token: string): Promise<void> {
+  const response = await fetchWrapper(`/api/chat/${messageId}/report`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || '메시지 신고에 실패했습니다.');
+  }
 }

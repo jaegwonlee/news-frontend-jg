@@ -5,7 +5,7 @@ import { useSavedArticlesManager } from '@/hooks/useSavedArticles';
 import { Article, SavedArticleCategory } from '@/types';
 import ArticleCard from '@/app/components/ArticleCard';
 import CategorySelector from '@/app/components/profile/CategorySelector';
-import PaginationControls from '@/app/components/common/PaginationControls';
+import PaginationControls from '@/app/components/common/ClientPaginationControls';
 import CreateCategoryModal from './CreateCategoryModal';
 import EditCategoryModal from './EditCategoryModal'; // Import the new edit modal
 import { Plus } from 'lucide-react';

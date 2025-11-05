@@ -88,6 +88,7 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
   }
 }
 
+
 /**
  * 검색어(q)를 받아 제목과 설명에서 일치하는 기사를 최신순으로 검색합니다.
  */

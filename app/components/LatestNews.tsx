@@ -18,8 +18,8 @@ export default function LatestNews({ articles }: LatestNewsProps) {
   return (
     <div className="space-y-4">
       {articles.map((article) => (
-        <Link href={article.url} key={article.id} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-2 rounded-lg hover:bg-zinc-800 transition-colors">
-          <div className="w-24 h-16 flex-shrink-0 relative">
+        <Link href={article.url} key={article.id} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-0 rounded-lg hover:bg-zinc-800 transition-colors">
+          <div className="w-16 h-12 flex-shrink-0 relative">
             <Image
               src={article.thumbnail_url || '/placeholder.svg'} 
               alt={article.title}
