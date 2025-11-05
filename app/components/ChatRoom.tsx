@@ -60,7 +60,8 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
       const fetchHistory = async () => {
         setIsLoadingHistory(true);
         const history: ApiChatMessage[] = await getChatHistory(topicId, 100);
-        const formattedHistory: Message[] = history.map((msg) => ({
+        const reversedHistory = [...history].reverse();
+        const formattedHistory: Message[] = reversedHistory.map((msg) => ({
           id: msg.id,
           author: msg.author,
           message: msg.message,
