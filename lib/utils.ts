@@ -27,7 +27,6 @@ export function formatRelativeTime(dateString: string): string {
   } else if (diffInDays === 1) {
     return "어제";
   } else {
-    // 간단하게 날짜 형식으로 표시 (필요에 따라 더 상세하게 구현 가능)
     return date.toLocaleDateString("ko-KR");
   }
 }

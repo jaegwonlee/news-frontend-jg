@@ -7,6 +7,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import Image from 'next/image';
 import { getChatHistory, ApiChatMessage, sendChatMessage, deleteChatMessage, reportChatMessage } from '@/lib/api/topics';
 import ConfirmationPopover from './common/ConfirmationPopover';
+import { BACKEND_BASE_URL } from '@/lib/constants';
 
 type Message = {
   id: number;
@@ -16,19 +17,22 @@ type Message = {
   created_at: string;
 };
 
-interface DialogState {
-  type: 'delete' | 'report';
-  messageId: number;
-  top: number;
-  left: number;
-}
-
 const formatTimestamp = (dateString: string) => {
   try {
     return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   } catch (_e) {
     return '--:--';
   }
+};
+
+const getFullImageUrl = (url?: string): string => {
+  if (!url) {
+    return '/user-placeholder.svg';
+  }
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `${BACKEND_BASE_URL}${url}`;
 };
 
 interface ChatRoomProps {
@@ -42,7 +46,7 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isLoadingHistory, setIsLoadingHistory] = useState(!!topicId);
   const [isSending, setIsSending] = useState(false);
-  const [dialog, setDialog] = useState<DialogState | null>(null);
+  const [dialog, setDialog] = useState<{ type: 'delete' | 'report'; messageId: number; top: number; left: number; } | null>(null);
   const room = topicId ? `topic-${topicId}` : 'mainpage';
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRoomRef = useRef<HTMLDivElement>(null);
@@ -56,12 +60,11 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
       const fetchHistory = async () => {
         setIsLoadingHistory(true);
         const history: ApiChatMessage[] = await getChatHistory(topicId, 100);
-        const reversedHistory = [...history].reverse();
-        const formattedHistory: Message[] = reversedHistory.map((msg) => ({
+        const formattedHistory: Message[] = history.map((msg) => ({
           id: msg.id,
           author: msg.author,
           message: msg.message,
-          profile_image_url: msg.profile_image_url,
+          profile_image_url: getFullImageUrl(msg.profile_image_url),
           created_at: msg.created_at,
         }));
         setMessages(formattedHistory);
@@ -76,7 +79,14 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
     if (socket) {
       socket.emit('join_room', room);
       const messageListener = (data: ApiChatMessage) => {
-        setMessages((prev) => [...prev, { ...data }]);
+        const receivedMessage: Message = {
+          id: data.id,
+          author: data.author,
+          message: data.message,
+          profile_image_url: getFullImageUrl(data.profile_image_url),
+          created_at: data.created_at,
+        };
+        setMessages((prev) => [...prev, receivedMessage]);
       };
       socket.on('receive_message', messageListener);
 
@@ -116,8 +126,9 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
 
   const openConfirmation = (e: React.MouseEvent<HTMLButtonElement>, type: 'delete' | 'report', messageId: number) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const chatRoomRect = chatRoomRef.current?.getBoundingClientRect();
-    if (!chatRoomRect) return;
+    const chatRoomRefCurrent = chatRoomRef.current;
+    if (!chatRoomRefCurrent) return;
+    const chatRoomRect = chatRoomRefCurrent.getBoundingClientRect();
 
     setDialog({
       type,
@@ -181,7 +192,7 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
               const isMyMessage = user ? msg.author === (user.nickname || user.name) : false;
               return (
                 <div key={msg.id} className={`group flex items-end gap-2 ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
-                  {!isMyMessage && <Image src={msg.profile_image_url || '/user-placeholder.svg'} alt={`${msg.author}'s profile`} width={32} height={32} className="rounded-full object-cover self-start" />}
+                  {!isMyMessage && <Image src={msg.profile_image_url!} alt={`${msg.author}'s profile`} width={32} height={32} className="rounded-full object-cover self-start" unoptimized={true} />}
                   <div className={`flex flex-col gap-1 ${isMyMessage ? 'items-end' : 'items-start'}`}>
                     {!isMyMessage && <span className="text-xs text-zinc-400 ml-1">{msg.author}</span>}
                     <div className={`flex gap-2 items-end ${isMyMessage ? 'flex-row-reverse' : 'flex-row'}`}>
