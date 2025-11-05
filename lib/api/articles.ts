@@ -88,6 +88,24 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
   }
 }
 
+/**
+ * Increments the view count of an article.
+ * @param articleId The ID of the article to increment the view count for.
+ */
+export async function incrementArticleView(articleId: number): Promise<void> {
+  try {
+    const response = await fetchWrapper(`/api/articles/${articleId}/view`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      // Don't throw an error, just log it, as it's not a critical failure
+      console.error(`Failed to increment view count for article ${articleId}. Status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error in incrementArticleView:', error);
+  }
+}
+
 
 /**
  * 검색어(q)를 받아 제목과 설명에서 일치하는 기사를 최신순으로 검색합니다.

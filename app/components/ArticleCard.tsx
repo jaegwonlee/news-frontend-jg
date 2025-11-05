@@ -1,3 +1,4 @@
+'use client';
 
 import { Article } from "@/types";
 import Image from "next/image";
@@ -5,7 +6,8 @@ import Link from "next/link";
 import ArticleLikeButton from "./ArticleLikeButton";
 import ArticleSaveButton from "./ArticleSaveButton";
 import Favicon from "./common/Favicon";
-import ClientOnlyTime from "./common/ClientOnlyTime"; // Import the new component
+import ClientOnlyTime from "./common/ClientOnlyTime";
+import { incrementArticleView } from "@/lib/api/articles"; // Import the new function
 
 interface ArticleCardProps {
   article: Article;
@@ -19,11 +21,22 @@ export default function ArticleCard({
   onSaveToggle, 
 }: ArticleCardProps) {
 
+  const handleArticleClick = () => {
+    // Fire-and-forget the API call, don't block navigation
+    incrementArticleView(article.id);
+  };
+
   return (
     <div 
       className={`relative block bg-zinc-800 rounded-lg overflow-hidden group transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-red-500/20 hover:-translate-y-1'}`}
     >
-      <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block">
+      <Link 
+        href={article.url} 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="block"
+        onClick={handleArticleClick} // Add the onClick handler
+      >
         <div className="relative w-full h-40 overflow-hidden">
           <Image
             src={article.thumbnail_url || '/placeholder.png'}

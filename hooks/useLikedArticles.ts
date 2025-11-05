@@ -28,14 +28,19 @@ export const useLikedArticles = () => {
         const { articles: fetchedArticles, totalCount: fetchedTotalCount } = await getLikedArticles(token);
         setArticles(fetchedArticles);
         setTotalCount(fetchedTotalCount);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to fetch liked articles:", err);
-        if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+        let errorMessage = "좋아요한 기사를 불러오는데 실패했습니다.";
+        if (err instanceof Error) {
+          errorMessage = err.message;
+        }
+
+        if (String(errorMessage).includes("401") || String(errorMessage).includes("Unauthorized")) {
           alert("세션이 만료되었습니다. 다시 로그인해주세요.");
           logout();
           router.push("/login");
         } else {
-          setError(err.message || "좋아요한 기사를 불러오는데 실패했습니다.");
+          setError(errorMessage);
         }
       } finally {
         setIsLoading(false);

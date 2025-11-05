@@ -1,14 +1,12 @@
-/**
- * CategoryNewsList 컴포넌트
- * - 지정된 카테고리의 뉴스 목록을 API에서 가져와 표시합니다.
- * - Server Component로 동작하여 서버 측에서 데이터를 미리 가져옵니다.
- */
+'use client';
 
+import { useEffect, useState } from 'react';
 import { DEFAULT_FAVICON_URL, FAVICON_URLS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
 import { Article } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
+import { incrementArticleView } from '@/lib/api/articles';
 
 async function fetchArticlesByCategory(categoryName: string): Promise<Article[]> {
   const encodedCategoryName = encodeURIComponent(categoryName);
@@ -26,20 +24,36 @@ async function fetchArticlesByCategory(categoryName: string): Promise<Article[]>
   }
 }
 
-export default async function CategoryNewsList({
+export default function CategoryNewsList({
   categoryName,
   className,
 }: {
   categoryName: string;
   className?: string;
 }) {
-  const newsList = await fetchArticlesByCategory(categoryName);
+  const [newsList, setNewsList] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadArticles() {
+      setIsLoading(true);
+      const articles = await fetchArticlesByCategory(categoryName);
+      setNewsList(articles);
+      setIsLoading(false);
+    }
+    loadArticles();
+  }, [categoryName]);
+
+  const handleArticleClick = (articleId: number) => {
+    incrementArticleView(articleId);
+  };
 
   return (
     <section className={`bg-zinc-900 p-4 rounded-lg ${className}`}>
       <h2 className="text-2xl font-bold text-white mb-6 pb-4 border-b border-zinc-700">{categoryName}</h2>
       <div className="space-y-6">
-        {newsList.length === 0 && (
+        {isLoading && <p className="text-zinc-400 text-center py-10">뉴스를 불러오는 중...</p>}
+        {!isLoading && newsList.length === 0 && (
           <p className="text-zinc-400 text-center py-10">뉴스를 불러오지 못했거나 해당 카테고리에 뉴스가 없습니다.</p>
         )}
         {newsList.map((news) => {
@@ -47,7 +61,6 @@ export default async function CategoryNewsList({
 
           return (
             <article key={news.id} className="flex flex-col md:flex-row gap-4 group">
-              {/* 썸네일 이미지 */}
               <div className="relative w-full md:w-48 h-32 bg-zinc-700 rounded-md shrink-0 overflow-hidden">
                 {news.thumbnail_url && (
                   <Image
@@ -57,18 +70,20 @@ export default async function CategoryNewsList({
                     sizes="(max-width: 768px) 100vw, 192px"
                     style={{ objectFit: "cover" }}
                     className="rounded-md transition-opacity duration-300 group-hover:opacity-80"
-                    // onError 제거됨
                   />
                 )}
               </div>
 
-              {/* 기사 내용 */}
               <div className="flex flex-col flex-1">
-                <Link href={news.url} target="_blank" rel="noopener noreferrer">
+                <Link 
+                  href={news.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  onClick={() => handleArticleClick(news.id)}
+                >
                   <h3 className="text-lg font-semibold text-zinc-100 mb-2 group-hover:underline">{news.title}</h3>
                 </Link>
                 <div className="flex items-center text-xs text-zinc-500 mt-auto pt-2">
-                  {/* 파비콘 */}
                   {faviconUrl && (
                     <Image
                       src={faviconUrl}
@@ -76,8 +91,7 @@ export default async function CategoryNewsList({
                       width={16}
                       height={16}
                       className="mr-1.5 rounded"
-                      unoptimized // 외부 파비콘 최적화 방지 (선택 사항)
-                      // onError 제거됨
+                      unoptimized
                     />
                   )}
                   <span>{news.source}</span>
