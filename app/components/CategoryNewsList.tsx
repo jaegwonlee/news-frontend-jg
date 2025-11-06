@@ -6,7 +6,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { Article } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
-import { incrementArticleView } from '@/lib/api/articles';
+// import { incrementArticleView } from '@/lib/api/articles'; // Removed
 
 async function fetchArticlesByCategory(categoryName: string): Promise<Article[]> {
   const encodedCategoryName = encodeURIComponent(categoryName);
@@ -57,9 +57,9 @@ export default function CategoryNewsList({
     return newsList.filter(news => news.source === selectedSource);
   }, [newsList, selectedSource]);
 
-  const handleArticleClick = (articleId: number) => {
-    incrementArticleView(articleId);
-  };
+  // const handleArticleClick = (articleId: number) => { // Removed
+  //   incrementArticleView(articleId);
+  // };
 
   return (
     <section className={`bg-zinc-900 p-4 rounded-lg ${className}`}>
@@ -105,6 +105,7 @@ export default function CategoryNewsList({
                     sizes="(max-width: 768px) 100vw, 192px"
                     style={{ objectFit: "cover" }}
                     className="rounded-md transition-opacity duration-300 group-hover:opacity-80"
+                    unoptimized={true}
                   />
                 )}
               </div>
@@ -114,7 +115,7 @@ export default function CategoryNewsList({
                   href={news.url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  onClick={() => handleArticleClick(news.id)}
+                  // onClick={() => handleArticleClick(news.id)} // Removed
                 >
                   <h3 className="text-lg font-semibold text-zinc-100 mb-2 group-hover:underline">{news.title}</h3>
                 </Link>

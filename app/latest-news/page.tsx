@@ -1,18 +1,21 @@
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
 import { getCategoryNews } from '@/lib/api';
 import { Article } from '@/types';
 import ArticleCard from '@/app/components/ArticleCard';
 import ContentSection from '../components/common/ContentSection';
 import { Newspaper } from 'lucide-react';
-import ServerPaginationControls from '@/app/components/common/ServerPaginationControls';
-
-export const dynamic = 'force-dynamic';
+import ClientPaginationControls from '@/app/components/common/ClientPaginationControls';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const ARTICLES_PER_PAGE = 20;
 
-async function getLatestNews() {
+async function fetchAllLatestNews() {
   const categories = ["정치", "경제", "사회", "문화"];
+  // Fetch 100 articles per category to ensure a large pool
   const newsPromises = categories.map(category => 
-    getCategoryNews(category, 50).catch(err => {
+    getCategoryNews(category, 100).catch(err => {
       console.error(`Error fetching latest news for category ${category}:`, err);
       return [];
     })
@@ -29,38 +32,56 @@ async function getLatestNews() {
   const sortedArticles = Array.from(uniqueArticlesMap.values())
     .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 
-  return sortedArticles;
+  // Return the top 100 unique articles
+  return sortedArticles.slice(0, 100);
 }
 
-export default async function LatestNewsPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const allArticles = await getLatestNews();
+export default function LatestNewsPage() {
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const page = searchParams['page'] ?? '1';
-  const currentPage = Number(page);
+  useEffect(() => {
+    const loadNews = async () => {
+      setIsLoading(true);
+      const articles = await fetchAllLatestNews();
+      setAllArticles(articles);
+      setIsLoading(false);
+    };
+    loadNews();
+  }, []);
 
   const totalPages = Math.ceil(allArticles.length / ARTICLES_PER_PAGE);
 
-  const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
-  const endIndex = startIndex + ARTICLES_PER_PAGE;
-  const paginatedArticles = allArticles.slice(startIndex, endIndex);
+  const paginatedArticles = useMemo(() => {
+    const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
+    const endIndex = startIndex + ARTICLES_PER_PAGE;
+    return allArticles.slice(startIndex, endIndex);
+  }, [allArticles, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8">
       <ContentSection title="최신 뉴스" icon={<Newspaper />}>
-        {paginatedArticles.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center h-96">
+            <LoadingSpinner />
+          </div>
+        ) : paginatedArticles.length > 0 ? (
           <>
-            <div key={currentPage} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {paginatedArticles.map(article => (
                 <ArticleCard key={article.id} article={article} />
               ))}
             </div>
-            <ServerPaginationControls
+            <ClientPaginationControls
               currentPage={currentPage}
               totalPages={totalPages}
+              onPageChange={handlePageChange}
             />
           </>
         ) : (

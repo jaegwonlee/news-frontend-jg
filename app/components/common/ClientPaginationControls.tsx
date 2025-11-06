@@ -1,12 +1,12 @@
 'use client';
 
-interface PaginationControlsProps {
+interface ClientPaginationControlsProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }
 
-export default function PaginationControls({ currentPage, totalPages, onPageChange }: PaginationControlsProps) {
+export default function ClientPaginationControls({ currentPage, totalPages, onPageChange }: ClientPaginationControlsProps) {
   const pageNumbers = [];
   for (let i = 1; i <= totalPages; i++) {
     pageNumbers.push(i);
@@ -21,7 +21,7 @@ export default function PaginationControls({ currentPage, totalPages, onPageChan
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="px-3 py-1 rounded-md bg-zinc-800 text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-700 transition-colors"
+        className={`px-3 py-1 rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors disabled:pointer-events-none disabled:opacity-50`}
       >
         이전
       </button>
@@ -30,7 +30,7 @@ export default function PaginationControls({ currentPage, totalPages, onPageChan
           <button
             key={number}
             onClick={() => onPageChange(number)}
-            className={`w-8 h-8 rounded-full text-sm font-semibold transition-colors ${
+            className={`w-8 h-8 rounded-full text-sm font-semibold transition-colors flex items-center justify-center ${
               currentPage === number
                 ? 'bg-red-500 text-white'
                 : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
@@ -43,7 +43,7 @@ export default function PaginationControls({ currentPage, totalPages, onPageChan
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="px-3 py-1 rounded-md bg-zinc-800 text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-700 transition-colors"
+        className={`px-3 py-1 rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors disabled:pointer-events-none disabled:opacity-50`}
       >
         다음
       </button>

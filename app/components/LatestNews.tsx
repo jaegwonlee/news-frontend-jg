@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { incrementArticleView } from '@/lib/api/articles';
+// import { incrementArticleView } from '@/lib/api/articles'; // Removed
 
 interface LatestNewsProps {
   articles: Article[];
@@ -16,9 +16,9 @@ export default function LatestNews({ articles }: LatestNewsProps) {
     return <div className="text-center text-zinc-400 py-5">최신 뉴스가 없습니다.</div>;
   }
 
-  const handleArticleClick = (articleId: number) => {
-    incrementArticleView(articleId);
-  };
+  // const handleArticleClick = (articleId: number) => { // Removed
+  //   incrementArticleView(articleId);
+  // };
 
   return (
     <div className="space-y-4 h-full flex flex-col overflow-y-auto pr-2">
@@ -29,7 +29,7 @@ export default function LatestNews({ articles }: LatestNewsProps) {
           target="_blank" 
           rel="noopener noreferrer" 
           className="flex-1 flex items-center gap-4 p-0 rounded-lg hover:bg-zinc-800 transition-colors"
-          onClick={() => handleArticleClick(article.id)}
+          // onClick={() => handleArticleClick(article.id)} // Removed
         >
           <div className="w-16 h-12 flex-shrink-0 relative">
             <Image

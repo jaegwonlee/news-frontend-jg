@@ -7,13 +7,15 @@ import ArticleLikeButton from "./ArticleLikeButton";
 import ArticleSaveButton from "./ArticleSaveButton";
 import Favicon from "./common/Favicon";
 import ClientOnlyTime from "./common/ClientOnlyTime";
-import { incrementArticleView } from "@/lib/api/articles";
+// import { incrementArticleView } from "@/lib/api/articles"; // Removed
 
 interface ArticleCardProps {
   article: Article;
   variant?: 'default' | 'horizontal';
   onLikeToggle?: (articleId: number) => void;
   onSaveToggle?: (articleId: number) => void;
+  className?: string;
+  hoverColor?: 'red' | 'blue';
 }
 
 export default function ArticleCard({ 
@@ -21,31 +23,34 @@ export default function ArticleCard({
   variant = 'default',
   onLikeToggle, 
   onSaveToggle, 
+  className,
+  hoverColor = 'red',
 }: ArticleCardProps) {
 
-  const handleArticleClick = () => {
-    incrementArticleView(article.id);
-  };
+  // const handleArticleClick = () => { // Removed
+  //   incrementArticleView(article.id);
+  // };
+
+  const borderColorClass = hoverColor === 'red' ? 'border-red-500' : 'border-blue-500';
 
   if (variant === 'horizontal') {
     return (
-      <div className={`relative flex bg-zinc-800 rounded-lg overflow-hidden group transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-red-500/20 hover:-translate-y-1`}>
+      <div className={`relative flex bg-zinc-800 rounded-lg overflow-hidden border-2 ${borderColorClass} ${className || ''}`}>
         <div className="w-32 flex-shrink-0">
-          <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative" onClick={handleArticleClick}>
+          <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative"> {/* Removed onClick={handleArticleClick} */}
             <Image
               src={article.thumbnail_url || '/placeholder.png'}
               alt={`${article.title} thumbnail`}
               fill
               sizes="128px"
               style={{ objectFit: "cover" }}
-              className="group-hover:scale-105 transition-transform duration-300"
               unoptimized={true}
             />
           </Link>
         </div>
         <div className="flex flex-col flex-grow p-3">
-          <Link href={article.url} target="_blank" rel="noopener noreferrer" onClick={handleArticleClick}>
-            <h3 className="font-bold text-sm text-zinc-100 mb-1 group-hover:text-red-500 transition-colors line-clamp-2">{article.title}</h3>
+          <Link href={article.url} target="_blank" rel="noopener noreferrer"> {/* Removed onClick={handleArticleClick} */}
+            <h3 className={`font-bold text-sm text-zinc-100 mb-1 line-clamp-2`}>{article.title}</h3>
           </Link>
           <div className="flex items-center text-xs text-zinc-400 mt-1">
             {article.favicon_url && <Favicon src={article.favicon_url} alt={`${article.source} favicon`} size={16} />}
@@ -69,8 +74,8 @@ export default function ArticleCard({
 
   // Default variant (original vertical layout)
   return (
-    <div className={`relative block bg-zinc-800 rounded-lg overflow-hidden group transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-red-500/20 hover:-translate-y-1`}>
-      <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block" onClick={handleArticleClick}>
+    <div className={`relative block bg-zinc-800 rounded-lg overflow-hidden group transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-red-500/20 hover:-translate-y-1 ${className || ''}`}>
+      <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block"> {/* Removed onClick={handleArticleClick} */}
         <div className="relative w-full h-40 overflow-hidden">
           <Image
             src={article.thumbnail_url || '/placeholder.png'}

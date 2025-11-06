@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
@@ -113,7 +113,7 @@ export default function TopicDetailPage() {
       </section>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <aside className="lg:col-span-3">
-          <div className="space-y-6 h-[600px] overflow-y-auto scroll-fade-container pr-2">
+          <div className="space-y-6 h-[600px] overflow-y-auto scroll-fade-container pr-2 pt-4">
             {leftArticles.map((article) => (
               <ArticleCard
                 key={article.id}
@@ -121,6 +121,7 @@ export default function TopicDetailPage() {
                 variant="horizontal"
                 onLikeToggle={() => handleLikeToggle(article)}
                 onSaveToggle={() => handleSaveToggle(article)}
+                hoverColor="blue"
               />
             ))}
           </div>
@@ -131,7 +132,7 @@ export default function TopicDetailPage() {
           </ContentSection>
         </main>
         <aside className="lg:col-span-3">
-          <div className="space-y-6 h-[600px] overflow-y-auto scroll-fade-container pr-2">
+          <div className="space-y-6 h-[600px] overflow-y-auto scroll-fade-container pr-2 pt-4">
             {rightArticles.map((article) => (
               <ArticleCard
                 key={article.id}
@@ -139,6 +140,7 @@ export default function TopicDetailPage() {
                 variant="horizontal"
                 onLikeToggle={() => handleLikeToggle(article)}
                 onSaveToggle={() => handleSaveToggle(article)}
+                hoverColor="red"
               />
             ))}
           </div>

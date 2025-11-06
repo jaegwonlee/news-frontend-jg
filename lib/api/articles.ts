@@ -89,22 +89,31 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
 }
 
 /**
- * Increments the view count of an article.
- * @param articleId The ID of the article to increment the view count for.
+ * 최신 뉴스 전체보기 페이지를 위한 함수. 각 카테고리에서 50개씩 가져옵니다.
  */
-export async function incrementArticleView(articleId: number): Promise<void> {
-  try {
-    const response = await fetchWrapper(`/api/articles/${articleId}/view`, {
-      method: 'POST',
-    });
-    if (!response.ok) {
-      // Don't throw an error, just log it, as it's not a critical failure
-      console.error(`Failed to increment view count for article ${articleId}. Status: ${response.status}`);
-    }
-  } catch (error) {
-    console.error('Error in incrementArticleView:', error);
-  }
+export async function getAllLatestNews(): Promise<Article[]> {
+  const categories = ["정치", "경제", "사회", "문화"];
+  const newsPromises = categories.map(category => 
+    getCategoryNews(category, 50).catch(err => {
+      console.error(`Error fetching latest news for category ${category}:`, err);
+      return [];
+    })
+  );
+
+  const results = await Promise.all(newsPromises);
+  const allArticles = results.flat();
+  
+  const uniqueArticlesMap = new Map<number, Article>();
+  allArticles.forEach((article) => {
+    uniqueArticlesMap.set(article.id, article);
+  });
+
+  const sortedArticles = Array.from(uniqueArticlesMap.values())
+    .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+
+  return sortedArticles;
 }
+
 
 
 /**
