@@ -220,13 +220,14 @@ export async function changePassword(token: string, currentPassword: string, new
 /**
  * 사용자 계정을 삭제합니다.
  */
-export async function deleteAccount(token: string, password: string): Promise<void> {
-  const response = await fetchWrapper(`/api/user/me`, {
-    method: 'DELETE',
+export async function deleteAccount(token: string, currentPassword: string): Promise<void> {
+  const response = await fetchWrapper(`/api/user/me/delete`, {
+    method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ currentPassword }),
+    skipAuthCheckFor401: true, // 401이 비밀번호 불일치를 의미할 수 있으므로 자동 로그아웃 방지
   });
 
   if (!response.ok) {

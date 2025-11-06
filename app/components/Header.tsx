@@ -9,7 +9,7 @@ const navLinks = [
   { title: '경제', href: '/economy' },
   { title: '사회', href: '/social' },
   { title: '문화', href: '/culture' },
-  { title: '논쟁', href: '/debate' },
+  { title: '토픽', href: '/debate' },
 ];
 
 export default function Header() {
