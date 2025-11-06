@@ -21,14 +21,14 @@ export default function LatestNews({ articles }: LatestNewsProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col overflow-y-auto pr-2">
       {articles.map((article) => (
         <Link 
           href={article.url} 
           key={article.id} 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="flex items-center gap-4 p-0 rounded-lg hover:bg-zinc-800 transition-colors"
+          className="flex-1 flex items-center gap-4 p-0 rounded-lg hover:bg-zinc-800 transition-colors"
           onClick={() => handleArticleClick(article.id)}
         >
           <div className="w-16 h-12 flex-shrink-0 relative">
@@ -38,6 +38,7 @@ export default function LatestNews({ articles }: LatestNewsProps) {
               fill
               className="object-cover rounded-md"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              unoptimized={true}
             />
           </div>
           <div className="flex-1 min-w-0">

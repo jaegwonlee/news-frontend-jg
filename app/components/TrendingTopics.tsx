@@ -59,15 +59,15 @@ export default function TrendingTopics({ displayMode }: TrendingTopicsProps) {
           {error}
         </div>
       ) : (
-        <ol className="space-y-2 h-[576px] overflow-y-auto pr-2">
+        <ol className="space-y-2 h-full overflow-y-auto pr-2 flex flex-col">
           {topics.length === 0 ? (
             <p className="text-zinc-500 text-center pt-10">표시할 토픽이 없습니다.</p>
           ) : (
             topics.map((topic, index) => (
-              <li key={topic.id} className={`bg-zinc-800 p-3 rounded-lg border border-zinc-700 hover:bg-zinc-700 transition-colors ${displayMode === 'popular' && index === 0 ? 'animate-glow-border' : ''} ${displayMode === 'popular' && index === 1 ? 'animate-glow-border-2nd' : ''} ${displayMode === 'popular' && index === 2 ? 'animate-glow-border-3rd' : ''}`}>
+              <li key={topic.id} className={`flex-1 bg-zinc-800 p-3 rounded-lg border border-zinc-700 hover:bg-zinc-700 transition-colors ${displayMode === 'popular' && index === 0 ? 'animate-glow-border' : ''} ${displayMode === 'popular' && index === 1 ? 'animate-glow-border-2nd' : ''} ${displayMode === 'popular' && index === 2 ? 'animate-glow-border-3rd' : ''}`}>
                 <Link
                   href={`/debate/${topic.id}`}
-                  className="flex items-center gap-3"
+                  className="flex items-center gap-3 h-full"
                 >
                   {displayMode === 'popular' && (
                      <span

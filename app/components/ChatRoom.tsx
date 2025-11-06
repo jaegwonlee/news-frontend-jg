@@ -37,9 +37,10 @@ const getFullImageUrl = (url?: string): string => {
 
 interface ChatRoomProps {
   topicId?: number;
+  heightClass?: string; // New prop for configurable height
 }
 
-export default function ChatRoom({ topicId }: ChatRoomProps) {
+export default function ChatRoom({ topicId, heightClass = 'h-[500px]' }: ChatRoomProps) {
   const { socket, isConnected, error: socketError } = useSocket();
   const { user, token } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -118,7 +119,7 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
       } catch (error) {
         console.error("Failed to send message:", error);
         setNewMessage(messageToSend);
-        alert("메시지 전송에 실패했습니다.");
+        alert("메시지 전송에 실패했습니다. 다시 시도해주세요.");
       } finally {
         setIsSending(false);
       }
@@ -168,7 +169,7 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
   };
 
   return (
-    <div ref={chatRoomRef} className="flex flex-col h-[600px] bg-zinc-900 p-4 rounded-lg relative">
+    <div ref={chatRoomRef} className={`flex flex-col ${heightClass} bg-zinc-900 p-4 rounded-lg relative`}>
       {dialog && (
         <ConfirmationPopover
           top={dialog.top}
@@ -223,7 +224,7 @@ export default function ChatRoom({ topicId }: ChatRoomProps) {
       <div className="mt-4 shrink-0">
         {socketError && <div className="flex items-center text-red-500 text-xs mb-2"><AlertTriangle className="w-4 h-4 mr-1" />{socketError}</div>}
         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-          <input type="text" placeholder={getPlaceholderText()} disabled={!isConnected || !user || !!socketError || isSending} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 disabled:cursor-not-allowed" />
+          <input type="text" placeholder={getPlaceholderText()} disabled={!isConnected || !user || !!socketError || isSending} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
           <button type="submit" disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending} className="p-2 bg-blue-600 rounded-md text-white disabled:bg-zinc-700 disabled:cursor-not-allowed">
             {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>

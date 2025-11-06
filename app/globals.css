@@ -108,3 +108,49 @@ body {
   animation: clash-right 4s ease-in-out infinite;
   animation-delay: 0.1s;
 }
+
+.scroll-fade-container {
+  position: relative;
+}
+
+.scroll-fade-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1rem; /* 16px */
+  background: linear-gradient(to bottom, #27272a, transparent);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.scroll-fade-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1rem; /* 16px */
+  background: linear-gradient(to top, #27272a, transparent);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f1f1f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}

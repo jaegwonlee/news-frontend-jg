@@ -101,9 +101,9 @@ export default function TopicDetailPage() {
   const rightArticles = articles.filter((article) => article.side === "RIGHT");
 
   return (
-    <div className="w-full max-w-8xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-0">
       {id && <TopicViewCounter topicId={id} />}
-      <section className="mb-8 flex justify-between items-center">
+      <section className="mb-0 flex justify-between items-center">
         <Image src="/avatars/blue--glove.svg" alt="Blue Glove" width={150} height={150} />
         <div className="text-center">
           <h1 className="text-4xl font-extrabold text-white mb-3">{topic.display_name}</h1>
@@ -113,11 +113,12 @@ export default function TopicDetailPage() {
       </section>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <aside className="lg:col-span-3">
-          <div className="space-y-6">
+          <div className="space-y-6 h-[600px] overflow-y-auto scroll-fade-container pr-2">
             {leftArticles.map((article) => (
               <ArticleCard
                 key={article.id}
                 article={article}
+                variant="horizontal"
                 onLikeToggle={() => handleLikeToggle(article)}
                 onSaveToggle={() => handleSaveToggle(article)}
               />
@@ -126,15 +127,16 @@ export default function TopicDetailPage() {
         </aside>
         <main className="lg:col-span-6">
           <ContentSection title="ROUND2" icon={<MessageCircle />}>
-            <ChatRoom topicId={topic.id} />
+            <ChatRoom topicId={topic.id} heightClass="h-[500px]" />
           </ContentSection>
         </main>
         <aside className="lg:col-span-3">
-          <div className="space-y-6">
+          <div className="space-y-6 h-[600px] overflow-y-auto scroll-fade-container pr-2">
             {rightArticles.map((article) => (
               <ArticleCard
                 key={article.id}
                 article={article}
+                variant="horizontal"
                 onLikeToggle={() => handleLikeToggle(article)}
                 onSaveToggle={() => handleSaveToggle(article)}
               />

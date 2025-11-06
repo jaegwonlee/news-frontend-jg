@@ -51,13 +51,12 @@ export default async function RootLayout({
             {/* 스크롤러 컨테이너 (헤더 아래에 고정) */}
             <div className="sticky top-16 z-40 shadow-md">
               
-              {/* 속보 뉴스 스크롤러 (배경색 bg-zinc-900, 경계선 border-zinc-700으로 수정) */}
-              <div className="w-full bg-zinc-900 overflow-hidden border-b border-zinc-700 py-2">
+              <div className="w-full bg-zinc-900 overflow-hidden border-b border-zinc-700 py-1">
                 <HorizontalNewsScroller news={breakingNews} />
               </div>
 
               {/* 단독 뉴스 스크롤러 (배경색 bg-zinc-900, 경계선 border-zinc-700으로 수정) */}
-              <div className="w-full bg-zinc-900 overflow-hidden border-b border-zinc-700 py-2">
+              <div className="w-full bg-zinc-900 overflow-hidden border-b border-zinc-700 py-1">
                 <HorizontalNewsScroller news={exclusiveNews} />
               </div>
               

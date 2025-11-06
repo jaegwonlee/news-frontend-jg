@@ -4,8 +4,8 @@ import Link from 'next/link';
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-zinc-900 text-zinc-400 mt-12">
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <footer className="w-full bg-zinc-900 text-zinc-400 mt-24">
+      <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">뉴스</h3>
@@ -36,7 +36,7 @@ const Footer = () => {
             <p>최신 뉴스와 심도 있는 토론을 한 곳에서 만나보세요.</p>
           </div>
         </div>
-        <div className="mt-8 pt-8 border-t border-zinc-800 text-center">
+        <div className="mt-2 pt-2 border-t border-zinc-800 text-center">
           <p>&copy; {new Date().getFullYear()} Gemini News. All rights reserved.</p>
         </div>
       </div>

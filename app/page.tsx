@@ -94,7 +94,7 @@ export default function Home() {
           </ContentSection>
 
           <ContentSection title="ROUND1" icon={<MessageCircle />} className="md:col-span-2 xl:col-span-2">
-            <ChatRoom topicId={1} />
+            <ChatRoom topicId={1} heightClass="h-[700px]" />
           </ContentSection>
 
           <ContentSection
