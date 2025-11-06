@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { DEFAULT_FAVICON_URL, FAVICON_URLS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
 import { Article } from "@/types";
@@ -33,6 +33,7 @@ export default function CategoryNewsList({
 }) {
   const [newsList, setNewsList] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedSource, setSelectedSource] = useState<string | 'all'>('all');
 
   useEffect(() => {
     async function loadArticles() {
@@ -44,19 +45,53 @@ export default function CategoryNewsList({
     loadArticles();
   }, [categoryName]);
 
+  const sources = useMemo(() => {
+    const sourceSet = new Set(newsList.map(news => news.source));
+    return ['all', ...Array.from(sourceSet)];
+  }, [newsList]);
+
+  const filteredNews = useMemo(() => {
+    if (selectedSource === 'all') {
+      return newsList;
+    }
+    return newsList.filter(news => news.source === selectedSource);
+  }, [newsList, selectedSource]);
+
   const handleArticleClick = (articleId: number) => {
     incrementArticleView(articleId);
   };
 
   return (
     <section className={`bg-zinc-900 p-4 rounded-lg ${className}`}>
-      <h2 className="text-2xl font-bold text-white mb-6 pb-4 border-b border-zinc-700">{categoryName}</h2>
+      <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-700">
+        <h2 className="text-2xl font-bold text-white">{categoryName}</h2>
+      </div>
+
+      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+        {sources.map(source => (
+          <button
+            key={source}
+            onClick={() => setSelectedSource(source)}
+            className={`px-3 py-1 text-sm rounded-full whitespace-nowrap transition-colors ${
+              selectedSource === source
+                ? 'bg-red-600 text-white'
+                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+            }`}>
+            {source === 'all' ? '전체' : source}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-6">
         {isLoading && <p className="text-zinc-400 text-center py-10">뉴스를 불러오는 중...</p>}
-        {!isLoading && newsList.length === 0 && (
-          <p className="text-zinc-400 text-center py-10">뉴스를 불러오지 못했거나 해당 카테고리에 뉴스가 없습니다.</p>
+        {!isLoading && filteredNews.length === 0 && (
+          <p className="text-zinc-400 text-center py-10">
+            {selectedSource === 'all' 
+              ? '해당 카테고리에 뉴스가 없습니다.' 
+              : `'${selectedSource}' 출처의 뉴스가 없습니다.`}
+          </p>
         )}
-        {newsList.map((news) => {
+        {filteredNews.map((news) => {
           const faviconUrl = FAVICON_URLS[news.source_domain || ""] || DEFAULT_FAVICON_URL(news.source_domain || "");
 
           return (

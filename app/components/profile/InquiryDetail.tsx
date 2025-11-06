@@ -1,10 +1,11 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
-import { getInquiryDetail, Inquiry } from '@/lib/api/inquiry';
+import { getInquiryDetail, downloadInquiryAttachment, Inquiry } from '@/lib/api/inquiry';
 import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
+import { DownloadCloud, Loader2 } from 'lucide-react';
 
 interface InquiryDetailProps {
   inquiryId: number;
@@ -15,6 +16,7 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
   const { token, logout } = useAuth();
   const [inquiry, setInquiry] = useState<Inquiry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,6 +48,30 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
     fetchDetail();
   }, [token, inquiryId, logout]);
 
+  const handleDownload = async () => {
+    if (!inquiry?.file_path || !token) return;
+
+    setIsDownloading(true);
+    try {
+      const blob = await downloadInquiryAttachment(token, inquiry.file_path);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', inquiry.file_originalname || 'download');
+      document.body.appendChild(link);
+      link.click();
+      
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert("파일 다운로드에 실패했습니다.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-48">
@@ -72,49 +98,53 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
       </button>
       <h2 className="text-2xl font-bold text-white">문의 상세</h2>
 
-      <div className="bg-zinc-800 p-4 rounded-lg shadow border border-zinc-700">
-        <p className="text-zinc-400 text-sm mb-1">주제</p>
-        <p className="text-white text-lg font-semibold mb-4">{inquiry.subject}</p>
+      <div className="bg-zinc-800 p-6 rounded-lg shadow-inner border border-zinc-700">
+        <h3 className="text-xl font-semibold text-white mb-2">{inquiry.subject}</h3>
+        <div className="flex items-center gap-4 text-sm text-zinc-400 mb-4">
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium ${
+              inquiry.status === 'SUBMITTED' ? 'bg-yellow-600/30 text-yellow-300' :
+              inquiry.status === 'ANSWERED' ? 'bg-green-600/30 text-green-300' :
+              'bg-zinc-600/30 text-zinc-300'
+            }`}>
+            {inquiry.status === 'SUBMITTED' ? '답변 대기중' : inquiry.status === 'ANSWERED' ? '답변 완료' : '종료됨'}
+          </span>
+          <span>{new Date(inquiry.created_at).toLocaleString()}</span>
+        </div>
+        <div className="prose prose-invert prose-zinc max-w-none text-zinc-300 whitespace-pre-wrap mb-6">
+          {inquiry.content}
+        </div>
 
-        <p className="text-zinc-400 text-sm mb-1">내용</p>
-        <p className="text-white mb-4 whitespace-pre-wrap">{inquiry.content}</p>
-
-        {inquiry.file_path && ( // Use file_path from API
-          <div className="mb-4">
-            <p className="text-zinc-400 text-sm mb-1">첨부 파일</p>
-            <a
-              href={inquiry.file_path}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:underline"
+        {inquiry.file_path && (
+          <div className="mt-4">
+            <h4 className="font-semibold text-zinc-300 mb-2">첨부 파일</h4>
+            <button
+              onClick={handleDownload}
+              disabled={isDownloading}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-zinc-500"
             >
-              {inquiry.file_originalname || '첨부 파일 보기'} {/* Display original name if available */}
-            </a>
+              {isDownloading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <DownloadCloud className="w-4 h-4" />
+              )}
+              {isDownloading ? '다운로드 중...' : (inquiry.file_originalname || '파일 다운로드')}
+            </button>
           </div>
         )}
 
-        <p className="text-zinc-400 text-sm mb-1">상태</p>
-        <span className={`text-lg font-medium ${
-          inquiry.status === 'SUBMITTED' ? 'text-yellow-500' :
-          inquiry.status === 'ANSWERED' ? 'text-green-500' :
-          'text-zinc-500'
-        }`}>
-          {inquiry.status === 'SUBMITTED' ? '접수됨' :
-           inquiry.status === 'ANSWERED' ? '답변 완료' :
-           '종료됨'}
-        </span>
-
-        {inquiry.reply && ( // Use inquiry.reply from API
-          <div className="mt-4 pt-4 border-t border-zinc-600">
-            <p className="text-zinc-400 text-sm mb-1">답변</p>
-            <p className="text-white whitespace-pre-wrap">{inquiry.reply.content}</p>
-            <p className="text-zinc-400 text-xs mt-2">답변일: {new Date(inquiry.reply.created_at).toLocaleString()}</p>
+        {inquiry.reply && (
+          <div className="mt-6 pt-6 border-t border-zinc-700">
+            <h4 className="text-lg font-semibold text-red-400 mb-3">운영자 답변</h4>
+            <div className="prose prose-invert prose-zinc max-w-none text-zinc-200 whitespace-pre-wrap">
+              {inquiry.reply.content}
+            </div>
+            {inquiry.reply.created_at && (
+              <p className="text-xs text-zinc-500 mt-3 text-right">
+                {new Date(inquiry.reply.created_at).toLocaleString()}
+              </p>
+            )}
           </div>
-        )}
-
-        <p className="text-zinc-400 text-xs mt-4">제출일: {new Date(inquiry.created_at).toLocaleString()}</p>
-        {inquiry.updated_at && inquiry.created_at !== inquiry.updated_at && (
-          <p className="text-zinc-400 text-xs">최종 업데이트: {new Date(inquiry.updated_at).toLocaleString()}</p>
         )}
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { fetchWrapper } from "./fetchWrapper";
+import { BACKEND_BASE_URL } from "../constants";
 
 export const submitInquiry = async (
   token: string,
@@ -20,7 +21,6 @@ export const submitInquiry = async (
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
-      // 'Content-Type': 'multipart/form-data' is set automatically by the browser for FormData
     },
     body: formData,
   });
@@ -51,9 +51,6 @@ export interface Inquiry {
   reply?: InquiryReply;
 }
 
-/**
- * 로그인한 사용자의 문의 내역 목록을 조회합니다.
- */
 export const getInquiries = async (token: string): Promise<Inquiry[]> => {
   const response = await fetchWrapper(`/api/inquiry`, {
     headers: {
@@ -69,9 +66,6 @@ export const getInquiries = async (token: string): Promise<Inquiry[]> => {
   return response.json();
 };
 
-/**
- * 특정 문의 내역의 상세 정보를 조회합니다.
- */
 export const getInquiryDetail = async (token: string, inquiryId: number): Promise<Inquiry> => {
   const response = await fetchWrapper(`/api/inquiry/${inquiryId}`, {
     headers: {
@@ -86,4 +80,29 @@ export const getInquiryDetail = async (token: string, inquiryId: number): Promis
 
   const { inquiry, reply } = await response.json();
   return { ...inquiry, reply: reply || undefined };
+};
+
+export const downloadInquiryAttachment = async (
+  token: string,
+  filePath: string
+): Promise<Blob> => {
+  const fullUrl = `${BACKEND_BASE_URL}/api/inquiry/download?path=${encodeURIComponent(filePath)}`;
+  
+  const headers: HeadersInit = {
+    'Authorization': `Bearer ${token}`,
+  };
+
+  const res = await fetch(fullUrl, {
+    method: 'GET',
+    headers: headers,
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      window.dispatchEvent(new Event('sessionExpired'));
+    }
+    throw new Error('파일 다운로드에 실패했습니다.');
+  }
+
+  return res.blob();
 };
