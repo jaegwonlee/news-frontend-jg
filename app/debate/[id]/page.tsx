@@ -10,7 +10,6 @@ import { TopicDetail, Article } from "@/types";
 import { useAuth } from "@/app/context/AuthContext";
 import ContentSection from "@/app/components/common/ContentSection";
 import { MessageCircle } from "lucide-react";
-import Image from "next/image";
 
 export default function TopicDetailPage() {
   const params = useParams();
@@ -103,9 +102,10 @@ export default function TopicDetailPage() {
   return (
     <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-0">
       {id && <TopicViewCounter topicId={id} />}
+      
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <aside className="lg:col-span-3">
-          <div className="space-y-6 h-[750px] overflow-y-auto scroll-fade-container pr-2 pt-4 w-full">
+          <div className="space-y-6 h-[750px] overflow-y-auto pr-2 pt-4 w-full">
             {leftArticles.map((article) => (
               <ArticleCard
                 key={article.id}
@@ -119,12 +119,19 @@ export default function TopicDetailPage() {
           </div>
         </aside>
         <main className="lg:col-span-6">
-          <ContentSection title="ROUND2" icon={<MessageCircle />}>
+          <ContentSection 
+            title="ROUND2" 
+            icon={<MessageCircle />}
+            collapsibleContent={{
+              title: topic.display_name,
+              summary: topic.summary
+            }}
+          >
             <ChatRoom topicId={topic.id} heightClass="h-[750px]" />
           </ContentSection>
         </main>
         <aside className="lg:col-span-3">
-          <div className="space-y-6 h-[750px] overflow-y-auto scroll-fade-container pr-2 pt-4 w-full">
+          <div className="space-y-6 h-[750px] overflow-y-auto pr-2 pt-4 w-full">
             {rightArticles.map((article) => (
               <ArticleCard
                 key={article.id}

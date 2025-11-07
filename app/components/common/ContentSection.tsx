@@ -1,30 +1,58 @@
-import React from 'react';
+'use client';
+
+import { useState } from 'react';
+import { Info } from 'lucide-react';
 
 interface ContentSectionProps {
   title: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
-  action?: React.ReactNode;
-  contentClassName?: string;
+  collapsibleContent?: {
+    title: string;
+    summary: string;
+  };
 }
 
-export default function ContentSection({ title, icon, children, className, action, contentClassName = 'p-4' }: ContentSectionProps) {
+export default function ContentSection({ 
+  title, 
+  icon, 
+  children, 
+  className, 
+  collapsibleContent 
+}: ContentSectionProps) {
+  const [isContentOpen, setIsContentOpen] = useState(false);
+
   return (
-    <div className={`flex flex-col bg-zinc-800/50 backdrop-blur-sm border border-zinc-700/80 rounded-xl shadow-lg ${className}`}>
-      <div className="flex items-center justify-between p-4 border-b border-zinc-700/80">
-        <div className="flex items-center gap-3">
-          <div className="text-red-500">
-            {icon}
-          </div>
-          <h2 className="font-bold text-lg text-zinc-100">{title}</h2>
+    <section className={`bg-zinc-900 p-4 rounded-lg ${className}`}>
+      <div className="flex justify-between items-center mb-4 pb-3 border-b border-zinc-700">
+        <div className="flex items-center gap-2">
+          {icon}
+          <h2 className="text-xl font-bold text-white">{title}</h2>
         </div>
-        {action && <div>{action}</div>}
+        {collapsibleContent && (
+          <div>
+            <button 
+              onClick={() => setIsContentOpen(!isContentOpen)}
+              className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
+            >
+              <Info className="w-4 h-4" />
+              주제 보기
+            </button>
+          </div>
+        )}
       </div>
       
-      <div className={`${contentClassName} flex-1`}>
-        {children}
-      </div>
-    </div>
+      {collapsibleContent && (
+        <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isContentOpen ? 'max-h-96 mb-4' : 'max-h-0'}`}>
+          <div className="p-4 bg-zinc-800 rounded-md border border-zinc-700">
+            <h3 className="font-bold text-lg text-white mb-2">{collapsibleContent.title}</h3>
+            <p className="text-sm text-zinc-300 leading-relaxed">{collapsibleContent.summary}</p>
+          </div>
+        </div>
+      )}
+
+      {children}
+    </section>
   );
 }
