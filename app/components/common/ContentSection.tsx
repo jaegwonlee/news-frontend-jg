@@ -8,6 +8,7 @@ interface ContentSectionProps {
   icon?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  action?: React.ReactNode; // Re-add the action prop
   collapsibleContent?: {
     title: string;
     summary: string;
@@ -19,6 +20,7 @@ export default function ContentSection({
   icon, 
   children, 
   className, 
+  action, // Re-add the action prop
   collapsibleContent 
 }: ContentSectionProps) {
   const [isContentOpen, setIsContentOpen] = useState(false);
@@ -30,7 +32,11 @@ export default function ContentSection({
           {icon}
           <h2 className="text-xl font-bold text-white">{title}</h2>
         </div>
-        {collapsibleContent && (
+        
+        {/* Render either the action prop or the collapsible button */}
+        {action ? (
+          <div>{action}</div>
+        ) : collapsibleContent ? (
           <div>
             <button 
               onClick={() => setIsContentOpen(!isContentOpen)}
@@ -40,7 +46,7 @@ export default function ContentSection({
               주제 보기
             </button>
           </div>
-        )}
+        ) : null}
       </div>
       
       {collapsibleContent && (
