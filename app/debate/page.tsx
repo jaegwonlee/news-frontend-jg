@@ -65,6 +65,8 @@ export default function DebatePage() {
             <Link href={`/debate/${topic.id}`} key={topic.id}>
               <div 
                 className={`relative bg-zinc-800 p-6 rounded-xl shadow-lg h-full flex flex-col transition-transform duration-300 hover:-translate-y-2 group border border-transparent ${
+                  sortOrder === 'popular' && index < 3 ? 'animate-float' : ''
+                } ${
                   sortOrder === 'popular' && index === 0 ? 'animate-glow-border-gold bg-gradient-gold' : ''
                 } ${
                   sortOrder === 'popular' && index === 1 ? 'animate-glow-border-silver bg-gradient-silver' : ''

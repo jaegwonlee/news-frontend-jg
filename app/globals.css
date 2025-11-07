@@ -115,6 +115,19 @@ body {
   animation: fade-in-up 0.5s ease-out forwards;
 }
 
+@keyframes float-effect {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float-effect 4s ease-in-out infinite;
+}
+
 /* --- Gradients for Ranked Cards --- */
 .bg-gradient-gold {
   background-image: radial-gradient(circle at 50% 0%, rgba(255, 215, 0, 0.15) 0%, transparent 40%);
