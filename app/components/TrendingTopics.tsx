@@ -51,11 +51,11 @@ export default function TrendingTopics({ displayMode }: TrendingTopicsProps) {
       <Tooltip id="trending-topic-tooltip" />
 
       {isLoading ? (
-        <div className="flex-1 flex justify-center items-center text-zinc-400 h-[576px]">
+        <div className="flex-1 flex justify-center items-center text-zinc-400">
           로딩 중...
         </div>
       ) : error ? (
-        <div className="flex-1 flex justify-center items-center text-red-500 h-[576px]">
+        <div className="flex-1 flex justify-center items-center text-red-500">
           {error}
         </div>
       ) : (
@@ -64,7 +64,7 @@ export default function TrendingTopics({ displayMode }: TrendingTopicsProps) {
             <p className="text-zinc-500 text-center pt-10">표시할 토픽이 없습니다.</p>
           ) : (
             topics.map((topic, index) => (
-              <li key={topic.id} className={`flex-1 bg-zinc-800 p-3 rounded-lg border border-zinc-700 hover:bg-zinc-700 transition-colors ${displayMode === 'popular' && index === 0 ? 'animate-glow-border-main' : ''} ${displayMode === 'popular' && index === 1 ? 'animate-glow-border-main-2nd' : ''} ${displayMode === 'popular' && index === 2 ? 'animate-glow-border-main-3rd' : ''}`}>
+              <li key={topic.id} className={`flex-1 bg-zinc-800 p-4 rounded-lg border border-zinc-700 hover:bg-zinc-700 transition-colors ${displayMode === 'popular' && index === 0 ? 'animate-glow-border-main' : ''} ${displayMode === 'popular' && index === 1 ? 'animate-glow-border-main-2nd' : ''} ${displayMode === 'popular' && index === 2 ? 'animate-glow-border-main-3rd' : ''}`}>
                 <Link
                   href={`/debate/${topic.id}`}
                   className="flex items-center gap-3 h-full"

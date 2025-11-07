@@ -2,16 +2,18 @@
 
 import { useState } from 'react';
 import { Info } from 'lucide-react';
+import { formatRelativeTime } from '@/lib/utils'; // Import the time utility
 
 interface ContentSectionProps {
   title: string;
   icon?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
-  action?: React.ReactNode; // Re-add the action prop
+  action?: React.ReactNode;
   collapsibleContent?: {
     title: string;
     summary: string;
+    published_at?: string; // Add published_at to the type
   };
 }
 
@@ -20,20 +22,19 @@ export default function ContentSection({
   icon, 
   children, 
   className, 
-  action, // Re-add the action prop
+  action, 
   collapsibleContent 
 }: ContentSectionProps) {
   const [isContentOpen, setIsContentOpen] = useState(false);
 
   return (
-    <section className={`bg-zinc-900 p-4 rounded-lg ${className}`}>
-      <div className="flex justify-between items-center mb-4 pb-3 border-b border-zinc-700">
+    <section className={`bg-zinc-900 p-4 rounded-lg flex flex-col ${className}`}>
+      <div className="flex justify-between items-center mb-4 pb-3 border-b border-zinc-700 shrink-0">
         <div className="flex items-center gap-2">
           {icon}
           <h2 className="text-xl font-bold text-white">{title}</h2>
         </div>
         
-        {/* Render either the action prop or the collapsible button */}
         {action ? (
           <div>{action}</div>
         ) : collapsibleContent ? (
@@ -54,11 +55,18 @@ export default function ContentSection({
           <div className="p-4 bg-zinc-800 rounded-md border border-zinc-700">
             <h3 className="font-bold text-lg text-white mb-2">{collapsibleContent.title}</h3>
             <p className="text-sm text-zinc-300 leading-relaxed">{collapsibleContent.summary}</p>
+            {collapsibleContent.published_at && (
+              <div className="text-right text-xs text-zinc-400 mt-4">
+                <time dateTime={collapsibleContent.published_at}>
+                  {formatRelativeTime(collapsibleContent.published_at)}
+                </time>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {children}
+      <div className="flex-1 min-h-0">{children}</div>
     </section>
   );
 }

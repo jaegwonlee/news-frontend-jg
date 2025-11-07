@@ -124,7 +124,8 @@ export default function TopicDetailPage() {
             icon={<MessageCircle />}
             collapsibleContent={{
               title: topic.display_name,
-              summary: topic.summary
+              summary: topic.summary,
+              published_at: topic.published_at
             }}
           >
             <ChatRoom topicId={topic.id} heightClass="h-[750px]" />
