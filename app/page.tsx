@@ -16,8 +16,8 @@ import ContentSection from "./components/common/ContentSection";
 import LatestNews from "./components/LatestNews";
 import TrendingTopics from "./components/TrendingTopics";
 
-import { getCategoryNews } from "@/lib/api";
-import { Article } from "@/types";
+import { getCategoryNews, getTopicDetail } from "@/lib/api"; // Import getTopicDetail
+import { Article, Topic } from "@/types"; // Import Topic
 
 export default function Home() {
   const [politicsNews, setPoliticsNews] = useState<Article[]>([]);
@@ -25,12 +25,21 @@ export default function Home() {
   const [socialNews, setSocialNews] = useState<Article[]>([]);
   const [cultureNews, setCultureNews] = useState<Article[]>([]);
   const [latestNews, setLatestNews] = useState<Article[]>([]);
+  const [mainTopic, setMainTopic] = useState<Topic | null>(null); // State for the main topic
   const [isLoading, setIsLoading] = useState(true);
   const [topicTab, setTopicTab] = useState<"popular" | "latest">("popular");
 
   useEffect(() => {
-    const fetchAllNews = async () => {
+    const fetchAllData = async () => {
       setIsLoading(true);
+      
+      // Fetch Topic for ChatRoom
+      const topicDetailPromise = getTopicDetail("1").catch(err => {
+        console.error("메인 페이지 토픽 로드 실패:", err);
+        return null;
+      });
+
+      // Fetch News Categories
       const categories = ["정치", "경제", "사회", "문화"];
       const newsPromises = categories.map((category) =>
         getCategoryNews(category, 6).catch((err) => {
@@ -39,7 +48,13 @@ export default function Home() {
         })
       );
 
-      const [politics, economy, social, culture] = await Promise.all(newsPromises);
+      const [topicDetail, ...newsResults] = await Promise.all([topicDetailPromise, ...newsPromises]);
+      const [politics, economy, social, culture] = newsResults;
+
+      if (topicDetail) {
+        setMainTopic(topicDetail.topic);
+      }
+
       setPoliticsNews(politics);
       setEconomyNews(economy);
       setSocialNews(social);
@@ -58,7 +73,7 @@ export default function Home() {
       setIsLoading(false);
     };
 
-    fetchAllNews();
+    fetchAllData();
   }, []);
 
   return (
@@ -69,6 +84,7 @@ export default function Home() {
             title="토픽"
             icon={<Flame />}
             className="xl:col-span-1"
+            fillHeight={true}
             action={
               <div className="flex items-center space-x-2">
                 <button
@@ -93,14 +109,26 @@ export default function Home() {
             <TrendingTopics displayMode={topicTab} />
           </ContentSection>
 
-          <ContentSection title="ROUND1" icon={<MessageCircle />} className="md:col-span-2 xl:col-span-2">
-            <ChatRoom topicId={1} heightClass="h-[700px]" />
+          <ContentSection 
+            title="ROUND1" 
+            icon={<MessageCircle />} 
+            className="md:col-span-2 xl:col-span-2 h-[700px]"
+            fillHeight={true}
+            collapsibleContent={mainTopic ? {
+              title: mainTopic.display_name,
+              summary: mainTopic.summary,
+              published_at: mainTopic.published_at,
+              buttonText: '공지사항'
+            } : undefined}
+          >
+            <ChatRoom topic={mainTopic || undefined} />
           </ContentSection>
 
           <ContentSection
             title="최신 뉴스"
             icon={<Newspaper />}
             className="xl:col-span-1"
+            fillHeight={true}
             action={<ViewAllLink href="/latest-news" />}
           >
             {isLoading ? <div>로딩 중...</div> : <LatestNews articles={latestNews} />}

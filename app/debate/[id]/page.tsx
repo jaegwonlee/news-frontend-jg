@@ -102,8 +102,7 @@ export default function TopicDetailPage() {
   return (
     <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-0">
       {id && <TopicViewCounter topicId={id} />}
-      
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-8">
         <aside className="lg:col-span-3">
           <div className="space-y-6 h-[750px] overflow-y-auto pr-2 pt-4 w-full">
             {leftArticles.map((article) => (
@@ -122,13 +121,15 @@ export default function TopicDetailPage() {
           <ContentSection 
             title="ROUND2" 
             icon={<MessageCircle />}
+            className="h-[750px]"
+            fillHeight={true}
             collapsibleContent={{
               title: topic.display_name,
               summary: topic.summary,
               published_at: topic.published_at
             }}
           >
-            <ChatRoom topicId={topic.id} heightClass="h-[750px]" />
+            <ChatRoom topic={topic} />
           </ContentSection>
         </main>
         <aside className="lg:col-span-3">

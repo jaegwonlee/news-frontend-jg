@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { getChatHistory, ApiChatMessage, sendChatMessage, deleteChatMessage, reportChatMessage } from '@/lib/api/topics';
 import ConfirmationPopover from './common/ConfirmationPopover';
 import { BACKEND_BASE_URL } from '@/lib/constants';
+import { Topic } from '@/types'; // Import Topic type
 
 type Message = {
   id: number;
@@ -35,20 +36,20 @@ const getFullImageUrl = (url?: string): string => {
   return `${BACKEND_BASE_URL}${url}`;
 };
 
+// Change props from topicId to the full topic object
 interface ChatRoomProps {
-  topicId?: number;
-  heightClass?: string; // New prop for configurable height
+  topic?: Topic;
 }
 
-export default function ChatRoom({ topicId, heightClass = 'h-[500px]' }: ChatRoomProps) {
+export default function ChatRoom({ topic }: ChatRoomProps) {
   const { socket, isConnected, error: socketError } = useSocket();
   const { user, token } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isLoadingHistory, setIsLoadingHistory] = useState(!!topicId);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(!!topic?.id);
   const [isSending, setIsSending] = useState(false);
   const [dialog, setDialog] = useState<{ type: 'delete' | 'report'; messageId: number; top: number; left: number; } | null>(null);
-  const room = topicId ? `topic-${topicId}` : 'mainpage';
+  const room = topic?.id ? `topic-${topic.id}` : 'mainpage';
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRoomRef = useRef<HTMLDivElement>(null);
 
@@ -57,10 +58,10 @@ export default function ChatRoom({ topicId, heightClass = 'h-[500px]' }: ChatRoo
   };
 
   useEffect(() => {
-    if (topicId) {
+    if (topic?.id) {
       const fetchHistory = async () => {
         setIsLoadingHistory(true);
-        const history: ApiChatMessage[] = await getChatHistory(topicId, 100);
+        const history: ApiChatMessage[] = await getChatHistory(topic.id, 100);
         const reversedHistory = [...history].reverse();
         const formattedHistory: Message[] = reversedHistory.map((msg) => ({
           id: msg.id,
@@ -75,10 +76,10 @@ export default function ChatRoom({ topicId, heightClass = 'h-[500px]' }: ChatRoo
       };
       fetchHistory();
     }
-  }, [topicId]);
+  }, [topic?.id]);
 
   useEffect(() => {
-    if (socket) {
+    if (socket && room) {
       socket.emit('join_room', room);
       const messageListener = (data: ApiChatMessage) => {
         const receivedMessage: Message = {
@@ -110,12 +111,12 @@ export default function ChatRoom({ topicId, heightClass = 'h-[500px]' }: ChatRoo
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (topicId && isConnected && newMessage.trim() && user && token && !isSending) {
+    if (topic?.id && isConnected && newMessage.trim() && user && token && !isSending) {
       const messageToSend = newMessage;
       setNewMessage('');
       setIsSending(true);
       try {
-        await sendChatMessage(topicId, messageToSend, token);
+        await sendChatMessage(topic.id, messageToSend, token);
       } catch (error) {
         console.error("Failed to send message:", error);
         setNewMessage(messageToSend);
@@ -162,6 +163,7 @@ export default function ChatRoom({ topicId, heightClass = 'h-[500px]' }: ChatRoo
   const cancelAction = () => setDialog(null);
 
   const getPlaceholderText = () => {
+    if (!topic) return '토픽 정보를 불러오는 중입니다...';
     if (socketError) return '실시간 채팅 서버에 연결할 수 없습니다.';
     if (!isConnected) return '실시간 채팅 서버에 연결 중...';
     if (!user) return '로그인 후 이용 가능합니다.';
@@ -169,7 +171,7 @@ export default function ChatRoom({ topicId, heightClass = 'h-[500px]' }: ChatRoo
   };
 
   return (
-    <div ref={chatRoomRef} className={`flex flex-col ${heightClass} bg-zinc-900 p-4 rounded-lg relative`}>
+    <div ref={chatRoomRef} className={`flex flex-col h-full bg-zinc-900 p-4 rounded-lg relative`}>
       {dialog && (
         <ConfirmationPopover
           top={dialog.top}
@@ -224,8 +226,8 @@ export default function ChatRoom({ topicId, heightClass = 'h-[500px]' }: ChatRoo
       <div className="mt-4 shrink-0">
         {socketError && <div className="flex items-center text-red-500 text-xs mb-2"><AlertTriangle className="w-4 h-4 mr-1" />{socketError}</div>}
         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-          <input type="text" placeholder={getPlaceholderText()} disabled={!isConnected || !user || !!socketError || isSending} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-          <button type="submit" disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending} className="p-2 bg-blue-600 rounded-md text-white disabled:bg-zinc-700 disabled:cursor-not-allowed">
+          <input type="text" placeholder={getPlaceholderText()} disabled={!isConnected || !user || !!socketError || isSending || !topic} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          <button type="submit" disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic} className="p-2 bg-blue-600 rounded-md text-white disabled:bg-zinc-700 disabled:cursor-not-allowed">
             {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </form>

@@ -35,6 +35,48 @@ export async function getLatestTopics(): Promise<Topic[]> {
   }
 }
 
+/**
+ * 모든 토픽을 최신순으로 가져옵니다.
+ * @returns 모든 토픽 목록 (Topic[] 타입)
+ */
+export async function getAllTopics(): Promise<Topic[]> {
+  try {
+    const response = await fetchWrapper(`/api/topics`, {
+      method: 'GET',
+      next: { revalidate: 60 } // Revalidate every 60 seconds
+    });
+    if (!response.ok) {
+      console.error('Failed to fetch all topics');
+      return [];
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Error in getAllTopics:', error);
+    return [];
+  }
+}
+
+/**
+ * 모든 토픽을 인기순으로 가져옵니다.
+ * @returns 모든 토픽 목록 (Topic[] 타입)
+ */
+export async function getPopularTopicsAll(): Promise<Topic[]> {
+  try {
+    const response = await fetchWrapper(`/api/topics/popular-all`, {
+      method: 'GET',
+      next: { revalidate: 60 } // Revalidate every 60 seconds
+    });
+    if (!response.ok) {
+      console.error('Failed to fetch all popular topics');
+      return [];
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Error in getPopularTopicsAll:', error);
+    return [];
+  }
+}
+
 export async function getTopicDetail(topicId: string, token?: string): Promise<TopicDetail> {
   const headers: HeadersInit = {};
   if (token) {

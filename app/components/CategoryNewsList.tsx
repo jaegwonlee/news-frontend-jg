@@ -13,7 +13,7 @@ const ARTICLES_PER_PAGE = 20;
 
 async function fetchArticlesByCategory(categoryName: string): Promise<Article[]> {
   const encodedCategoryName = encodeURIComponent(categoryName);
-  const apiUrl = `https://news02.onrender.com/api/articles/by-category?name=${encodedCategoryName}&limit=300&offset=0`;
+  const apiUrl = `https://news02.onrender.com/api/articles/by-category?name=${encodedCategoryName}&limit=1000&offset=0`;
   try {
     const response = await fetch(apiUrl, { cache: "no-store" });
     if (!response.ok) {
