@@ -103,17 +103,9 @@ export default function TopicDetailPage() {
   return (
     <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-0">
       {id && <TopicViewCounter topicId={id} />}
-      <section className="mb-0 flex justify-between items-center">
-        <Image src="/avatars/blue--glove.svg" alt="Blue Glove" width={150} height={150} />
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-white mb-3">{topic.display_name}</h1>
-          <p className="text-lg text-zinc-400 max-w-4xl mx-auto">{topic.summary}</p>
-        </div>
-        <Image src="/avatars/red--glove.svg" alt="Red Glove" width={150} height={150} />
-      </section>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <aside className="lg:col-span-3">
-          <div className="space-y-6 h-[600px] overflow-y-auto scroll-fade-container pr-2 pt-4">
+          <div className="space-y-6 h-[750px] overflow-y-auto scroll-fade-container pr-2 pt-4 w-full">
             {leftArticles.map((article) => (
               <ArticleCard
                 key={article.id}
@@ -128,11 +120,11 @@ export default function TopicDetailPage() {
         </aside>
         <main className="lg:col-span-6">
           <ContentSection title="ROUND2" icon={<MessageCircle />}>
-            <ChatRoom topicId={topic.id} heightClass="h-[500px]" />
+            <ChatRoom topicId={topic.id} heightClass="h-[750px]" />
           </ContentSection>
         </main>
         <aside className="lg:col-span-3">
-          <div className="space-y-6 h-[600px] overflow-y-auto scroll-fade-container pr-2 pt-4">
+          <div className="space-y-6 h-[750px] overflow-y-auto scroll-fade-container pr-2 pt-4 w-full">
             {rightArticles.map((article) => (
               <ArticleCard
                 key={article.id}

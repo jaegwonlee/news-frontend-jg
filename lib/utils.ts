@@ -11,13 +11,23 @@ export function cn(...inputs: ClassValue[]) {
  * @returns 변환된 상대 시간 문자열
  */
 export function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
+  // Normalize the date string to ensure it's parsed as UTC.
+  // The backend provides some dates with 'Z' and some without.
+  // 'YYYY-MM-DD HH:mm:ss' should be treated as UTC.
+  const normalizedDateString = dateString.includes('T') ? dateString : dateString.replace(' ', 'T') + 'Z';
+  const date = new Date(normalizedDateString);
   const now = new Date();
+
+  // getTime() returns UTC milliseconds for both dates, so the difference is correct without manual offsets.
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
   const diffInMinutes = Math.floor(diffInSeconds / 60);
   const diffInHours = Math.floor(diffInMinutes / 60);
   const diffInDays = Math.floor(diffInHours / 24);
 
+  if (diffInSeconds < 5) {
+    return "방금 전";
+  }
   if (diffInSeconds < 60) {
     return `${diffInSeconds}초 전`;
   } else if (diffInMinutes < 60) {
@@ -27,6 +37,9 @@ export function formatRelativeTime(dateString: string): string {
   } else if (diffInDays === 1) {
     return "어제";
   } else {
-    return date.toLocaleDateString("ko-KR");
+    // For older dates, display the KST date by adding 9 hours to the original UTC date.
+    const NINE_HOURS_IN_MS = 9 * 60 * 60 * 1000;
+    const kstDate = new Date(date.getTime() + NINE_HOURS_IN_MS);
+    return kstDate.toLocaleDateString("ko-KR");
   }
 }
