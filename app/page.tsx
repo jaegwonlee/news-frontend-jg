@@ -2,22 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getCategoryNews } from "@/lib/api/articles";
+import { getTopicDetail } from "@/lib/api/topics";
+import { Article, Topic } from "@/types";
+import { Briefcase, Flame, Landmark, MessageCircle, Newspaper, Palette, Users } from "lucide-react";
+import ChatRoom from "./components/ChatRoom";
+import TrendingTopics from "./components/TrendingTopics";
+import LatestNews from "./components/LatestNews";
+import LivingNewsWall from "./components/LivingNewsWall";
 
 const ViewAllLink = ({ href }: { href: string }) => (
   <Link href={href} className="text-sm text-zinc-400 hover:text-red-500 transition-colors">
     전체보기
   </Link>
 );
-
-import { Briefcase, Flame, Landmark, MessageCircle, Newspaper, Palette, Users } from "lucide-react";
-import CategoryNewsSection from "./components/CategoryNewsSection";
-import ChatRoom from "./components/ChatRoom";
-import ContentSection from "./components/common/ContentSection";
-import LatestNews from "./components/LatestNews";
-import TrendingTopics from "./components/TrendingTopics";
-
-import { getCategoryNews, getTopicDetail } from "@/lib/api"; // Import getTopicDetail
-import { Article, Topic } from "@/types"; // Import Topic
 
 export default function Home() {
   const [politicsNews, setPoliticsNews] = useState<Article[]>([]);
@@ -42,7 +40,7 @@ export default function Home() {
       // Fetch News Categories
       const categories = ["정치", "경제", "사회", "문화"];
       const newsPromises = categories.map((category) =>
-        getCategoryNews(category, 6).catch((err) => {
+        getCategoryNews(category, 10).catch((err) => {
           console.error(`메인 페이지 서버 렌더링 중 ${category} 뉴스 로드 실패:`, err);
           return [];
         })
@@ -78,14 +76,17 @@ export default function Home() {
 
   return (
     <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8">
-      <main className="flex flex-col gap-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-          <ContentSection
-            title="토픽"
-            icon={<Flame />}
-            className="xl:col-span-1"
-            fillHeight={true}
-            action={
+      <main className="flex flex-col gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
+          {/* Trending Topics Section */}
+          <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-900/50 shadow-lg shadow-red-500/50">
+                  <Flame />
+                </div>
+                <h2 className="text-xl font-bold text-white">실시간 토픽</h2>
+              </div>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setTopicTab("popular")}
@@ -104,68 +105,72 @@ export default function Home() {
                   최신
                 </button>
               </div>
-            }
-          >
-            <TrendingTopics displayMode={topicTab} />
-          </ContentSection>
+            </div>
+            <div className="flex-1 min-h-0">
+              <TrendingTopics displayMode={topicTab} />
+            </div>
+          </div>
 
-          <ContentSection 
-            title="ROUND1" 
-            icon={<MessageCircle />} 
-            className="md:col-span-2 xl:col-span-2 h-[700px]"
-            fillHeight={true}
-            collapsibleContent={mainTopic ? {
-              title: mainTopic.display_name,
-              summary: mainTopic.summary,
-              published_at: mainTopic.published_at,
-              buttonText: '공지사항'
-            } : undefined}
-          >
-            <ChatRoom topic={mainTopic || undefined} />
-          </ContentSection>
+          {/* ChatRoom Section */}
+          <div className="rounded-2xl md:col-span-2 xl:col-span-2 h-[600px] lg:h-[750px] flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-zinc-700/80">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-700/50 shadow-lg shadow-zinc-500/50">
+                  <MessageCircle />
+                </div>
+                <h2 className="text-xl font-bold text-white truncate">
+                  {mainTopic ? mainTopic.display_name : "실시간 채팅"}
+                </h2>
+              </div>
+            </div>
+            <div className="flex-1 min-h-0">
+              <ChatRoom topic={mainTopic || undefined} />
+            </div>
+          </div>
 
-          <ContentSection
-            title="최신 뉴스"
-            icon={<Newspaper />}
-            className="xl:col-span-1"
-            fillHeight={true}
-            action={<ViewAllLink href="/latest-news" />}
-          >
-            {isLoading ? <div>로딩 중...</div> : <LatestNews articles={latestNews} />}
-          </ContentSection>
+          {/* Latest News Section */}
+          <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-700/50 shadow-lg shadow-zinc-500/50">
+                  <Newspaper />
+                </div>
+                <h2 className="text-xl font-bold text-white">최신 뉴스</h2>
+              </div>
+              <div className="px-3 py-1.5 border border-zinc-700 rounded-full text-xs font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 hover:border-zinc-600 hover:text-white">
+                <ViewAllLink href="/latest-news" />
+              </div>
+            </div>
+            <div className="flex-1 min-h-0">
+              {isLoading ? <div className="text-center pt-10">로딩 중...</div> : <LatestNews articles={latestNews} />}
+            </div>
+          </div>
         </div>
 
-        <ContentSection title="정치" icon={<Landmark />} action={<ViewAllLink href="/politics" />}>
-          {isLoading ? (
-            <div>로딩 중...</div>
-          ) : (
-            <CategoryNewsSection categoryName="정치" articles={politicsNews.slice(0, 5)} />
-          )}
-        </ContentSection>
-
-        <ContentSection title="경제" icon={<Briefcase />} action={<ViewAllLink href="/economy" />}>
-          {isLoading ? (
-            <div>로딩 중...</div>
-          ) : (
-            <CategoryNewsSection categoryName="경제" articles={economyNews.slice(0, 5)} />
-          )}
-        </ContentSection>
-
-        <ContentSection title="사회" icon={<Users />} action={<ViewAllLink href="/social" />}>
-          {isLoading ? (
-            <div>로딩 중...</div>
-          ) : (
-            <CategoryNewsSection categoryName="사회" articles={socialNews.slice(0, 5)} />
-          )}
-        </ContentSection>
-
-        <ContentSection title="문화" icon={<Palette />} action={<ViewAllLink href="/culture" />}>
-          {isLoading ? (
-            <div>로딩 중...</div>
-          ) : (
-            <CategoryNewsSection categoryName="문화" articles={cultureNews.slice(0, 5)} />
-          )}
-        </ContentSection>
+        <LivingNewsWall 
+          category="정치" 
+          icon={<Landmark />} 
+          articles={politicsNews} 
+          href="/politics" 
+        />
+        <LivingNewsWall 
+          category="경제" 
+          icon={<Briefcase />} 
+          articles={economyNews} 
+          href="/economy" 
+        />
+        <LivingNewsWall 
+          category="사회" 
+          icon={<Users />} 
+          articles={socialNews} 
+          href="/social" 
+        />
+        <LivingNewsWall 
+          category="문화" 
+          icon={<Palette />} 
+          articles={cultureNews} 
+          href="/culture" 
+        />
       </main>
     </div>
   );

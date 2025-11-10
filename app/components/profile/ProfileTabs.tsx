@@ -108,13 +108,13 @@ export default function ProfileTabs({
 
   return (
     <div className="flex flex-col md:flex-row gap-8">
-      <aside className="md:w-1/4">
-        <nav className="flex flex-col space-y-2">
+      <aside className="md:w-1/4 lg:w-1/5">
+        <nav className="flex flex-row md:flex-col md:space-y-2 overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`p-3 rounded-md text-left font-semibold transition-colors ${
+              className={`p-3 md:p-4 rounded-md text-left font-semibold transition-colors shrink-0 text-sm md:text-base ${
                 activeTab === tab.id
                   ? 'bg-zinc-700 text-white'
                   : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
@@ -125,7 +125,7 @@ export default function ProfileTabs({
           ))}
         </nav>
       </aside>
-      <main className="flex-1 bg-zinc-900 rounded-lg shadow-lg p-8 border border-zinc-700">
+      <main className="flex-1 bg-zinc-900 rounded-lg shadow-lg p-4 md:p-6 lg:p-8 border border-zinc-700">
         {renderContent()}
       </main>
     </div>

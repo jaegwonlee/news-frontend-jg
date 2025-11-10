@@ -129,7 +129,7 @@ export default function LoginPage() {
             autoComplete="email"
             required
           />
-          {touched.email && errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+          {touched.email && errors.email && <p className="text-red-400 text-[10px] mt-1">{errors.email}</p>}
         </div>
         <div>
           <FormField
@@ -143,7 +143,7 @@ export default function LoginPage() {
             autoComplete="current-password"
             required
           />
-          {touched.password && errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
+          {touched.password && errors.password && <p className="text-red-400 text-[10px] mt-1">{errors.password}</p>}
         </div>
 
         {serverError && (

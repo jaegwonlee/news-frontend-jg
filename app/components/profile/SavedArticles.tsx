@@ -61,13 +61,15 @@ export default function SavedArticles() {
 
   const uncategorizedArticles = articles.filter(article => !article.category_id);
 
-  const handleCreateCategoryAndAssign = async (categoryName: string, articleIds: number[]) => {
+  const handleCreateCategoryAndAssign = async (categoryName: string, articleIdsToAssign: number[]) => {
     try {
       const newCategory = await handleCreateCategory(categoryName);
-      if (newCategory && articleIds.length > 0) {
-        await Promise.all(articleIds.map(articleId => handleUpdateArticleCategory(articleId, newCategory.id)));
+      if (newCategory && articleIdsToAssign.length > 0) {
+        const articlesToUpdate = articles.filter(a => a.saved_article_id && articleIdsToAssign.includes(a.saved_article_id));
+        for (const article of articlesToUpdate) {
+          await handleUpdateArticleCategory(article, newCategory.id);
+        }
       }
-      await fetchData(); // Refetch to get the final, true state from the server
     } catch (error) {
       console.error("Failed to create category and assign articles:", error);
       alert("카테고리 생성 중 오류가 발생했습니다: " + (error as Error).message);
@@ -79,24 +81,25 @@ export default function SavedArticles() {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveChanges = async (categoryId: number, newName: string, articlesToAdd: number[], articlesToRemove: number[]) => {
+  const handleSaveChanges = async (categoryId: number, newName: string, articlesToAddIds: number[], articlesToRemoveIds: number[]) => {
     try {
       // 1. Rename category if name changed
       if (editingCategory && editingCategory.name !== newName && newName.trim() !== '') {
         await handleRenameCategory(categoryId, newName);
       }
       
-      // 2. Perform additions and removals
-      const updatePromises = [
-        ...articlesToAdd.map(articleId => handleUpdateArticleCategory(articleId, categoryId)),
-        ...articlesToRemove.map(articleId => handleUpdateArticleCategory(articleId, null))
-      ];
-      
-      if (updatePromises.length > 0) {
-        await Promise.all(updatePromises);
+      // 2. Find full article objects
+      const articlesToAdd = articles.filter(a => a.saved_article_id && articlesToAddIds.includes(a.saved_article_id));
+      const articlesToRemove = articles.filter(a => a.saved_article_id && articlesToRemoveIds.includes(a.saved_article_id));
+
+      // 3. Perform updates using the hook function
+      for (const article of articlesToAdd) {
+        await handleUpdateArticleCategory(article, categoryId);
+      }
+      for (const article of articlesToRemove) {
+        await handleUpdateArticleCategory(article, null);
       }
 
-      await fetchData(); // Refetch data once all operations are done
     } catch (error) {
       console.error("Failed to save category changes:", error);
       alert("카테고리 변경사항 저장 중 오류가 발생했습니다: " + (error as Error).message);
@@ -168,7 +171,7 @@ export default function SavedArticles() {
                   <ArticleCard
                     key={article.saved_article_id || article.id}
                     article={article}
-                    onSaveToggle={() => handleUnsaveArticle(article.saved_article_id!)}
+                    onSaveToggle={() => handleUnsaveArticle(article)}
                   />
                 ))}
               </div>

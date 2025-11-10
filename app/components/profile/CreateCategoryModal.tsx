@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -36,15 +35,15 @@ export default function CreateCategoryModal({ uncategorizedArticles, onClose, on
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4" onClick={onClose}>
-      <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        <header className="p-6 flex justify-between items-center border-b border-zinc-700">
-          <h2 className="text-2xl font-bold text-white">새 카테고리 만들기</h2>
+      <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md lg:max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <header className="p-4 md:p-6 flex justify-between items-center border-b border-zinc-700">
+          <h2 className="text-xl md:text-2xl font-bold text-white">새 카테고리 만들기</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-zinc-800 transition-colors">
             <X className="text-zinc-400" />
           </button>
         </header>
 
-        <div className="p-6 space-y-6 overflow-y-auto">
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto">
           <div>
             <label htmlFor="category-name" className="block text-sm font-medium text-zinc-300 mb-2">카테고리 이름</label>
             <input
@@ -58,14 +57,14 @@ export default function CreateCategoryModal({ uncategorizedArticles, onClose, on
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-3">이 카테고리에 추가할 기사 선택 (선택 사항)</h3>
-            <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700 max-h-80 overflow-y-auto space-y-3">
+            <h3 className="text-base md:text-lg font-semibold text-white mb-3">이 카테고리에 추가할 기사 선택 (선택 사항)</h3>
+            <div className="bg-zinc-800/50 rounded-lg p-2 md:p-4 border border-zinc-700 max-h-60 md:max-h-80 overflow-y-auto space-y-3">
               {uncategorizedArticles.length > 0 ? (
                 uncategorizedArticles.map(article => (
                   <div
                     key={article.saved_article_id}
                     onClick={() => handleToggleArticle(article.saved_article_id!)}
-                    className={`flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all ${selectedArticleIds.includes(article.saved_article_id!) ? 'bg-red-500/20 ring-2 ring-red-500' : 'hover:bg-zinc-700/50'}`}>
+                    className={`flex items-center gap-4 p-2 md:p-3 rounded-lg cursor-pointer transition-all ${selectedArticleIds.includes(article.saved_article_id!) ? 'bg-red-500/20 ring-2 ring-red-500' : 'hover:bg-zinc-700/50'}`}>
                     <div className="flex-shrink-0">
                       <input
                         type="checkbox"
@@ -75,7 +74,7 @@ export default function CreateCategoryModal({ uncategorizedArticles, onClose, on
                       />
                     </div>
                     <Image src={article.thumbnail_url || '/placeholder.png'} alt={article.title} width={80} height={45} className="rounded-md object-cover w-20 h-auto aspect-video" />
-                    <span className="text-white font-medium line-clamp-2 flex-1">{article.title}</span>
+                    <span className="text-sm md:text-base text-white font-medium line-clamp-2 flex-1">{article.title}</span>
                   </div>
                 ))
               ) : (
@@ -85,9 +84,9 @@ export default function CreateCategoryModal({ uncategorizedArticles, onClose, on
           </div>
         </div>
 
-        <footer className="p-6 flex justify-end gap-4 border-t border-zinc-700">
-          <button onClick={onClose} className="px-6 py-3 bg-zinc-700 text-white rounded-md font-semibold hover:bg-zinc-600 transition-colors">취소</button>
-          <button onClick={handleCreate} disabled={isCreating || !categoryName.trim()} className="px-6 py-3 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors disabled:bg-zinc-500 disabled:cursor-not-allowed">
+        <footer className="p-4 md:p-6 flex flex-col sm:flex-row justify-end gap-4 border-t border-zinc-700">
+          <button onClick={onClose} className="px-4 py-2 md:px-6 md:py-3 bg-zinc-700 text-white rounded-md font-semibold hover:bg-zinc-600 transition-colors">취소</button>
+          <button onClick={handleCreate} disabled={isCreating || !categoryName.trim()} className="px-4 py-2 md:px-6 md:py-3 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors disabled:bg-zinc-500 disabled:cursor-not-allowed">
             {isCreating ? '생성 중...' : `카테고리 생성 및 ${selectedArticleIds.length}개 기사 추가`}
           </button>
         </footer>

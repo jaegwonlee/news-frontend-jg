@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Send, Loader2, AlertTriangle, Trash2, Siren } from 'lucide-react';
+import { Send, Loader2, AlertTriangle, MessageSquareText, Trash2, Siren } from 'lucide-react';
 import { useSocket } from '@/app/context/SocketContext';
 import { useAuth } from '@/app/context/AuthContext';
 import Image from 'next/image';
 import { getChatHistory, ApiChatMessage, sendChatMessage, deleteChatMessage, reportChatMessage } from '@/lib/api/topics';
 import ConfirmationPopover from './common/ConfirmationPopover';
 import { BACKEND_BASE_URL } from '@/lib/constants';
-import { Topic } from '@/types'; // Import Topic type
+import { Topic } from '@/types';
+import { format } from 'date-fns';
 
 type Message = {
   id: number;
@@ -16,14 +17,6 @@ type Message = {
   message: string;
   profile_image_url?: string;
   created_at: string;
-};
-
-const formatTimestamp = (dateString: string) => {
-  try {
-    return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } catch (_e) {
-    return '--:--';
-  }
 };
 
 const getFullImageUrl = (url?: string): string => {
@@ -36,7 +29,48 @@ const getFullImageUrl = (url?: string): string => {
   return `${BACKEND_BASE_URL}${url}`;
 };
 
-// Change props from topicId to the full topic object
+const formatTimestamp = (dateString: string) => {
+  try {
+    return format(new Date(dateString), "a h:mm");
+  } catch (_e) {
+    return '--:--';
+  }
+};
+
+const renderMessageWithLinks = (message: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+
+  message.replace(urlRegex, (match, url, index) => {
+    // Add preceding text
+    if (index > lastIndex) {
+      parts.push(message.substring(lastIndex, index));
+    }
+    // Add the link
+    parts.push(
+      <a
+        key={index} // Use index as key, or a more robust key if messages can reorder
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-300 hover:underline" // Style the link
+      >
+        {url}
+      </a>
+    );
+    lastIndex = index + match.length;
+    return match; // Return match to continue replacement
+  });
+
+  // Add any remaining text
+  if (lastIndex < message.length) {
+    parts.push(message.substring(lastIndex));
+  }
+
+  return parts;
+};
+
 interface ChatRoomProps {
   topic?: Topic;
 }
@@ -51,28 +85,33 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
   const [dialog, setDialog] = useState<{ type: 'delete' | 'report'; messageId: number; top: number; left: number; } | null>(null);
   const room = topic?.id ? `topic-${topic.id}` : 'mainpage';
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatRoomRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior, block: 'nearest' });
+    messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' });
   };
 
   useEffect(() => {
     if (topic?.id) {
       const fetchHistory = async () => {
         setIsLoadingHistory(true);
-        const history: ApiChatMessage[] = await getChatHistory(topic.id, 100);
-        const reversedHistory = [...history].reverse();
-        const formattedHistory: Message[] = reversedHistory.map((msg) => ({
-          id: msg.id,
-          author: msg.author,
-          message: msg.message,
-          profile_image_url: getFullImageUrl(msg.profile_image_url),
-          created_at: msg.created_at,
-        }));
-        setMessages(formattedHistory);
-        setIsLoadingHistory(false);
-        setTimeout(() => scrollToBottom('auto'), 100);
+        try {
+          const history: ApiChatMessage[] = await getChatHistory(topic.id, 100);
+          const reversedHistory = [...history].reverse();
+          const formattedHistory: Message[] = reversedHistory.map((msg) => ({
+            id: msg.id,
+            author: msg.author,
+            message: msg.message,
+            profile_image_url: getFullImageUrl(msg.profile_image_url),
+            created_at: msg.created_at,
+          }));
+          setMessages(formattedHistory);
+          setTimeout(() => scrollToBottom('auto'), 100);
+        } catch (err) {
+          console.error("Failed to fetch chat history:", err);
+        } finally {
+          setIsLoadingHistory(false);
+        }
       };
       fetchHistory();
     }
@@ -129,15 +168,15 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
 
   const openConfirmation = (e: React.MouseEvent<HTMLButtonElement>, type: 'delete' | 'report', messageId: number) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const chatRoomRefCurrent = chatRoomRef.current;
-    if (!chatRoomRefCurrent) return;
-    const chatRoomRect = chatRoomRefCurrent.getBoundingClientRect();
+    const chatContainerCurrent = chatContainerRef.current;
+    if (!chatContainerCurrent) return;
+    const chatContainerRect = chatContainerCurrent.getBoundingClientRect();
 
     setDialog({
       type,
       messageId,
-      top: rect.top - chatRoomRect.top - 120,
-      left: rect.left - chatRoomRect.left - 280,
+      top: rect.top - chatContainerRect.top,
+      left: rect.left - chatContainerRect.left - 280,
     });
   };
 
@@ -171,7 +210,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
   };
 
   return (
-    <div ref={chatRoomRef} className={`flex flex-col h-full bg-zinc-900 p-4 rounded-lg relative`}>
+    <div ref={chatContainerRef} className="flex flex-col h-full relative">
       {dialog && (
         <ConfirmationPopover
           top={dialog.top}
@@ -184,36 +223,64 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
           onCancel={cancelAction}
         />
       )}
-      <div className="grow min-h-0 overflow-y-auto space-y-4 pr-2">
+      
+      {/* Message List: This is the scrollable area */}
+      <div className="flex-1 min-h-0 overflow-y-auto pl-4 pr-2 lg:pl-6 lg:pr-4 space-y-4">
         {isLoadingHistory ? (
-          <div className="flex justify-center items-center h-full">
-            <Loader2 className="w-8 h-8 text-zinc-400 animate-spin" />
-            <p className="ml-2">대화 기록을 불러오는 중...</p>
+          <div className="flex justify-center items-center h-full text-zinc-400">
+            <Loader2 className="w-8 h-8 animate-spin" />
+            <p className="ml-3 text-lg">이전 대화 기록을 불러오는 중...</p>
           </div>
         ) : (
           <>
+            {messages.length === 0 && (
+              <div className="flex flex-col justify-center items-center h-full text-zinc-500">
+                <MessageSquareText size={48} />
+                <p className="mt-4 text-lg font-semibold">지금 첫 번째 메시지를 보내</p>
+                <p>토론을 시작해 보세요!</p>
+              </div>
+            )}
             {messages.map((msg) => {
               const isMyMessage = user ? msg.author === (user.nickname || user.name) : false;
               return (
-                <div key={msg.id} className={`group flex items-end gap-2 ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
-                  {!isMyMessage && <Image src={msg.profile_image_url!} alt={`${msg.author}'s profile`} width={32} height={32} className="rounded-full object-cover self-start" unoptimized={true} />}
+                <div
+                  key={msg.id}
+                  className={`group flex items-end gap-2 ${isMyMessage ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
+                  {!isMyMessage && (
+                    <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-zinc-700">
+                      <Image
+                        src={msg.profile_image_url!}
+                        alt={`${msg.author}'s profile`}
+                        fill
+                        className="rounded-full object-cover"
+                        unoptimized={true}
+                      />
+                    </div>
+                  )}
                   <div className={`flex flex-col gap-1 ${isMyMessage ? 'items-end' : 'items-start'}`}>
-                    {!isMyMessage && <span className="text-xs text-zinc-400 ml-1">{msg.author}</span>}
-                    <div className={`flex gap-2 items-end ${isMyMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`p-3 rounded-lg max-w-xs lg:max-w-md break-words ${isMyMessage ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-white'}`}><p>{msg.message}</p></div>
-                      <div className="flex items-center self-end shrink-0">
-                        {isMyMessage && msg.message !== "메시지가 삭제되었습니다." && (
-                          <button onClick={(e) => openConfirmation(e, 'delete', msg.id)} className="text-zinc-400 hover:text-red-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 삭제">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                        {!isMyMessage && (
-                          <button onClick={(e) => openConfirmation(e, 'report', msg.id)} className="text-zinc-500 hover:text-yellow-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 신고">
-                            <Siren className="w-4 h-4" />
-                          </button>
-                        )}
-                        <span className="text-xs text-zinc-500 whitespace-nowrap w-12 text-center">{formatTimestamp(msg.created_at)}</span>
-                      </div>
+                    {!isMyMessage && (
+                      <span className="text-xs text-zinc-400 ml-1">{msg.author}</span>
+                    )}
+                    <div className={`flex gap-1 items-end ${isMyMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+                                            <div
+                                              className={`px-3 py-2 rounded-2xl max-w-xs lg:max-w-md break-words ${isMyMessage ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-white'}`}>
+                                              <p className="text-sm">{renderMessageWithLinks(msg.message)}</p>
+                                            </div>
+                                            <span className="text-[10px] text-zinc-500 whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
+                                            {(isMyMessage && msg.message !== "메시지가 삭제되었습니다.") || (!isMyMessage && msg.message !== "메시지가 삭제되었습니다.") ? (
+                                              <div className="flex items-center self-end shrink-0">
+                                                {isMyMessage && msg.message !== "메시지가 삭제되었습니다." && (
+                                                  <button onClick={(e) => openConfirmation(e, 'delete', msg.id)} className="text-zinc-400 hover:text-red-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 삭제">
+                                                    <Trash2 className="w-4 h-4" />
+                                                  </button>
+                                                )}
+                                                {!isMyMessage && msg.message !== "메시지가 삭제되었습니다." && (
+                                                  <button onClick={(e) => openConfirmation(e, 'report', msg.id)} className="text-zinc-500 hover:text-yellow-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 신고">
+                                                    <Siren className="w-4 h-4" />
+                                                  </button>
+                                                )}
+                                              </div>
+                                            ) : null}
                     </div>
                   </div>
                 </div>
@@ -223,11 +290,29 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
           </>
         )}
       </div>
-      <div className="mt-4 shrink-0">
-        {socketError && <div className="flex items-center text-red-500 text-xs mb-2"><AlertTriangle className="w-4 h-4 mr-1" />{socketError}</div>}
+
+      {/* Input Area */}
+      <div className="shrink-0 px-4 lg:px-6 pt-4 border-t border-zinc-700/80">
+        {socketError && (
+          <div className="flex items-center text-red-500 text-xs mb-2">
+            <AlertTriangle className="w-4 h-4 mr-1" />
+            {socketError}
+          </div>
+        )}
         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-          <input type="text" placeholder={getPlaceholderText()} disabled={!isConnected || !user || !!socketError || isSending || !topic} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-          <button type="submit" disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic} className="p-2 bg-blue-600 rounded-md text-white disabled:bg-zinc-700 disabled:cursor-not-allowed">
+          <input
+            type="text"
+            placeholder={getPlaceholderText()}
+            disabled={!isConnected || !user || !!socketError || isSending || !topic}
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <button
+            type="submit"
+            disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic}
+            className={`p-2 h-10 w-10 flex justify-center items-center bg-blue-600 rounded-md text-white transition-all duration-200 ease-in-out disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${!(!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic) ? 'scale-110' : ''}`}
+          >
             {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </form>

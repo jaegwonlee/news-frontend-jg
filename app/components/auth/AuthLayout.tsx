@@ -23,18 +23,16 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = 'def
 
       {variant === 'gloves' && (
         <>
-          <div className="absolute top-[35%] -translate-y-1/2 left-0 animate-clash-left">
-            {/* 'news' 프로젝트의 public/avatars 폴더 경로로 수정 */}
-            <Image src="/avatars/blue--glove.svg" alt="Blue Glove" width={300} height={300} />
+          <div className="absolute top-[45%] md:top-[35%] -translate-y-1/2 left-0 animate-clash-left">
+            <Image src="/avatars/blue--glove.svg" alt="Blue Glove" width={200} height={200} className="md:w-[300px] md:h-[300px]" />
           </div>
-          <div className="absolute top-[35%] -translate-y-1/2 right-0 animate-clash-right">
-            {/* 'news' 프로젝트의 public/avatars 폴더 경로로 수정 */}
-            <Image src="/avatars/red--glove.svg" alt="Red Glove" width={300} height={300} />
+          <div className="absolute top-[45%] md:top-[35%] -translate-y-1/2 right-0 animate-clash-right">
+            <Image src="/avatars/red--glove.svg" alt="Red Glove" width={200} height={200} className="md:w-[300px] md:h-[300px]" />
           </div>
         </>
       )}
 
-      <div className="relative z-10 mt-40">
+      <div className="relative z-10 mt-20 md:mt-40">
         {/* Punching Bag Straps */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full flex gap-4">
             <div className="punching-bag-strap w-4 h-20 rounded-t-lg"></div>
@@ -43,16 +41,16 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = 'def
         </div>
 
         {/* Main Bag Body */}
-        <div className="relative w-full max-w-sm">
+        <div className="relative w-full max-w-[240px] md:max-w-[320px] lg:max-w-[360px]">
             {/* Surface and Caps */}
-            <div className="absolute inset-0 punching-bag-surface rounded-[5rem] shadow-2xl overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-24 bg-black/20 rounded-t-[5rem] border-b-2 border-black/40"></div>
-                <div className="absolute bottom-0 left-0 right-0 h-24 bg-black/20 rounded-b-[5rem] border-t-2 border-black/40"></div>
+            <div className="absolute inset-0 punching-bag-surface rounded-[4rem] shadow-2xl overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-20 bg-black/20 rounded-t-[4rem] border-b-2 border-black/40"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-20 bg-black/20 rounded-b-[4rem] border-t-2 border-black/40"></div>
             </div>
 
             {/* Content */}
-            <div className="relative z-10 p-8 py-12 space-y-6">
-                <h1 className="text-4xl font-bold text-center text-white tracking-wider drop-shadow-lg">
+            <div className="relative z-10 p-6 py-10 space-y-4">
+                <h1 className="text-3xl font-bold text-center text-white tracking-wider drop-shadow-lg">
                   {title}
                 </h1>
                 {children}
@@ -63,20 +61,16 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = 'def
       {/* 스타일은 globals.css에 추가하거나 여기에 <style jsx global>을 유지합니다. */}
       <style jsx global>{`
         @keyframes clash-left {
-          0%, 100% { transform: translateX(-60%) rotate(-25deg); }
-          40% { transform: translateX(150%) rotate(10deg); }
-          45% { transform: translateX(145%) rotate(10deg); }
-          50% { transform: translateX(150%) rotate(10deg); }
-          55% { transform: translateX(145%) rotate(10deg); }
-          60% { transform: translateX(150%) rotate(10deg); }
+          0%, 100% { transform: translateX(-25vw) rotate(-25deg); opacity: 0; }
+          30% { transform: translateX(26vw) rotate(10deg); opacity: 1; }
+          45% { transform: translateX(24vw) rotate(5deg); }
+          60% { transform: translateX(26vw) rotate(10deg); }
         }
         @keyframes clash-right {
-          0%, 100% { transform: translateX(60%) rotate(25deg); }
-          40% { transform: translateX(-150%) rotate(-10deg); }
-          45% { transform: translateX(-145%) rotate(-10deg); }
-          50% { transform: translateX(-150%) rotate(-10deg); }
-          55% { transform: translateX(-145%) rotate(-10deg); }
-          60% { transform: translateX(-150%) rotate(-10deg); }
+          0%, 100% { transform: translateX(25vw) rotate(25deg); opacity: 0; }
+          30% { transform: translateX(-26vw) rotate(-10deg); opacity: 1; }
+          45% { transform: translateX(-24vw) rotate(-5deg); }
+          60% { transform: translateX(-26vw) rotate(-10deg); }
         }
         .animate-clash-left {
           animation: clash-left 4s ease-in-out infinite;

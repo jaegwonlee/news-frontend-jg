@@ -11,6 +11,7 @@ export interface Article {
   thumbnail_url: string;
   favicon_url: string;
   description?: string; // Added for search results
+  summary?: string;
   // 상세 페이지에서 추가되는 필드
   side?: "LEFT" | "RIGHT";
   is_featured?: number;
@@ -69,6 +70,7 @@ export interface SavedArticleCategory {
   id: number;
   name: string;
   created_at?: string;
+  article_count?: number;
 }
 
 export type NotificationType = "NEW_TOPIC" | "BREAKING_NEWS" | "EXCLUSIVE_NEWS";

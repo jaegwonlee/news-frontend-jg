@@ -76,7 +76,7 @@ export default function ArticleCard({
   return (
     <div className={`relative block bg-zinc-800 rounded-lg overflow-hidden group transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-red-500/20 hover:-translate-y-1 ${className || ''}`}>
       <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block"> {/* Removed onClick={handleArticleClick} */}
-        <div className="relative w-full h-40 overflow-hidden">
+        <div className="relative w-full h-32 sm:h-40 overflow-hidden">
           <Image
             src={article.thumbnail_url || '/placeholder.png'}
             alt={`${article.title} thumbnail`}
@@ -87,8 +87,8 @@ export default function ArticleCard({
             unoptimized={true}
           />
         </div>
-        <div className="p-5">
-          <h3 className="font-bold text-lg text-zinc-100 mb-2 group-hover:text-red-500 transition-colors line-clamp-2">{article.title}</h3>
+        <div className="p-4 lg:p-5">
+          <h3 className="font-bold text-base lg:text-lg text-zinc-100 mb-2 group-hover:text-red-500 transition-colors line-clamp-2">{article.title}</h3>
           <div className="flex items-center text-sm text-zinc-400">
             {article.favicon_url && <Favicon src={article.favicon_url} alt={`${article.source} favicon`} size={16} />}
             <span className="ml-2">{article.source}</span>
@@ -97,7 +97,7 @@ export default function ArticleCard({
           </div>
         </div>
       </Link>
-      <div className="px-5 pb-5 pt-2 flex justify-end items-center">
+      <div className="px-4 lg:px-5 pb-4 lg:pb-5 pt-2 flex justify-end items-center">
         <div className="flex gap-2">
           {onLikeToggle && (article.id && article.like_count !== undefined && article.isLiked !== undefined) &&
             <ArticleLikeButton articleId={article.id} initialLikes={article.like_count} initialIsLiked={article.isLiked} onLikeToggle={onLikeToggle} />}

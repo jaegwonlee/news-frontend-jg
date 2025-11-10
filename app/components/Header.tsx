@@ -22,7 +22,7 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Left Section: Logo */}
           <div className="flex-1">
-            <Link href="/" className="text-2xl font-bold text-white cursor-pointer">
+            <Link href="/" className="text-xl md:text-2xl font-bold text-white cursor-pointer">
               NEWSROUND1
             </Link>
           </div>

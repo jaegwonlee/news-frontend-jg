@@ -149,7 +149,7 @@ export default function RegisterPage() {
     // RingLayout으로 전체 구조 감싸기
     <RingLayout title="회원가입">
       {/* 폼 요소 */}
-      <form className="space-y-3" onSubmit={handleSubmit} noValidate>
+      <form className="space-y-2" onSubmit={handleSubmit} noValidate>
         {/* 이름, 닉네임 필드 (가로 배치) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -164,7 +164,7 @@ export default function RegisterPage() {
               required
             />
             {/* 에러 메시지 표시 */}
-            {touched.name && errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+            {touched.name && errors.name && <p className="text-red-400 text-[10px] mt-1">{errors.name}</p>}
           </div>
           <div>
             <FormField
@@ -177,7 +177,7 @@ export default function RegisterPage() {
               onBlur={handleBlur}
               required
             />
-            {touched.nickname && errors.nickname && <p className="text-red-400 text-xs mt-1">{errors.nickname}</p>}
+            {touched.nickname && errors.nickname && <p className="text-red-400 text-[10px] mt-1">{errors.nickname}</p>}
           </div>
         </div>
 
@@ -194,7 +194,7 @@ export default function RegisterPage() {
             autoComplete="email"
             required
           />
-          {touched.email && errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+          {touched.email && errors.email && <p className="text-red-400 text-[10px] mt-1">{errors.email}</p>}
         </div>
 
         {/* 비밀번호 필드 */}
@@ -210,7 +210,7 @@ export default function RegisterPage() {
             autoComplete="new-password"
             required
           />
-          {touched.password && errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
+          {touched.password && errors.password && <p className="text-red-400 text-[10px] mt-1">{errors.password}</p>}
         </div>
 
         {/* 비밀번호 확인 필드 */}
@@ -227,7 +227,7 @@ export default function RegisterPage() {
             required
           />
           {touched.passwordConfirm && errors.passwordConfirm && (
-            <p className="text-red-400 text-xs mt-1">{errors.passwordConfirm}</p>
+            <p className="text-red-400 text-[10px] mt-1">{errors.passwordConfirm}</p>
           )}
         </div>
 
@@ -243,7 +243,7 @@ export default function RegisterPage() {
             onBlur={handleBlur}
             required
           />
-          {touched.phone && errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
+          {touched.phone && errors.phone && <p className="text-red-400 text-[10px] mt-1">{errors.phone}</p>}
         </div>
 
         {/* 서버 에러 메시지 표시 영역 */}

@@ -8,7 +8,6 @@ import TopicViewCounter from "@/app/components/TopicViewCounter";
 import { getTopicDetail, toggleArticleLike, toggleArticleSave } from "@/lib/api";
 import { TopicDetail, Article } from "@/types";
 import { useAuth } from "@/app/context/AuthContext";
-import ContentSection from "@/app/components/common/ContentSection";
 import { MessageCircle } from "lucide-react";
 
 export default function TopicDetailPage() {
@@ -118,19 +117,17 @@ export default function TopicDetailPage() {
           </div>
         </aside>
         <main className="lg:col-span-6">
-          <ContentSection 
-            title="ROUND2" 
-            icon={<MessageCircle />}
-            className="h-[750px]"
-            fillHeight={true}
-            collapsibleContent={{
-              title: topic.display_name,
-              summary: topic.summary,
-              published_at: topic.published_at
-            }}
-          >
-            <ChatRoom topic={topic} />
-          </ContentSection>
+          <div className="bg-zinc-900 rounded-lg h-[750px] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-zinc-700">
+              <div className="flex items-center gap-2">
+                <MessageCircle />
+                <h2 className="text-lg lg:text-xl font-bold text-white">ROUND2</h2>
+              </div>
+            </div>
+            <div className="flex-1 min-h-0">
+              <ChatRoom topic={topic} />
+            </div>
+          </div>
         </main>
         <aside className="lg:col-span-3">
           <div className="space-y-6 h-[750px] overflow-y-auto pr-2 pt-4 w-full">
