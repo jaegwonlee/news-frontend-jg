@@ -28,7 +28,7 @@ export default function LatestNews({ articles }: LatestNewsProps) {
           key={article.id} 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="flex-1 flex items-center gap-4 p-0 rounded-lg hover:bg-zinc-800 transition-colors"
+          className="flex-1 flex items-center gap-4 p-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 hover:shadow-lg transition-all duration-200 ease-in-out"
           // onClick={() => handleArticleClick(article.id)} // Removed
         >
           <div className="w-16 h-12 flex-shrink-0 relative">

@@ -75,11 +75,10 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8">
+    <div className="w-full max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-8 pt-2 md:pt-3 lg:pt-4">
       <main className="flex flex-col gap-6 lg:gap-8">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
-          {/* Trending Topics Section */}
-          <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col">
+          <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col h-[665px] lg:h-[807px]">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-900/50 shadow-lg shadow-red-500/50">
@@ -111,9 +110,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ChatRoom Section */}
-          <div className="rounded-2xl md:col-span-2 xl:col-span-2 h-[600px] lg:h-[750px] flex flex-col">
-            <div className="flex justify-between items-center p-6 border-b border-zinc-700/80">
+          <div className="rounded-2xl md:col-span-2 xl:col-span-2 h-[665px] lg:h-[807px] flex flex-col">
+            <div className="flex justify-between items-center p-1 border-b border-zinc-700/80">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-700/50 shadow-lg shadow-zinc-500/50">
                   <MessageCircle />
@@ -128,8 +126,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Latest News Section */}
-          <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col">
+          <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col h-[665px] lg:h-[807px]">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-700/50 shadow-lg shadow-zinc-500/50">

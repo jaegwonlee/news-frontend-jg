@@ -210,7 +210,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
   };
 
   return (
-    <div ref={chatContainerRef} className="flex flex-col h-full relative">
+    <div ref={chatContainerRef} className="flex flex-col h-full relative border border-zinc-700 rounded-lg">
       {dialog && (
         <ConfirmationPopover
           top={dialog.top}
@@ -225,7 +225,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
       )}
       
       {/* Message List: This is the scrollable area */}
-      <div className="flex-1 min-h-0 overflow-y-auto pl-4 pr-2 lg:pl-6 lg:pr-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4">
         {isLoadingHistory ? (
           <div className="flex justify-center items-center h-full text-zinc-400">
             <Loader2 className="w-8 h-8 animate-spin" />
@@ -292,7 +292,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
       </div>
 
       {/* Input Area */}
-      <div className="shrink-0 px-4 lg:px-6 pt-4 border-t border-zinc-700/80">
+      <div className="shrink-0 px-4 py-4">
         {socketError && (
           <div className="flex items-center text-red-500 text-xs mb-2">
             <AlertTriangle className="w-4 h-4 mr-1" />
