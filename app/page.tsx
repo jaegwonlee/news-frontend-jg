@@ -75,7 +75,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-8 pt-2 md:pt-3 lg:pt-4">
+    <div className="w-full max-w-[1920px] mx-auto px-12 md:px-16 lg:px-20 pt-2 md:pt-3 lg:pt-4">
       <main className="flex flex-col gap-6 lg:gap-8">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
           <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col h-[665px] lg:h-[807px]">
@@ -111,16 +111,6 @@ export default function Home() {
           </div>
 
           <div className="rounded-2xl md:col-span-2 xl:col-span-2 h-[665px] lg:h-[807px] flex flex-col">
-            <div className="flex justify-between items-center p-1 border-b border-zinc-700/80">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-700/50 shadow-lg shadow-zinc-500/50">
-                  <MessageCircle />
-                </div>
-                <h2 className="text-xl font-bold text-white truncate">
-                  {mainTopic ? mainTopic.display_name : "실시간 채팅"}
-                </h2>
-              </div>
-            </div>
             <div className="flex-1 min-h-0">
               <ChatRoom topic={mainTopic || undefined} />
             </div>

@@ -9,6 +9,7 @@ import { getTopicDetail, toggleArticleLike, toggleArticleSave } from "@/lib/api"
 import { TopicDetail, Article } from "@/types";
 import { useAuth } from "@/app/context/AuthContext";
 import { MessageCircle } from "lucide-react";
+import RelatedTopicsCarousel from "@/app/components/RelatedTopicsCarousel";
 
 export default function TopicDetailPage() {
   const params = useParams();
@@ -101,7 +102,7 @@ export default function TopicDetailPage() {
   return (
     <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-0">
       {id && <TopicViewCounter topicId={id} />}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-4">
         <aside className="lg:col-span-3">
           <div className="space-y-6 h-[750px] overflow-y-auto pr-2 pt-4 w-full">
             {leftArticles.map((article) => (
@@ -117,13 +118,7 @@ export default function TopicDetailPage() {
           </div>
         </aside>
         <main className="lg:col-span-6">
-          <div className="bg-zinc-900 rounded-lg h-[750px] flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b border-zinc-700">
-              <div className="flex items-center gap-2">
-                <MessageCircle />
-                <h2 className="text-lg lg:text-xl font-bold text-white">ROUND2</h2>
-              </div>
-            </div>
+          <div className="border border-zinc-700 rounded-lg h-[665px] lg:h-[807px] flex flex-col">
             <div className="flex-1 min-h-0">
               <ChatRoom topic={topic} />
             </div>
@@ -144,6 +139,7 @@ export default function TopicDetailPage() {
           </div>
         </aside>
       </div>
+      {id && <RelatedTopicsCarousel currentTopicId={id} />}
     </div>
   );
 }

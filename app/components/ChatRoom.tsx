@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Send, Loader2, AlertTriangle, MessageSquareText, Trash2, Siren } from 'lucide-react';
+import { Send, Loader2, AlertTriangle, MessageSquareText, Trash2, Siren, MessageCircle } from 'lucide-react';
 import { useSocket } from '@/app/context/SocketContext';
 import { useAuth } from '@/app/context/AuthContext';
 import Image from 'next/image';
@@ -211,6 +211,18 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
 
   return (
     <div ref={chatContainerRef} className="flex flex-col h-full relative border border-zinc-700 rounded-lg">
+      {/* Chat Room Header */}
+      <div className="flex justify-between items-center p-1 border-b border-zinc-700/80">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-700/50 shadow-lg shadow-zinc-500/50">
+            <MessageCircle />
+          </div>
+          <h2 className="text-xl font-bold text-white truncate">
+            {topic ? topic.display_name : "실시간 채팅"}
+          </h2>
+        </div>
+      </div>
+
       {dialog && (
         <ConfirmationPopover
           top={dialog.top}

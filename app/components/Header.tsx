@@ -18,11 +18,11 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-zinc-700 bg-black/80 backdrop-blur-md">
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1920px] mx-auto px-12 md:px-16 lg:px-20">
         <div className="flex justify-between items-center h-16">
           {/* Left Section: Logo */}
           <div className="flex-1">
-            <Link href="/" className="text-xl md:text-2xl font-bold text-white cursor-pointer">
+            <Link href="/" className="pl-4 text-xl md:text-2xl font-bold text-white cursor-pointer">
               NEWSROUND1
             </Link>
           </div>
@@ -43,7 +43,7 @@ export default function Header() {
           </nav>
 
           {/* Right Section: Search and Auth */}
-          <div className="flex-1 flex justify-end items-center gap-4">
+          <div className="flex-1 flex justify-end items-center gap-4 pr-4">
             <SearchBar />
             <AuthStatus />
           </div>
