@@ -114,9 +114,9 @@ export default function ProfileTabs({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`p-3 md:p-4 rounded-md text-left font-semibold transition-colors shrink-0 text-sm md:text-base ${
+              className={`p-3 md:p-4 rounded-lg text-left font-semibold transition-all duration-200 shrink-0 text-sm md:text-base ${
                 activeTab === tab.id
-                  ? 'bg-zinc-700 text-white'
+                  ? 'bg-red-600 text-white shadow-md'
                   : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
               }`}
             >
@@ -125,7 +125,7 @@ export default function ProfileTabs({
           ))}
         </nav>
       </aside>
-      <main className="flex-1 bg-zinc-900 rounded-lg shadow-lg p-4 md:p-6 lg:p-8 border border-zinc-700">
+      <main className="flex-1 bg-zinc-900 rounded-lg shadow-2xl p-4 md:p-6 lg:p-8 border border-zinc-700 h-[750px] overflow-y-auto">
         {renderContent()}
       </main>
     </div>

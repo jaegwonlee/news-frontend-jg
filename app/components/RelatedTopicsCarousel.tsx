@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { Topic } from '@/types';
 import { getAllTopics } from '@/lib/api/topics'; // Assuming we'll use popular topics
@@ -16,24 +16,18 @@ export default function RelatedTopicsCarousel({ currentTopicId }: RelatedTopicsC
   const [error, setError] = useState<string | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const handleWheelScroll = useCallback((event: WheelEvent) => { // Change type to native WheelEvent
-    if (carouselRef.current) {
-      event.preventDefault(); // Prevent vertical scrolling of the page
-      event.stopPropagation(); // Stop event from bubbling up
-      const scrollAmount = event.deltaY > 0 ? 100 : -100; // Scroll right for down, left for up
-      carouselRef.current.scrollLeft += scrollAmount;
+  useEffect(() => {
+    const element = carouselRef.current;
+    if (element) {
+      const onWheel = (e: WheelEvent) => {
+        if (e.deltaY === 0) return;
+        e.preventDefault();
+        element.scrollLeft += e.deltaY;
+      };
+      element.addEventListener('wheel', onWheel, { passive: false });
+      return () => element.removeEventListener('wheel', onWheel);
     }
   }, []);
-
-  useEffect(() => {
-    const carouselElement = carouselRef.current;
-    if (carouselElement) {
-      carouselElement.addEventListener('wheel', handleWheelScroll, { passive: false });
-      return () => {
-        carouselElement.removeEventListener('wheel', handleWheelScroll);
-      };
-    }
-  }, [handleWheelScroll]); // Dependency on handleWheelScroll
 
   useEffect(() => {
     const fetchTopics = async () => {

@@ -36,7 +36,7 @@ export default function DebatePage() {
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-extrabold text-white">토론 리스트</h1>
+        <h1 className="text-4xl font-extrabold text-white">라운드톡</h1>
         <div className="flex items-center p-1 bg-zinc-800 rounded-lg">
           <button
             onClick={() => setSortOrder('popular')}
@@ -144,8 +144,7 @@ export default function DebatePage() {
                             <div 
                               className={`relative bg-zinc-800/80 backdrop-blur-sm p-5 rounded-2xl shadow-lg h-full flex flex-col transition-all duration-300 group border ${
                                 isHolographic && theme ? `${theme.borderColor} ${theme.hoverBorderColor}` : 'border-zinc-700/80 hover:border-red-500/50'
-                              } hover:bg-zinc-800/100 overflow-hidden animate-fade-in-up ${isHolographic ? 'holographic-card shine-effect' : ''}`}
-                              style={{ animationDelay: `${index * 100}ms` }}
+                              } hover:bg-zinc-800/100 overflow-hidden ${isHolographic ? 'holographic-card shine-effect' : ''}`}
                               onMouseMove={handleMouseMove}
                               onMouseLeave={handleMouseLeave}
                             >

@@ -81,10 +81,7 @@ export default function Home() {
           <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col h-[665px] lg:h-[807px]">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-900/50 shadow-lg shadow-red-500/50">
-                  <Flame />
-                </div>
-                <h2 className="text-xl font-bold text-white">실시간 토픽</h2>
+                <h2 className="text-xl font-bold text-white">라운드톡</h2>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -119,9 +116,6 @@ export default function Home() {
           <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col h-[665px] lg:h-[807px]">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-700/50 shadow-lg shadow-zinc-500/50">
-                  <Newspaper />
-                </div>
                 <h2 className="text-xl font-bold text-white">최신 뉴스</h2>
               </div>
               <div className="px-3 py-1.5 border border-zinc-700 rounded-full text-xs font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 hover:border-zinc-600 hover:text-white">

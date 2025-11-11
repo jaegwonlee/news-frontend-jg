@@ -1,19 +1,79 @@
-export const dynamic = 'force-dynamic'; // Force dynamic rendering for this page
+'use client';
 
-/**
- * 문화 카테고리 페이지 (경로: /culture)
- * - '문화' 뉴스를 보여주는 페이지입니다.
- */
+import { useEffect, useState } from 'react';
+import { Article } from '@/types';
+import CategoryArticleCard from '@/app/components/CategoryArticleCard';
+import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 
-// 문화 뉴스 목록을 표시할 컴포넌트를 가져옵니다.
-import CategoryNewsList from "../components/CategoryNewsList";
+async function fetchArticlesByCategory(categoryName: string): Promise<Article[]> {
+  const encodedCategoryName = encodeURIComponent(categoryName);
+  const apiUrl = `https://news02.onrender.com/api/articles/by-category?name=${encodedCategoryName}&limit=25&offset=0`;
+  try {
+    const response = await fetch(apiUrl, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`API call failed: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching news data:", error);
+    return [];
+  }
+}
 
 export default function CulturePage() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const categoryName = "문화";
+  const accentColor = "purple"; // Accent color for Culture
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      setIsLoading(true);
+      const fetchedArticles = await fetchArticlesByCategory(categoryName);
+      setArticles(fetchedArticles);
+      setIsLoading(false);
+    };
+    loadArticles();
+  }, []);
+
+  const heroArticle = articles.length > 0 ? articles[0] : null;
+  const remainingArticles = articles.length > 1 ? articles.slice(1) : [];
+
   return (
-    // 페이지 전체를 감싸는 div. 최대 너비와 좌우 여백(mx-auto), 상하좌우 패딩(p-*)을 설정합니다.
-    <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-      {/* CategoryNewsList 컴포넌트를 렌더링하고, categoryName으로 "문화"를 전달합니다. */}
-      <CategoryNewsList categoryName="문화" />
+    <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in">
+      <header className="mb-8">
+        <h1 className="text-5xl font-extrabold text-white border-b-4 border-purple-500 pb-4 inline-block">
+          {categoryName}
+        </h1>
+      </header>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center h-96">
+          <LoadingSpinner />
+        </div>
+      ) : (
+        <>
+          {articles.length === 0 ? (
+            <div className="text-center text-zinc-400 py-20">
+              <p className="text-lg">해당 카테고리에 뉴스가 없습니다.</p>
+            </div>
+          ) : (
+            <div className="space-y-12">
+              {heroArticle && (
+                <CategoryArticleCard article={heroArticle} layout="hero" accentColor={accentColor} />
+              )}
+              
+              {remainingArticles.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {remainingArticles.map(article => (
+                    <CategoryArticleCard key={article.id} article={article} layout="default" accentColor={accentColor} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
