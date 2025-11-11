@@ -125,7 +125,7 @@ export default function ProfileTabs({
           ))}
         </nav>
       </aside>
-      <main className="flex-1 bg-zinc-900 rounded-lg shadow-2xl p-4 md:p-6 lg:p-8 border border-zinc-700 h-[750px] overflow-y-auto">
+      <main className="flex-1 bg-zinc-900 rounded-lg shadow-2xl p-4 md:p-6 lg:p-8 border border-zinc-700 overflow-y-auto">
         {renderContent()}
       </main>
     </div>

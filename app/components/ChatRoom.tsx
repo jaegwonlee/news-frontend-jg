@@ -441,40 +441,40 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
           <button type="submit" disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic} className={`p-2 h-10 w-10 flex justify-center items-center bg-blue-600 rounded-md text-white transition-all duration-200 ease-in-out disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${!(!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic) ? 'scale-110' : ''}`}>
             {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
-        </form>
-      </div>
-      <style jsx>{`
-        .chat-background-boxing {
-          background-color: transparent;
-          position: relative;
-          z-index: 0;
-        }
-        .chat-background-boxing::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: -2;
-          background-image: url('/360_F_948079407_7qSn6DZAT9njgxFGhumiviPQyur2ThqV.jpg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          opacity: 0.25;
-          filter: blur(1px);
-        }
-        .chat-background-boxing::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: -1;
-          background-color: rgba(0, 0, 0, 0.3);
-        }
-      `}</style>
-    </div>
+              </form>
+              </div>
+              <style jsx>{`
+                .chat-background-boxing {
+                  background-color: transparent;
+                  position: relative;
+                  z-index: 0;
+                }
+                .chat-background-boxing::before {
+                  content: '';
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  z-index: -2;
+                  background-image: url('/360_F_948079407_7qSn6DZAT9njgxFGhumiviPQyur2ThqV.jpg');
+                  background-size: cover;
+                  background-position: center;
+                  background-repeat: no-repeat;
+                  opacity: 0.25;
+                  filter: blur(1px);
+                }
+                .chat-background-boxing::after {
+                  content: '';
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  z-index: -1;
+                  background-color: rgba(0, 0, 0, 0.3);
+                }
+              `}</style>
+            </div>
   );
 }

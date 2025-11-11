@@ -1,25 +1,40 @@
-import { Article } from "@/types";
+/**
+ * @file articles.ts
+ * @description 기사(Article)와 관련된 모든 백엔드 API 호출을 정의하는 파일입니다.
+ * 각 함수는 특정 종류의 기사 데이터를 가져오거나, 기사와 관련된 상호작용(좋아요, 저장)을 처리합니다.
+ * 모든 함수는 중앙 집중식 에러 처리 및 요청 관리를 위해 `fetchWrapper`를 사용합니다.
+ */
+
+import { Article, ToggleSaveResponse } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
 
 /**
- * [속보] 기사 목록을 가져옵니다 (10개)
+ * @function getBreakingNews
+ * @description 백엔드에서 '속보'로 분류된 기사 목록을 가져옵니다.
+ * @returns {Promise<Article[]>} - 속보 기사 객체의 배열을 반환하는 프로미스. API 실패 시 빈 배열을 반환합니다.
+ * @cache Next.js의 Incremental Static Regeneration (ISR)을 사용하여 5분(300초)마다 캐시를 갱신합니다.
+ *        이를 통해 빌드 시점에 정적으로 페이지를 생성하고, 주기적으로 최신 데이터로 업데이트할 수 있습니다.
  */
 export async function getBreakingNews(): Promise<Article[]> {
   try {
     const res = await fetchWrapper(`/api/articles/breaking?limit=10&offset=0`, {
       next: { revalidate: 300 } // 5분마다 캐시 갱신
     });
-    if (!res.ok) return [];
+    if (!res.ok) return []; // API 응답이 실패하면 빈 배열 반환
     return await res.json();
   } catch (error) {
-    if ((error as Error).message === 'Session expired') return []; // 세션 만료 시 빈 배열 반환
+    // fetchWrapper에서 'Session expired' 에러를 throw하면, 전역 처리가 이미 되었으므로 빈 배열만 반환합니다.
+    if ((error as Error).message === 'Session expired') return [];
     console.error("Failed to fetch breaking news:", error);
-    return [];
+    return []; // 그 외 다른 에러 발생 시에도 빈 배열 반환
   }
 }
 
 /**
- * [단독] 기사 목록을 가져옵니다 (10개)
+ * @function getExclusiveNews
+ * @description 백엔드에서 '단독'으로 분류된 기사 목록을 가져옵니다.
+ * @returns {Promise<Article[]>} - 단독 기사 객체의 배열을 반환하는 프로미스. API 실패 시 빈 배열을 반환합니다.
+ * @cache 5분(300초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getExclusiveNews(): Promise<Article[]> {
   try {
@@ -36,18 +51,27 @@ export async function getExclusiveNews(): Promise<Article[]> {
 }
 
 /**
- * 특정 카테고리의 뉴스 목록을 가져옵니다.
+ * @function getCategoryNews
+ * @description 특정 카테고리에 해당하는 뉴스 기사 목록을 가져옵니다.
+ * @param {string} categoryName - 가져올 뉴스의 카테고리 이름 (예: "정치", "경제").
+ * @param {number} [limit=10] - 가져올 기사의 최대 개수.
+ * @param {string} [token] - 사용자 인증 토큰. 제공될 경우, 개인화된 데이터를 포함할 수 있습니다.
+ * @returns {Promise<Article[]>} - 해당 카테고리의 기사 객체 배열을 반환하는 프로미스.
+ * @cache "no-store" 옵션을 사용하여 이 요청은 캐시되지 않고 항상 최신 데이터를 서버에 요청합니다.
+ *        이는 페이지가 동적으로 렌더링될 때 사용됩니다.
  */
 export async function getCategoryNews(categoryName: string, limit: number = 10, token?: string): Promise<Article[]> {
-  const encodedCategoryName = encodeURIComponent(categoryName);
+  const encodedCategoryName = encodeURIComponent(categoryName); // URL에 안전하게 포함시키기 위해 인코딩
   const apiUrl = `/api/articles/by-category?name=${encodedCategoryName}&limit=${limit}&offset=0`;
+  
   const headers: HeadersInit = {};
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers['Authorization'] = `Bearer ${token}`; // 토큰이 있으면 Authorization 헤더에 추가
   }
+
   try {
     const response = await fetchWrapper(apiUrl, {
-      cache: "no-store",
+      cache: "no-store", // 캐시를 사용하지 않음
       headers: headers
     });
     if (!response.ok) {
@@ -62,7 +86,17 @@ export async function getCategoryNews(categoryName: string, limit: number = 10, 
 }
 
 /**
- * 여러 카테고리의 최신 뉴스를 종합하여 시간순으로 정렬 후 반환합니다.
+ * @function getLatestNews
+ * @description 여러 주요 카테고리의 최신 뉴스를 모두 가져와 시간순으로 정렬하여 반환합니다.
+ * @param {number} [limit=10] - 최종적으로 반환할 기사의 최대 개수.
+ * @param {string} [token] - 사용자 인증 토큰.
+ * @returns {Promise<Article[]>} - 모든 카테고리를 종합한 최신 기사 객체 배열.
+ * @logic
+ * 1. 정의된 모든 카테고리("정치", "경제", "사회", "문화")에 대해 `getCategoryNews`를 병렬로 호출합니다.
+ * 2. 모든 결과를 하나의 배열로 합칩니다.
+ * 3. `Map`을 사용하여 기사 ID를 기준으로 중복된 기사를 제거합니다.
+ * 4. 중복이 제거된 기사들을 발행 시간(`published_at`) 기준으로 내림차순(최신순) 정렬합니다.
+ * 5. 정렬된 배열에서 `limit` 개수만큼 잘라서 반환합니다.
  */
 export async function getLatestNews(limit: number = 10, token?: string): Promise<Article[]> {
   try {
@@ -70,17 +104,19 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
     const promises = categories.map((category) => getCategoryNews(category, limit, token));
     const results = await Promise.all(promises);
 
-    const allArticles = results.flat();
+    const allArticles = results.flat(); // 2차원 배열을 1차원 배열로 평탄화
     
+    // Map을 이용해 중복 기사 제거 (ID 기준)
     const uniqueArticlesMap = new Map<number, Article>();
     allArticles.forEach((article) => {
       uniqueArticlesMap.set(article.id, article);
     });
     
     const uniqueArticles = Array.from(uniqueArticlesMap.values());
+    // 최신순으로 정렬
     uniqueArticles.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 
-    return uniqueArticles.slice(0, limit);
+    return uniqueArticles.slice(0, limit); // 지정된 개수만큼 잘라서 반환
   } catch (error) {
     if ((error as Error).message === 'Session expired') return [];
     console.error("최신 뉴스 종합 실패:", error);
@@ -89,14 +125,17 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
 }
 
 /**
- * 최신 뉴스 전체보기 페이지를 위한 함수. 각 카테고리에서 50개씩 가져옵니다.
+ * @function getAllLatestNews
+ * @description '최신 뉴스 전체보기' 페이지를 위해, 각 카테고리별로 50개씩 기사를 가져와 종합하고 최신순으로 정렬합니다.
+ * @returns {Promise<Article[]>} - 모든 카테고리를 종합한 최신 기사 50개*4=200개 내외의 배열.
+ * @logic `getLatestNews`와 유사하지만, 더 많은 기사(카테고리당 50개)를 가져와 페이지네이션 없이 보여주기 위한 목적입니다.
  */
 export async function getAllLatestNews(): Promise<Article[]> {
   const categories = ["정치", "경제", "사회", "문화"];
   const newsPromises = categories.map(category => 
     getCategoryNews(category, 50).catch(err => {
       console.error(`Error fetching latest news for category ${category}:`, err);
-      return [];
+      return []; // 특정 카테고리 로드 실패 시에도 전체가 실패하지 않도록 빈 배열 반환
     })
   );
 
@@ -114,10 +153,14 @@ export async function getAllLatestNews(): Promise<Article[]> {
   return sortedArticles;
 }
 
-
-
 /**
- * 검색어(q)를 받아 제목과 설명에서 일치하는 기사를 최신순으로 검색합니다.
+ * @function getSearchArticles
+ * @description 검색어(query)를 받아 기사 제목과 설명에서 일치하는 기사를 검색하여 최신순으로 반환합니다.
+ * @param {string} q - 사용자가 입력한 검색어.
+ * @param {string} [token] - 사용자 인증 토큰.
+ * @returns {Promise<Article[]>} - 검색 결과에 해당하는 기사 객체 배열.
+ * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
+ * @cache 1분(60초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getSearchArticles(q: string, token?: string): Promise<Article[]> {
   const encodedQuery = encodeURIComponent(q);
@@ -128,7 +171,7 @@ export async function getSearchArticles(q: string, token?: string): Promise<Arti
   const response = await fetchWrapper(`/api/search?q=${encodedQuery}`, {
     method: 'GET',
     headers: headers,
-    next: { revalidate: 60 }
+    next: { revalidate: 60 } // 1분마다 캐시 갱신
   });
 
   if (!response.ok) {
@@ -139,10 +182,16 @@ export async function getSearchArticles(q: string, token?: string): Promise<Arti
 }
 
 /**
- * 사용자가 특정 기사에 대해 '좋아요'를 누르거나, 이미 누른 '좋아요'를 취소합니다.
+ * @function toggleArticleLike
+ * @description 사용자가 특정 기사에 '좋아요'를 누르거나 취소하는 기능을 처리합니다.
+ * @param {string} token - 사용자 인증 토큰 (필수).
+ * @param {number} articleId - '좋아요'를 적용할 기사의 ID.
+ * @param {boolean} currentIsLiked - 현재 '좋아요' 상태. true이면 '좋아요'를 취소(DELETE)하고, false이면 '좋아요'를 추가(POST)합니다.
+ * @returns {Promise<{ data: { articleId: number; likes: number; isLiked: boolean } }>} - 업데이트된 '좋아요' 정보(기사 ID, 총 좋아요 수, 새로운 '좋아요' 상태)를 포함하는 객체.
+ * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  */
 export async function toggleArticleLike(token: string, articleId: number, currentIsLiked: boolean): Promise<{ data: { articleId: number; likes: number; isLiked: boolean } }> {
-  const method = currentIsLiked ? 'DELETE' : 'POST';
+  const method = currentIsLiked ? 'DELETE' : 'POST'; // 현재 상태에 따라 HTTP 메소드 결정
   const response = await fetchWrapper(`/api/articles/${articleId}/like`, {
     method: method,
     headers: {
@@ -159,11 +208,20 @@ export async function toggleArticleLike(token: string, articleId: number, curren
 }
 
 /**
- * 인기 기사 목록을 가져옵니다.
+ * @function getPopularNews
+ * @description '좋아요'가 많은 인기 기사 목록을 가져옵니다.
+ * @param {string} [category] - 특정 카테고리의 인기 기사를 가져올 경우 카테고리 이름. 제공되지 않으면 전체 카테고리를 대상으로 합니다.
+ * @param {string} [token] - 사용자 인증 토큰.
+ * @returns {Promise<Article[]>} - 인기 기사 객체 배열.
+ * @logic
+ * - `category`가 지정되면 해당 카테고리의 인기 기사만 가져옵니다.
+ * - `category`가 없으면 모든 주요 카테고리의 인기 기사를 각각 가져와 합친 후,
+ *   중복을 제거하고 '좋아요' 수(`like_count`) 기준으로 내림차순 정렬하여 상위 20개를 반환합니다.
  */
 export async function getPopularNews(category?: string, token?: string): Promise<Article[]> {
-  const fetchByCategory = async (cat: string) => {
-    const url = new URL(`/api/articles/popular`, 'http://localhost'); // Base is needed for URL object, but will be replaced by fetchWrapper
+  // 단일 카테고리에 대한 인기 기사를 가져오는 내부 함수
+  const fetchByCategory = async (cat: string): Promise<Article[]> => {
+    const url = new URL(`/api/articles/popular`, 'http://localhost'); // URL 객체 생성을 위해 임시 base URL 사용
     url.searchParams.append('category', cat);
     const headers: HeadersInit = {};
     if (token) {
@@ -186,10 +244,12 @@ export async function getPopularNews(category?: string, token?: string): Promise
     }
   };
 
+  // 특정 카테고리가 지정된 경우
   if (category) {
     return fetchByCategory(category);
   }
 
+  // 전체 카테고리에 대한 인기 기사를 종합하는 경우
   try {
     const categories = ["정치", "경제", "사회", "문화"];
     const promises = categories.map(fetchByCategory);
@@ -204,9 +264,10 @@ export async function getPopularNews(category?: string, token?: string): Promise
 
     const uniqueArticles = Array.from(uniqueArticlesMap.values());
 
+    // '좋아요'가 많은 순서대로 정렬
     uniqueArticles.sort((a, b) => (b.like_count || 0) - (a.like_count || 0));
 
-    return uniqueArticles.slice(0, 20);
+    return uniqueArticles.slice(0, 20); // 상위 20개 반환
 
   } catch (error) {
     if ((error as Error).message === 'Session expired') return [];
@@ -216,9 +277,15 @@ export async function getPopularNews(category?: string, token?: string): Promise
 }
 
 /**
- * 사용자가 특정 기사를 저장하거나, 저장을 취소합니다.
+ * @function toggleArticleSave
+ * @description 사용자가 특정 기사를 저장하거나 저장을 취소합니다.
+ * @param {string} token - 사용자 인증 토큰 (필수).
+ * @param {number} articleId - 저장할 기사의 ID.
+ * @param {boolean} currentIsSaved - 현재 저장 상태. true이면 저장 취소(DELETE), false이면 저장(POST)합니다.
+ * @returns {Promise<any>} - 성공 시 API의 응답을 그대로 반환합니다. 204 No Content의 경우 성공 객체를 반환합니다.
+ * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  */
-export async function toggleArticleSave(token: string, articleId: number, currentIsSaved: boolean): Promise<any> {
+export async function toggleArticleSave(token: string, articleId: number, currentIsSaved: boolean): Promise<ToggleSaveResponse> {
   const method = currentIsSaved ? 'DELETE' : 'POST';
   const response = await fetchWrapper(`/api/articles/${articleId}/save`, {
     method: method,
@@ -232,6 +299,7 @@ export async function toggleArticleSave(token: string, articleId: number, curren
     throw new Error(errorData.message || '기사 저장 상태 업데이트에 실패했습니다.');
   }
 
+  // DELETE 요청 성공 시 204 No Content를 반환하는 경우가 많으므로, 이를 처리합니다.
   if (response.status === 204) {
     return { success: true };
   }

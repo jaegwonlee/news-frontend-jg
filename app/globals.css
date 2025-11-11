@@ -185,3 +185,22 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #777;
 }
+
+/* --- Infinite Scroller --- */
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.scroller {
+  -webkit-mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+  mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+}
+
+.scroller-inner {
+  animation: scroll 40s linear infinite;
+}

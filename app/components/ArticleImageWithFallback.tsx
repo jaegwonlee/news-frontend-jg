@@ -1,39 +1,53 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Image, { ImageProps } from "next/image";
-import { FAVICON_URLS } from "@/lib/constants";
+import { useState, useEffect } from "react";
+import { ImageProps } from "next/image";
 
-// Make the component accept all standard ImageProps, plus our custom 'sourceDomain'
-interface ArticleImageWithFallbackProps extends ImageProps {
-  sourceDomain?: string;
+interface ArticleImageWithFallbackProps extends Omit<ImageProps, 'src' | 'width' | 'height'> {
+  src: string;
+  alt: string;
+  className?: string;
+  style?: React.CSSProperties;
+  fill?: boolean;
 }
 
 export default function ArticleImageWithFallback({ 
   src, 
   alt, 
-  sourceDomain, 
-  ...props 
+  className,
+  style,
+  fill,
 }: ArticleImageWithFallbackProps) {
   const [imgSrc, setImgSrc] = useState(src);
 
-  const handleError = () => {
-    const fallbackFavicon = sourceDomain ? FAVICON_URLS[sourceDomain] : undefined;
-    const finalFallback = fallbackFavicon || "/user-placeholder.svg";
-    setImgSrc(finalFallback);
-    console.log("Image failed to load, falling back to:", finalFallback);
+  useEffect(() => {
+    if (!src) {
+      setImgSrc('/user-placeholder.svg');
+      return;
+    }
+    const image = new window.Image();
+    image.src = src;
+    image.onerror = () => {
+      setImgSrc('/user-placeholder.svg');
+    };
+  }, [src]);
+
+  const finalStyle = {
+    ...style,
+    backgroundImage: `url(${imgSrc})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
   };
 
-  // If the src is not a string (it could be a StaticImageData object), don't add the onError handler.
-  const isExternal = typeof src === 'string';
+  // If fill is true, add classes to make the div fill its relative parent
+  const fillClasses = fill ? 'absolute inset-0' : '';
 
   return (
-    <Image
-      {...props}
-      src={imgSrc}
-      alt={alt || ''} // Ensure alt is always a string
-      onError={isExternal ? handleError : undefined}
-      unoptimized={isExternal} // Unoptimize only for external string URLs
-    />
+    <div 
+      className={`${className || ''} ${fillClasses}`} 
+      style={finalStyle} 
+      role="img" 
+      aria-label={alt}
+    ></div>
   );
 }

@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Topic } from '@/types';
-import { getAllTopics } from '@/lib/api/topics'; // Assuming we'll use popular topics
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { getAllTopics } from '@/lib/api/topics';
+import { formatRelativeTime } from '@/lib/utils';
 
 interface RelatedTopicsCarouselProps {
   currentTopicId: string;
@@ -14,29 +14,17 @@ export default function RelatedTopicsCarousel({ currentTopicId }: RelatedTopicsC
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const element = carouselRef.current;
-    if (element) {
-      const onWheel = (e: WheelEvent) => {
-        if (e.deltaY === 0) return;
-        e.preventDefault();
-        element.scrollLeft += e.deltaY;
-      };
-      element.addEventListener('wheel', onWheel, { passive: false });
-      return () => element.removeEventListener('wheel', onWheel);
-    }
-  }, []);
 
   useEffect(() => {
     const fetchTopics = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const fetchedTopics = await getAllTopics(); // Fetch all topics
-        // Filter out the current topic
-        setTopics(fetchedTopics.filter(topic => topic.id.toString() !== currentTopicId));
+        const fetchedTopics = await getAllTopics();
+        // Filter out the current topic and ensure we have enough topics to loop
+        const relatedTopics = fetchedTopics.filter(topic => topic.id.toString() !== currentTopicId);
+        // Duplicate the array to create a seamless loop
+        setTopics([...relatedTopics, ...relatedTopics]);
       } catch (err) {
         setError("관련 토픽을 불러오는 데 실패했습니다.");
         console.error(err);
@@ -47,12 +35,6 @@ export default function RelatedTopicsCarousel({ currentTopicId }: RelatedTopicsC
 
     fetchTopics();
   }, [currentTopicId]);
-
-  const scroll = (scrollOffset: number) => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollLeft += scrollOffset;
-    }
-  };
 
   if (isLoading) {
     return <div className="text-center text-zinc-400 py-5">관련 토픽 로딩 중...</div>;
@@ -67,49 +49,24 @@ export default function RelatedTopicsCarousel({ currentTopicId }: RelatedTopicsC
   }
 
   return (
-    <div className="mt-8 relative">
-      <h3 className="text-xl font-bold text-white mb-4">다른 토론 주제</h3>
-      <div className="flex items-center">
-
-        <div
-          ref={carouselRef}
-          className="flex overflow-x-scroll overflow-y-hidden scroll-smooth space-x-4 py-2 thin-scrollbar"
-        >
-          {topics.map((topic) => (
-            <Link href={`/debate/${topic.id}`} key={topic.id} className="flex-none w-64 bg-zinc-800 rounded-lg shadow-md p-4 hover:bg-zinc-700 transition-colors cursor-pointer">
-              <h4 className="text-lg font-semibold text-white truncate">{topic.display_name}</h4>
-              <p className="text-sm text-zinc-400 line-clamp-2 mt-2">{topic.summary}</p>
-              <div className="flex items-center text-xs text-zinc-500 mt-3">
-                <span>조회수: {topic.view_count}</span>
+    <div className="mt-16 relative">
+      <h3 className="text-2xl font-bold text-white mb-6 text-center">다른 토론 주제 둘러보기</h3>
+      <div className="scroller w-full overflow-hidden">
+        <div className="scroller-inner flex gap-6 w-max animate-scroll hover:[animation-play-state:paused]">
+          {topics.map((topic, index) => (
+            <Link href={`/debate/${topic.id}`} key={`${topic.id}-${index}`} className="flex-none w-80 group">
+              <div className="bg-zinc-800/50 border border-zinc-700 rounded-2xl p-6 h-full transition-all duration-300 ease-in-out group-hover:bg-zinc-800 group-hover:border-red-500/50 group-hover:-translate-y-2">
+                <h4 className="text-lg font-bold text-white truncate mb-2">{topic.display_name}</h4>
+                <p className="text-sm text-zinc-400 line-clamp-2 h-10">{topic.summary}</p>
+                <div className="flex justify-between items-center text-xs text-zinc-500 mt-4 pt-4 border-t border-zinc-700">
+                  <span>조회수 {topic.view_count}</span>
+                  <time dateTime={topic.published_at}>{formatRelativeTime(topic.published_at)}</time>
+                </div>
               </div>
             </Link>
           ))}
         </div>
-
       </div>
-
-      <style jsx>{`
-        .thin-scrollbar::-webkit-scrollbar {
-          height: 8px; /* height of horizontal scrollbar */
-        }
-        .thin-scrollbar::-webkit-scrollbar-track {
-          background: #2a2a2a; /* Dark track */
-          border-radius: 10px;
-        }
-        .thin-scrollbar::-webkit-scrollbar-thumb {
-          background: #555; /* Grey thumb */
-          border-radius: 10px;
-        }
-        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #777; /* Lighter grey on hover */
-        }
-        /* For Firefox */
-        .thin-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #555 #2a2a2a;
-        }
-      `}</style>
-
     </div>
   );
 }

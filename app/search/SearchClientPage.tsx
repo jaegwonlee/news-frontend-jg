@@ -87,7 +87,7 @@ export default function SearchClientPage() {
                     <ArticleImageWithFallback
                       src={item.thumbnail_url}
                       alt={item.title}
-                      sourceDomain={item.source_domain}
+                      fill
                     />
                   </div>
                 )}

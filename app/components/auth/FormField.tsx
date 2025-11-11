@@ -5,52 +5,62 @@ interface FormFieldProps {
   id: string;
   label: string;
   type: string;
-  name: string; // name 속성 추가
+  name: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   required?: boolean;
   autoComplete?: string;
-  disabled?: boolean; // disabled 속성 추가
+  disabled?: boolean;
+  icon?: React.ReactNode;
 }
 
 /**
- * 회원가입/로그인 폼에서 사용되는 입력 필드 컴포넌트
- * - label과 input 요소를 포함합니다.
- * - 다크 테마 스타일이 적용되어 있습니다.
+ * A component for input fields used in login/registration forms.
+ * - Includes a label and an input element.
+ * - Styled with a dark theme.
  */
 const FormField: React.FC<FormFieldProps> = ({
   id,
   label,
   type,
-  name, // name 속성 추가
+  name,
   value,
   onChange,
   onBlur,
   required = false,
   autoComplete,
-  disabled, // disabled 속성 추가
+  disabled,
+  icon,
 }) => {
+  const hasIcon = icon != null;
+
   return (
     <div>
-      {/* 입력 필드 라벨 */}
       <label htmlFor={id} className="block text-sm font-medium text-zinc-400 mb-1">
         {label}
       </label>
-      {/* 입력 필드 */}
-      <input
-        id={id}
-        name={name} // name 속성 사용
-        type={type}
-        autoComplete={autoComplete}
-        required={required}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur} // 유효성 검사를 위해 onBlur 이벤트 핸들러 추가
-        disabled={disabled} // disabled 속성 적용
-        // Tailwind CSS 클래스를 이용한 스타일링
-        className="w-full px-3 py-2 text-white bg-zinc-800 border-b-2 border-zinc-700 focus:border-blue-500 focus:ring-blue-500 focus:ring-opacity-50 rounded-t-md shadow-sm focus:outline-none sm:text-sm transition-all duration-300"
-      />
+      <div className="relative">
+        {hasIcon && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            {icon}
+          </div>
+        )}
+        <input
+          id={id}
+          name={name}
+          type={type}
+          autoComplete={autoComplete}
+          required={required}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          disabled={disabled}
+          className={`w-full py-2 text-white bg-zinc-800 border-b-2 border-zinc-700 focus:border-blue-500 focus:ring-blue-500 focus:ring-opacity-50 rounded-t-md shadow-sm focus:outline-none sm:text-sm transition-all duration-300 ${
+            hasIcon ? "pl-10 pr-3" : "px-3"
+          }`}
+        />
+      </div>
     </div>
   );
 };

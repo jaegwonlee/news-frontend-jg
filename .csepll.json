@@ -12,20 +12,20 @@
     "dimg",
     "livere",
     "ojsimg",
-    "kh", // khan.co.kr 용
-    "co", // .co.kr 용
-    "kr", // .kr 용
-    "webp", // 이미지 확장자
+    "kh",
+    "co",
+    "kr",
+    "webp",
     "signup",
     "svg",
     "tailwindcss",
-    "clsx", // 필요시 추가
-    "lucide", // 필요시 추가
-    "commitlint", // 필요시 추가
-    "prettierrc", // 필요시 추가
+    "clsx",
+    "lucide",
+    "commitlint",
+    "prettierrc",
     "semibold",
-    "sdfsdfsdfsd", // 임시 허용 또는 제거 권장
-    "sfsffff" // 임시 허용 또는 제거 권장
+    "sdfsdfsdfsd",
+    "sfsffff"
   ],
   "ignorePaths": ["node_modules/**", "package-lock.json"]
 }

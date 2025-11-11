@@ -65,24 +65,23 @@ export default function DebatePage() {
           {sortOrder === 'popular' && topics.length > 0 && (
             <div className="mb-12">
               <Link href={`/debate/${topics[0].id}`}>
-                <div className="relative bg-gradient-to-r from-zinc-800 via-zinc-900 to-black p-8 rounded-3xl shadow-2xl group border-2 border-yellow-400/50 hover:border-yellow-400 transition-all duration-300 animate-glow-border-gold overflow-hidden shine-effect">
+                <div className="relative bg-linear-to-r from-zinc-800 via-zinc-900 to-black p-8 rounded-3xl shadow-2xl group border-2 border-yellow-400/50 hover:border-yellow-400 transition-all duration-300 animate-glow-border-gold overflow-hidden shine-effect">
                   <div className="absolute -top-4 -left-4 w-24 h-24 bg-yellow-400/80 rounded-full blur-3xl animate-pulse-hot"></div>
                   <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-red-500/50 rounded-full blur-3xl animate-pulse-hot animation-delay-2000"></div>
                   
                   <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-                    <div className="flex-shrink-0 text-center">
+                    <div className="shrink-0 text-center">
                       <div className="text-6xl font-black text-yellow-300 tracking-tighter -mb-2">1</div>
                       <div className="text-sm font-bold text-yellow-400">TOP RANK</div>
                     </div>
                     <div className="border-l-2 border-yellow-400/30 h-24 hidden md:block"></div>
-                    <div className="flex-grow text-center md:text-left">
+                    <div className="grow text-center md:text-left">
                       <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-3 group-hover:text-yellow-300 transition-colors duration-300">{topics[0].display_name}</h2>
                       <p className="text-zinc-300 text-base lg:text-lg leading-relaxed line-clamp-2">{topics[0].summary}</p>
                     </div>
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <div className="flex items-center gap-4 text-sm text-zinc-400">
                         <div className="flex items-center gap-1">
-                          <Flame size={14} />
                           <span>조회수 {topics[0].view_count}</span>
                         </div>
                         <time dateTime={topics[0].published_at}>{formatRelativeTime(topics[0].published_at)}</time>
@@ -144,29 +143,28 @@ export default function DebatePage() {
                             <div 
                               className={`relative bg-zinc-800/80 backdrop-blur-sm p-5 rounded-2xl shadow-lg h-full flex flex-col transition-all duration-300 group border ${
                                 isHolographic && theme ? `${theme.borderColor} ${theme.hoverBorderColor}` : 'border-zinc-700/80 hover:border-red-500/50'
-                              } hover:bg-zinc-800/100 overflow-hidden ${isHolographic ? 'holographic-card shine-effect' : ''}`}
+                              } hover:bg-zinc-800 overflow-hidden ${isHolographic ? 'holographic-card shine-effect' : ''}`}
                               onMouseMove={handleMouseMove}
                               onMouseLeave={handleMouseLeave}
                             >
                               <div className="holographic-content flex flex-col h-full">
                                 {isHolographic && theme ? (
                                   <div className="flex flex-col md:flex-row items-center gap-4 relative z-10">
-                                    <div className="flex-shrink-0 text-center">
-                                      <div className={`text-5xl font-black tracking-tighter -mb-1 ${theme.textColor}`}>
-                                        {rank}
+                                                                      <div className="shrink-0 text-center">
+                                                                        <div className={`text-5xl font-black tracking-tighter -mb-1 ${theme.textColor}`}>                                        {rank}
                                       </div>
                                       <div className={`text-xs font-bold ${theme.rankColor}`}>
                                         RANK
                                       </div>
                                     </div>
                                     <div className="border-l-2 border-zinc-700/30 h-16 hidden md:block"></div>
-                                    <div className="flex-grow text-center md:text-left">
+                                    <div className="grow text-center md:text-left">
                                       <h2 className="text-xl font-bold text-white mb-2 leading-tight z-10">{topic.display_name}</h2>
                                       <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2 z-10">{topic.summary}</p>
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="flex-grow flex flex-col justify-center items-center text-center relative">
+                                  <div className="grow flex flex-col justify-center items-center text-center relative">
                                     <div className="absolute top-0 left-0 text-lg font-bold text-zinc-500 p-2">
                                       {sortOrder === 'popular' ? rank : index + 1}
                                     </div>
@@ -179,7 +177,6 @@ export default function DebatePage() {
                                 
                                 <div className="mt-5 pt-4 border-t border-zinc-700/80 flex justify-between items-center text-xs text-zinc-500">
                                   <div className="flex items-center gap-1">
-                                    <Flame size={12} />
                                     <span>조회수 {topic.view_count}</span>
                                   </div>
                                   <time dateTime={topic.published_at}>{formatRelativeTime(topic.published_at)}</time>

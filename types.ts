@@ -79,3 +79,54 @@ export interface NotificationSetting {
   notification_type: NotificationType;
   is_enabled: boolean;
 }
+
+/**
+ * @interface LoginCredentials
+ * @description 로그인 요청 시 사용되는 사용자 자격 증명 데이터 구조.
+ */
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+/**
+ * @interface SignUpData
+ * @description 회원가입 요청 시 사용되는 사용자 등록 데이터 구조.
+ */
+export interface SignUpData {
+  email: string;
+  password: string;
+  name: string;
+  nickname: string;
+  phone?: string;
+}
+
+/**
+ * @interface AuthResponse
+ * @description 로그인 및 회원가입 성공 시 백엔드로부터 받는 응답 데이터 구조.
+ */
+export interface AuthResponse {
+  token: string;
+  user: User;
+  message?: string;
+}
+
+/**
+ * @interface ToggleLikeResponse
+ * @description 기사 '좋아요' 상태 변경 API 응답 데이터 구조.
+ */
+export interface ToggleLikeResponse {
+  articleId: number;
+  likes: number;
+  isLiked: boolean;
+}
+
+/**
+ * @interface ToggleSaveResponse
+ * @description 기사 '저장' 상태 변경 API 응답 데이터 구조.
+ * 백엔드 응답에 따라 유연하게 정의. 성공 시 { success: true } 또는 다른 데이터가 올 수 있음.
+ */
+export interface ToggleSaveResponse {
+  success: boolean;
+  // 기타 필요한 필드 추가 가능
+}

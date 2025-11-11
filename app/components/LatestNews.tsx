@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-// import { incrementArticleView } from '@/lib/api/articles'; // Removed
 
 interface LatestNewsProps {
   articles: Article[];
@@ -16,22 +15,17 @@ export default function LatestNews({ articles }: LatestNewsProps) {
     return <div className="text-center text-zinc-400 py-5">최신 뉴스가 없습니다.</div>;
   }
 
-  // const handleArticleClick = (articleId: number) => { // Removed
-  //   incrementArticleView(articleId);
-  // };
-
   return (
-    <div className="space-y-4 h-full flex flex-col overflow-y-auto pr-2">
+    <div className="h-full flex flex-col justify-around">
       {articles.map((article) => (
         <Link 
-          href={article.url} 
+          href={article.url.startsWith('http') ? article.url : `https://${article.source_domain}${article.url}`}
           key={article.id} 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="flex-1 flex items-center gap-4 p-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 hover:shadow-lg transition-all duration-200 ease-in-out"
-          // onClick={() => handleArticleClick(article.id)} // Removed
+          className="flex items-center gap-4 px-1 py-0.5 rounded-md hover:bg-zinc-800/50 transition-colors duration-150"
         >
-          <div className="w-16 h-12 flex-shrink-0 relative">
+          <div className="w-24 h-16 flex-shrink-0 relative">
             <Image
               src={article.thumbnail_url || '/placeholder.svg'} 
               alt={article.title}
@@ -46,6 +40,16 @@ export default function LatestNews({ articles }: LatestNewsProps) {
               {article.title}
             </h3>
             <div className="flex items-center text-xs text-zinc-500 mt-1">
+              {article.favicon_url && (
+                <Image
+                  src={article.favicon_url}
+                  alt={`${article.source} favicon`}
+                  width={16}
+                  height={16}
+                  className="rounded-full mr-1.5"
+                  unoptimized={true}
+                />
+              )}
               <span>{article.source}</span>
               <span className="mx-1.5">·</span>
               <span>

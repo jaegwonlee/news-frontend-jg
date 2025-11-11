@@ -83,6 +83,16 @@ export default function LivingNewsWall({ articles, category, icon, href }: Livin
     };
   };
 
+  const getSafeUrl = (article: Article) => {
+    if (article.url && article.url.startsWith('http')) {
+      return article.url;
+    }
+    if (article.source_domain && article.url) {
+      return `https://${article.source_domain}${article.url.startsWith('/') ? article.url : '/' + article.url}`;
+    }
+    return '#'; // Fallback
+  };
+
   return (
     <div className={`relative w-full my-8`}>
       <div className={`absolute inset-0 rounded-3xl ${theme.bg}`}></div>
@@ -112,7 +122,11 @@ export default function LivingNewsWall({ articles, category, icon, href }: Livin
           className={`col-span-2 row-span-2 relative rounded-lg overflow-hidden group transition-all duration-500 ${animatedItems.has(featuredArticle.id) ? 'opacity-100' : 'opacity-0'}`}
           style={{ ...getRippleStyle(featuredArticle.id, 1), animationDelay: '80ms', animationName: animatedItems.has(featuredArticle.id) ? 'article-enter' : 'none' }}
         >
-          <Link href={`/article/${featuredArticle.id}`}>
+          <Link 
+            href={getSafeUrl(featuredArticle)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Image src={featuredArticle.thumbnail_url || '/placeholder.png'} alt={featuredArticle.title} fill className={`object-cover transition-all duration-300 ease-in-out ${hoveredId === featuredArticle.id ? 'scale-105 brightness-100' : 'scale-100 brightness-75'}`} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
             <div className="absolute bottom-0 p-6 text-white">
@@ -131,7 +145,11 @@ export default function LivingNewsWall({ articles, category, icon, href }: Livin
             className={`relative rounded-lg overflow-hidden group transition-all duration-500 ${animatedItems.has(article.id) ? 'opacity-100' : 'opacity-0'}`}
             style={{ ...getRippleStyle(article.id, index + 2), animationDelay: `${(index + 2) * 80}ms`, animationName: animatedItems.has(article.id) ? 'article-enter' : 'none' }}
           >
-            <Link href={`/article/${article.id}`}>
+            <Link 
+              href={getSafeUrl(article)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Image src={article.thumbnail_url || '/placeholder.png'} alt={article.title} fill className={`object-cover transition-all duration-300 ease-in-out ${hoveredId === article.id ? 'scale-105 brightness-100' : 'scale-100 brightness-75'}`} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               <div className="absolute bottom-0 p-3 text-white">
@@ -152,7 +170,11 @@ export default function LivingNewsWall({ articles, category, icon, href }: Livin
             className={`relative rounded-lg overflow-hidden group h-48 transition-all duration-500 ${animatedItems.has(article.id) ? 'opacity-100' : 'opacity-0'}`}
             style={{ ...getRippleStyle(article.id, index + 6), animationDelay: `${(index + 6) * 80}ms`, animationName: animatedItems.has(article.id) ? 'article-enter' : 'none' }}
           >
-            <Link href={`/article/${article.id}`}>
+            <Link 
+              href={getSafeUrl(article)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Image src={article.thumbnail_url || '/placeholder.png'} alt={article.title} fill className="object-cover brightness-75 group-hover:brightness-100 transition-all" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               <h5 className="absolute bottom-0 p-2 text-xs font-bold text-white line-clamp-2">{article.title}</h5>

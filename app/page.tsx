@@ -1,133 +1,55 @@
-"use client";
-
-import Link from "next/link";
-import { useEffect, useState } from "react";
+export const dynamic = 'force-dynamic';
 import { getCategoryNews } from "@/lib/api/articles";
 import { getTopicDetail } from "@/lib/api/topics";
-import { Article, Topic } from "@/types";
-import { Briefcase, Flame, Landmark, MessageCircle, Newspaper, Palette, Users } from "lucide-react";
-import ChatRoom from "./components/ChatRoom";
-import TrendingTopics from "./components/TrendingTopics";
-import LatestNews from "./components/LatestNews";
+import { Article } from "@/types";
+import { Briefcase, Landmark, Palette, Users } from "lucide-react";
 import LivingNewsWall from "./components/LivingNewsWall";
+import MainGrid from "./components/MainGrid"; // Import the new client component
 
-const ViewAllLink = ({ href }: { href: string }) => (
-  <Link href={href} className="text-sm text-zinc-400 hover:text-red-500 transition-colors">
-    전체보기
-  </Link>
-);
+// This is now a Server Component
+export default async function Home() {
+  // Fetch all data on the server
+  const topicDetailPromise = getTopicDetail("1").catch(err => {
+    console.error("메인 페이지 토픽 로드 실패:", err);
+    return null;
+  });
 
-export default function Home() {
-  const [politicsNews, setPoliticsNews] = useState<Article[]>([]);
-  const [economyNews, setEconomyNews] = useState<Article[]>([]);
-  const [socialNews, setSocialNews] = useState<Article[]>([]);
-  const [cultureNews, setCultureNews] = useState<Article[]>([]);
-  const [latestNews, setLatestNews] = useState<Article[]>([]);
-  const [mainTopic, setMainTopic] = useState<Topic | null>(null); // State for the main topic
-  const [isLoading, setIsLoading] = useState(true);
-  const [topicTab, setTopicTab] = useState<"popular" | "latest">("popular");
+  const categories = ["정치", "경제", "사회", "문화"];
+  const newsPromises = categories.map((category) =>
+    getCategoryNews(category, 10).catch((err) => {
+      console.error(`메인 페이지 서버 렌더링 중 ${category} 뉴스 로드 실패:`, err);
+      return [];
+    })
+  );
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      setIsLoading(true);
-      
-      // Fetch Topic for ChatRoom
-      const topicDetailPromise = getTopicDetail("1").catch(err => {
-        console.error("메인 페이지 토픽 로드 실패:", err);
-        return null;
-      });
+  const [topicDetail, politicsNews, economyNews, socialNews, cultureNews] = await Promise.all([
+    topicDetailPromise,
+    ...newsPromises
+  ]);
 
-      // Fetch News Categories
-      const categories = ["정치", "경제", "사회", "문화"];
-      const newsPromises = categories.map((category) =>
-        getCategoryNews(category, 10).catch((err) => {
-          console.error(`메인 페이지 서버 렌더링 중 ${category} 뉴스 로드 실패:`, err);
-          return [];
-        })
-      );
+  const mainTopic = topicDetail ? topicDetail.topic : undefined;
 
-      const [topicDetail, ...newsResults] = await Promise.all([topicDetailPromise, ...newsPromises]);
-      const [politics, economy, social, culture] = newsResults;
-
-      if (topicDetail) {
-        setMainTopic(topicDetail.topic);
-      }
-
-      setPoliticsNews(politics);
-      setEconomyNews(economy);
-      setSocialNews(social);
-      setCultureNews(culture);
-
-      const allArticles = [...politics, ...economy, ...social, ...culture];
-      const uniqueArticlesMap = new Map<number, Article>();
-      allArticles.forEach((article) => {
-        uniqueArticlesMap.set(article.id, article);
-      });
-      const processedLatestNews = Array.from(uniqueArticlesMap.values())
-        .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
-        .slice(0, 10);
-      setLatestNews(processedLatestNews);
-
-      setIsLoading(false);
-    };
-
-    fetchAllData();
-  }, []);
+  // Calculate latestNews on the server
+  const allArticles = [...politicsNews, ...economyNews, ...socialNews, ...cultureNews];
+  const uniqueArticlesMap = new Map<number, Article>();
+  allArticles.forEach((article) => {
+    uniqueArticlesMap.set(article.id, article);
+  });
+  const latestNews = Array.from(uniqueArticlesMap.values())
+    .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+    .slice(0, 10);
 
   return (
     <div className="w-full max-w-[1920px] mx-auto px-12 md:px-16 lg:px-20 pt-2 md:pt-3 lg:pt-4">
       <main className="flex flex-col gap-6 lg:gap-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
-          <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col h-[665px] lg:h-[807px]">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-white">라운드톡</h2>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setTopicTab("popular")}
-                  className={`px-2 py-1 text-xs font-bold rounded-md transition-colors ${
-                    topicTab === "popular" ? "bg-red-600 text-white" : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
-                  }`}
-                >
-                  인기
-                </button>
-                <button
-                  onClick={() => setTopicTab("latest")}
-                  className={`px-2 py-1 text-xs font-bold rounded-md transition-colors ${
-                    topicTab === "latest" ? "bg-red-600 text-white" : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
-                  }`}
-                >
-                  최신
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 min-h-0">
-              <TrendingTopics displayMode={topicTab} />
-            </div>
-          </div>
+        {/* Render the client component with data as props */}
+        <MainGrid 
+          mainTopic={mainTopic} 
+          latestNews={latestNews}
+          isLoading={false} // Data is pre-fetched, so isLoading is false
+        />
 
-          <div className="rounded-2xl md:col-span-2 xl:col-span-2 h-[665px] lg:h-[807px] flex flex-col">
-            <div className="flex-1 min-h-0">
-              <ChatRoom topic={mainTopic || undefined} />
-            </div>
-          </div>
-
-          <div className="rounded-2xl p-6 xl:col-span-1 flex flex-col h-[665px] lg:h-[807px]">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-white">최신 뉴스</h2>
-              </div>
-              <div className="px-3 py-1.5 border border-zinc-700 rounded-full text-xs font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 hover:border-zinc-600 hover:text-white">
-                <ViewAllLink href="/latest-news" />
-              </div>
-            </div>
-            <div className="flex-1 min-h-0">
-              {isLoading ? <div className="text-center pt-10">로딩 중...</div> : <LatestNews articles={latestNews} />}
-            </div>
-          </div>
-        </div>
-
+        {/* These components are simple enough to not need to be client components */}
         <LivingNewsWall 
           category="정치" 
           icon={<Landmark />} 
