@@ -120,7 +120,7 @@ export default function TopicDetailPage() {
         <main className="lg:col-span-6">
           <div className="border border-zinc-700 rounded-lg h-[665px] lg:h-[807px] flex flex-col">
             <div className="flex-1 min-h-0">
-              <ChatRoom topic={topic} />
+              <ChatRoom topic={topic} articles={articles} />
             </div>
           </div>
         </main>

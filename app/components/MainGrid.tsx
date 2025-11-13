@@ -53,7 +53,7 @@ export default function MainGrid({ mainTopic, latestNews, isLoading }: MainGridP
         </div>
       </div>
 
-      <div className="rounded-2xl md:col-span-2 xl:col-span-2 h-[665px] lg:h-[807px] flex flex-col">
+      <div className="relative z-20 rounded-2xl md:col-span-2 xl:col-span-2 h-[665px] lg:h-[807px] flex flex-col">
         <div className="flex-1 min-h-0">
           <ChatRoom topic={mainTopic} />
         </div>

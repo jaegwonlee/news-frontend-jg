@@ -50,7 +50,7 @@ export async function getExclusiveNews(): Promise<Article[]> {
   }
 }
 
-import { mockArticles } from '../mockData';
+
 
 /**
  * @function getCategoryNews
@@ -62,15 +62,6 @@ import { mockArticles } from '../mockData';
  * @returns {Promise<Article[]>} - 해당 카테고리의 기사 객체 배열을 반환하는 프로미스.
  */
 export async function getCategoryNews(categoryName: string, limit: number = 10, token?: string): Promise<Article[]> {
-  // 개발 환경에서는 목업 데이터를 사용합니다.
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[Mock Data] Filtering for category: "${categoryName}"`);
-    // console.log('[Mock Data] All mock articles:', mockArticles); // 너무 길어서 주석 처리
-    const filtered = mockArticles.filter(article => article.category === categoryName);
-    console.log('[Mock Data] Filtered articles count:', filtered.length);
-    return Promise.resolve(filtered.slice(0, limit));
-  }
-
   // 프로덕션 환경에서는 실제 API를 호출합니다.
   const encodedCategoryName = encodeURIComponent(categoryName);
   const apiUrl = `/api/articles/by-category?name=${encodedCategoryName}&limit=${limit}&offset=0`;

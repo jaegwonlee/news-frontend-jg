@@ -212,6 +212,40 @@ export async function deleteChatMessage(messageId: number, token: string): Promi
 }
 
 /**
+ * Gets a presigned URL for uploading a file to S3.
+ * @param token The user's authentication token.
+ * @param fileName The name of the file to upload.
+ * @param fileType The MIME type of the file.
+ * @returns An object containing the uploadUrl and the final fileUrl.
+ */
+export async function getPresignedUrlForChat(token: string, fileName: string, fileType: string): Promise<{ uploadUrl: string, fileUrl: string }> {
+  const response = await fetchWrapper(`/api/chat/presigned-url`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ fileName, fileType }),
+  });
+
+  if (!response.ok) {
+    let errorMessage = 'Presigned URL 생성에 실패했습니다.';
+    try {
+      const errorData = await response.json();
+      if (errorData && errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } catch (e) {
+      // If JSON parsing fails, use the raw text response for better debugging
+      const textResponse = await response.text();
+      errorMessage = `서버 오류 (${response.status} ${response.statusText}): ${textResponse}`;
+    }
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+/**
  * Reports a chat message.
  * @param messageId The ID of the message to report.
  * @param message The content of the message being reported.

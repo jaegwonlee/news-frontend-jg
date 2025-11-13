@@ -5,11 +5,12 @@ import { Send, Loader2, AlertTriangle, MessageSquareText, Trash2, Siren, Users, 
 import { useSocket } from '@/app/context/SocketContext';
 import { useAuth } from '@/app/context/AuthContext';
 import Image from 'next/image';
-import { getChatHistory, ApiChatMessage, sendChatMessage, deleteChatMessage, reportChatMessage } from '@/lib/api/topics';
+import { getChatHistory, ApiChatMessage, sendChatMessage, deleteChatMessage, reportChatMessage, getPresignedUrlForChat } from '@/lib/api/topics';
 import ConfirmationPopover from './common/ConfirmationPopover';
 import { BACKEND_BASE_URL } from '@/lib/constants';
-import { Topic } from '@/types';
 import { format } from 'date-fns';
+import { Topic, Article } from '@/types';
+import ChatArticleCard from './ChatArticleCard';
 
 type Message = {
   id: number;
@@ -21,7 +22,7 @@ type Message = {
 
 type SearchResult = {
   messageId: number;
-  matchIndex: number; // Index of the match within the message string
+  matchIndex: number;
 };
 
 const getFullImageUrl = (url?: string): string => {
@@ -38,107 +39,19 @@ const formatTimestamp = (dateString: string) => {
   }
 };
 
-const renderMessageWithHighlight = (message: string, query: string, activeResult: SearchResult | null, messageId: number) => {
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-  const videoExtensions = ['.mp4', '.webm', '.ogg'];
-  
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-  const renderMedia = (url: string, key: string | number) => {
-    try {
-      const urlObject = new URL(url);
-      const extension = urlObject.pathname.substring(urlObject.pathname.lastIndexOf('.')).toLowerCase();
-      const filename = urlObject.pathname.substring(urlObject.pathname.lastIndexOf('/') + 1);
-
-      const mediaContainer = (children: React.ReactNode) => (
-        <div key={key} className="relative group/media mt-2">
-          {children}
-          <a
-            href={url}
-            download={filename}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute top-2 right-2 bg-black/50 p-1.5 rounded-full text-white opacity-0 group-hover/media:opacity-100 transition-opacity"
-            title={`Download ${filename}`}
-          >
-            <Download className="w-4 h-4" />
-          </a>
-        </div>
-      );
-
-      if (imageExtensions.includes(extension)) {
-        return mediaContainer(
-          <Image src={url} alt="User uploaded content" width={300} height={200} className="rounded-lg object-cover max-w-full h-auto" unoptimized />
-        );
-      }
-      if (videoExtensions.includes(extension)) {
-        return mediaContainer(
-          <video src={url} controls width="300" className="rounded-lg max-w-full" />
-        );
-      }
-    } catch (e) {
-      // Invalid URL, treat as plain text
-    }
-    return <a key={key} href={url} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:underline">{url}</a>;
-  };
-
-  if (!query) {
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-    message.replace(urlRegex, (match, url, index) => {
-      if (index > lastIndex) parts.push(message.substring(lastIndex, index));
-      parts.push(renderMedia(url, index));
-      lastIndex = index + match.length;
-      return match;
-    });
-    if (lastIndex < message.length) parts.push(message.substring(lastIndex));
-    return parts;
-  }
-
-  const escapedQuery = query.replace(/[.*+?^${}()|[\\]/g, '\\$&');
-  const combinedRegex = new RegExp(`(${escapedQuery})|(${urlRegex.source})`, 'gi');
-  
-  const parts: React.ReactNode[] = [];
-  let lastIndex = 0;
-  let matchCount = 0;
-
-  message.replace(combinedRegex, (match, queryMatch, url, index) => {
-    if (index > lastIndex) {
-      parts.push(message.substring(lastIndex, index));
-    }
-    if (url) {
-      parts.push(renderMedia(url, `url-${index}`));
-    } else if (queryMatch) {
-      const isCurrentActive = activeResult?.messageId === messageId && activeResult?.matchIndex === matchCount;
-      parts.push(
-        <mark key={`mark-${index}-${matchCount}`} className={`${isCurrentActive ? 'bg-orange-500' : 'bg-yellow-400'} text-black rounded px-0.5`}>
-          {queryMatch}
-        </mark>
-      );
-      matchCount++;
-    }
-    lastIndex = index + match.length;
-    return match;
-  });
-
-  if (lastIndex < message.length) {
-    parts.push(message.substring(lastIndex));
-  }
-
-  return parts;
-};
-
 interface ChatRoomProps {
   topic?: Topic;
+  articles?: Article[];
 }
 
-export default function ChatRoom({ topic }: ChatRoomProps) {
+export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
   const { socket, isConnected, error: socketError } = useSocket();
   const { user, token } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoadingHistory, setIsLoadingHistory] = useState(!!topic?.id);
   const [isSending, setIsSending] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [dialog, setDialog] = useState<{ type: 'delete' | 'report'; messageId: number; } | null>(null);
   
   const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -146,27 +59,196 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [currentResultIndex, setCurrentResultIndex] = useState(-1);
 
+  const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState<string | null>(null);
+
   const room = topic?.id ? `topic-${topic.id}` : 'mainpage';
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Effect for lightbox (image zoom)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setZoomedImageUrl(null);
+      }
+    };
+
+    if (zoomedImageUrl) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [zoomedImageUrl]);
+
+  const handleDownload = async (url: string, filename: string) => {
+    if (isDownloading === url) return;
+    setIsDownloading(url);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        // Fallback for cross-origin issues: open in new tab
+        window.open(url, '_blank');
+        throw new Error('Response not OK, opening in new tab.');
+      }
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error('Download error:', error);
+      if (!`${error}`.includes('new tab')) {
+        alert('파일을 다운로드하는 데 실패했습니다. 새 탭에서 이미지를 열어 수동으로 저장해주세요.');
+        window.open(url, '_blank');
+      }
+    } finally {
+      setIsDownloading(null);
+    }
+  };
+
+  const renderMessageContent = (msg: Message, activeResult: SearchResult | null) => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const videoExtensions = ['.mp4', '.webm', '.ogg'];
+    const s3UrlPrefix = 'https://news-upload-rsteam.s3.ap-northeast-2.amazonaws.com/chats/';
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    const renderMedia = (url: string, key: string | number) => {
+      try {
+        const pathname = url.split('?')[0];
+        const extension = pathname.substring(pathname.lastIndexOf('.')).toLowerCase();
+        const filename = decodeURIComponent(pathname.substring(pathname.lastIndexOf('/') + 1));
+
+        const mediaContainer = (children: React.ReactNode) => (
+          <div key={key} className="relative group/media mt-2">
+            {children}
+            <button
+              onClick={() => handleDownload(url, filename)}
+              className="absolute top-2 right-2 bg-black/50 p-1.5 rounded-full text-white opacity-0 group-hover/media:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-wait"
+              title={`Download ${filename}`}
+              disabled={isDownloading === url}
+            >
+              {isDownloading === url ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            </button>
+          </div>
+        );
+
+        if (imageExtensions.includes(extension)) {
+          return mediaContainer(
+            <Image 
+              src={url} 
+              alt="User uploaded content" 
+              width={300} 
+              height={200} 
+              className="rounded-lg object-cover max-w-full h-auto cursor-pointer" 
+              unoptimized 
+              onClick={() => setZoomedImageUrl(url)}
+            />
+          );
+        }
+        if (videoExtensions.includes(extension)) {
+          return mediaContainer(
+            <video src={url} controls width="300" className="rounded-lg max-w-full" />
+          );
+        }
+      } catch (e) {
+        // Fallback for safety
+      }
+      return <a key={key} href={url} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:underline">{url}</a>;
+    };
+
+    if (msg.message.startsWith(s3UrlPrefix)) {
+      return renderMedia(msg.message, `s3-media-${msg.id}`);
+    }
+
+    const articleMatches = [...msg.message.matchAll(urlRegex)];
+    if (articles.length > 0 && articleMatches.length > 0) {
+      let lastIndex = 0;
+      const parts: React.ReactNode[] = [];
+      let hasArticleCard = false;
+      for (const match of articleMatches) {
+        const url = match[0];
+        const index = match.index!;
+        const matchedArticle = articles.find(a => a.url === url);
+        if (matchedArticle) {
+          hasArticleCard = true;
+          if (index > lastIndex) parts.push(msg.message.substring(lastIndex, index));
+          parts.push(<ChatArticleCard key={`article-${matchedArticle.id}-${index}`} article={matchedArticle} />);
+          lastIndex = index + url.length;
+        }
+      }
+      if (hasArticleCard) {
+        if (lastIndex < msg.message.length) parts.push(msg.message.substring(lastIndex));
+        return <>{parts}</>;
+      }
+    }
+
+    if (!searchQuery) {
+      const parts: React.ReactNode[] = [];
+      let lastIndex = 0;
+      msg.message.replace(urlRegex, (match, url, index) => {
+        if (index > lastIndex) parts.push(msg.message.substring(lastIndex, index));
+        parts.push(renderMedia(url, index));
+        lastIndex = index + match.length;
+        return match;
+      });
+      if (lastIndex < msg.message.length) parts.push(msg.message.substring(lastIndex));
+      return <>{parts}</>;
+    }
+
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\\]/g, '\\$&');
+    const combinedRegex = new RegExp(`(${escapedQuery})|(${urlRegex.source})`, 'gi');
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let matchCount = 0;
+    msg.message.replace(combinedRegex, (match, queryMatch, url, index) => {
+      if (index > lastIndex) parts.push(msg.message.substring(lastIndex, index));
+      if (url) {
+        parts.push(renderMedia(url, `url-${index}`));
+      } else if (queryMatch) {
+        const isCurrentActive = activeResult?.messageId === msg.id && activeResult?.matchIndex === matchCount;
+        parts.push(<mark key={`mark-${index}-${matchCount}`} className={`${isCurrentActive ? 'bg-orange-500' : 'bg-yellow-400'} text-black rounded px-0.5`}>{queryMatch}</mark>);
+        matchCount++;
+      }
+      lastIndex = index + match.length;
+      return match;
+    });
+    if (lastIndex < msg.message.length) parts.push(msg.message.substring(lastIndex));
+    return <>{parts}</>;
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !token || !topic?.id) return;
 
-    console.log("Selected file:", file);
-    // TODO: Implement file upload logic here
-    // 1. Show a preview of the image/video
-    // 2. Create FormData
-    // 3. POST to the (yet to be created) backend endpoint
-    // 4. On success, get the URL and send it as a chat message
-    alert(`File selected: ${file.name}. Upload functionality is not yet connected to the backend.`);
-
-    // Reset the file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    setIsUploading(true);
+    try {
+      const { uploadUrl, fileUrl } = await getPresignedUrlForChat(token, file.name, file.type);
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      if (!uploadResponse.ok) throw new Error('S3 업로드에 실패했습니다.');
+      await sendChatMessage(topic.id, fileUrl, token);
+    } catch (error) {
+      console.error("File upload failed:", error);
+      alert(`파일 업로드 중 오류가 발생했습니다: ${(error as Error).message}`);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -180,19 +262,15 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
       setCurrentResultIndex(-1);
       return;
     }
-
     const results: SearchResult[] = [];
-    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Corrected regex
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(escapedQuery, 'gi');
-
     messages.forEach(msg => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       let match;
       while ((match = regex.exec(msg.message)) !== null) {
         results.push({ messageId: msg.id, matchIndex: results.filter(r => r.messageId === msg.id).length });
       }
     });
-
     setSearchResults(results);
     setCurrentResultIndex(results.length > 0 ? 0 : -1);
   }, [searchQuery, messages]);
@@ -247,22 +325,19 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
     if (socket && room) {
       socket.emit('join_room', room);
       const messageListener = (data: ApiChatMessage) => {
-        const receivedMessage: Message = {
+        setMessages((prev) => [...prev, {
           id: data.id,
           author: data.author,
           message: data.message,
           profile_image_url: getFullImageUrl(data.profile_image_url),
           created_at: data.created_at,
-        };
-        setMessages((prev) => [...prev, receivedMessage]);
+        }]);
       };
       socket.on('receive_message', messageListener);
-
       const deleteListener = (data: { messageId: number }) => {
         setMessages((prev) => prev.map((m) => m.id === data.messageId ? { ...m, message: '메시지가 삭제되었습니다.' } : m));
       };
       socket.on('message_deleted', deleteListener);
-
       return () => {
         socket.off('receive_message', messageListener);
         socket.off('message_deleted', deleteListener);
@@ -293,21 +368,16 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
   };
 
   const openConfirmation = (e: React.MouseEvent<HTMLButtonElement>, type: 'delete' | 'report', messageId: number) => {
-    setDialog({
-      type,
-      messageId,
-    });
+    setDialog({ type, messageId });
   };
 
   const confirmAction = async () => {
     if (!dialog || !token) return;
     const { type, messageId } = dialog;
     setDialog(null);
-
     try {
-      if (type === 'delete') {
-        await deleteChatMessage(messageId, token);
-      } else if (type === 'report') {
+      if (type === 'delete') await deleteChatMessage(messageId, token);
+      else if (type === 'report') {
         await reportChatMessage(messageId, token);
         alert('메시지가 성공적으로 신고되었습니다.');
       }
@@ -329,164 +399,165 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
 
   return (
     <div ref={chatContainerRef} className="chat-background-boxing flex flex-col h-full relative rounded-2xl overflow-hidden">
-          <div className="flex justify-between items-center p-3 border-b border-zinc-700/80 h-16 shrink-0 bg-zinc-900/50 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-white truncate">
-                {topic?.id === 1 ? "Round 1" : (topic ? topic.display_name : "실시간 채팅")}
-              </h2>
-              <div className="flex items-center text-sm text-zinc-400">
-                <Users className="w-4 h-4 mr-1" />
-                <span>{topic ? '12' : '...'}</span> 
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setIsSearchVisible(true)} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">
-                <Search className="w-5 h-5" />
-              </button>
-              <button className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">
-                <MoreVertical className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+      <div className="flex justify-between items-center p-3 border-b border-zinc-700/80 h-16 shrink-0 bg-zinc-900/50 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-bold text-white truncate">{topic?.id === 1 ? "Round 1" : (topic ? topic.display_name : "실시간 채팅")}</h2>
+          <div className="flex items-center text-sm text-zinc-400"><Users className="w-4 h-4 mr-1" /><span>{topic ? '12' : '...'}</span></div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setIsSearchVisible(true)} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors"><Search className="w-5 h-5" /></button>
+          <button className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors"><MoreVertical className="w-5 h-5" /></button>
+        </div>
+      </div>
     
-          {isSearchVisible && (
-            <div className="absolute top-0 left-0 right-0 bg-zinc-900/95 backdrop-blur-sm z-20 h-16 flex items-center px-3 border-b border-zinc-700 animate-fade-in-down">
-              <div className="flex items-center flex-1">
-                <Search className="w-5 h-5 text-zinc-400 shrink-0" />
-                <input type="text" placeholder="채팅 내용 검색..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleNavigateResult('next'); } }} autoFocus className="flex-1 bg-transparent px-3 text-white placeholder-zinc-500 focus:outline-none" />
-              </div>
-              {searchQuery && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-zinc-400 w-20 text-center">{searchResults.length > 0 ? `${currentResultIndex + 1} / ${searchResults.length}` : '0 / 0'}</span>
-                  <button onClick={(e) => { e.preventDefault(); handleNavigateResult('prev'); }} disabled={searchResults.length === 0} className="p-2 text-zinc-400 hover:text-white disabled:text-zinc-600 disabled:cursor-not-allowed"><ChevronUp className="w-5 h-5" /></button>
-                  <button onClick={(e) => { e.preventDefault(); handleNavigateResult('next'); }} disabled={searchResults.length === 0} className="p-2 text-zinc-400 hover:text-white disabled:text-zinc-600 disabled:cursor-not-allowed"><ChevronDown className="w-5 h-5" /></button>
-                </div>
-              )}
-              <button onClick={() => { setIsSearchVisible(false); setSearchQuery(''); }} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors ml-2"><X className="w-5 h-5" /></button>
+      {isSearchVisible && (
+        <div className="absolute top-0 left-0 right-0 bg-zinc-900/95 backdrop-blur-sm z-20 h-16 flex items-center px-3 border-b border-zinc-700 animate-fade-in-down">
+          <div className="flex items-center flex-1">
+            <Search className="w-5 h-5 text-zinc-400 shrink-0" />
+            <input type="text" placeholder="채팅 내용 검색..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleNavigateResult('next'); } }} autoFocus className="flex-1 bg-transparent px-3 text-white placeholder-zinc-500 focus:outline-none" />
+          </div>
+          {searchQuery && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-zinc-400 w-20 text-center">{searchResults.length > 0 ? `${currentResultIndex + 1} / ${searchResults.length}` : '0 / 0'}</span>
+              <button onClick={(e) => { e.preventDefault(); handleNavigateResult('prev'); }} disabled={searchResults.length === 0} className="p-2 text-zinc-400 hover:text-white disabled:text-zinc-600 disabled:cursor-not-allowed"><ChevronUp className="w-5 h-5" /></button>
+              <button onClick={(e) => { e.preventDefault(); handleNavigateResult('next'); }} disabled={searchResults.length === 0} className="p-2 text-zinc-400 hover:text-white disabled:text-zinc-600 disabled:cursor-not-allowed"><ChevronDown className="w-5 h-5" /></button>
             </div>
           )}
-    
-          {dialog && <ConfirmationPopover title={dialog.type === 'delete' ? '메시지 삭제' : '메시지 신고'} message={dialog.type === 'delete' ? '이 메시지를 삭제하시겠습니까?' : '이 메시지를 신고하시겠습니까?'} confirmText={dialog.type === 'delete' ? '삭제' : '신고'} cancelText="취소" onConfirm={confirmAction} onCancel={cancelAction} />}
-          
-          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4 bg-transparent">
-            {isLoadingHistory ? (
-              <div className="flex justify-center items-center h-full text-zinc-400"><Loader2 className="w-8 h-8 animate-spin" /><p className="ml-3 text-lg">이전 대화 기록을 불러오는 중...</p></div>
-            ) : (
-              <>
-                {messages.length === 0 && (
-                  <div className="flex flex-col justify-center items-center h-full text-zinc-500">
-                    <MessageSquareText size={48} />
-                    <p className="mt-4 text-lg font-semibold">지금 첫 번째 메시지를 보내</p>
-                    <p>토론을 시작해 보세요!</p>
-                  </div>
-                )}
-                {messages.map((msg) => {
-                  const isMyMessage = user ? msg.author === (user.nickname || user.name) : false;
-                  const activeResult = searchResults[currentResultIndex];
-                  return (
-                    <div key={msg.id} ref={(el) => { if (el) messageRefs.current.set(msg.id, el); else messageRefs.current.delete(msg.id); }} data-message-id={msg.id}>
-                      {isMyMessage ? (
-                        <div className="group flex justify-end animate-fade-in-up">
-                          <div className="flex flex-col gap-1 items-end">
-                            <div className="flex gap-1 items-end flex-row-reverse">
-                              <div className="px-3 py-2 rounded-2xl max-w-xs lg:max-w-md wrap-break-word bg-blue-600 text-white">
-                                <p className="text-sm">{renderMessageWithHighlight(msg.message, searchQuery, activeResult, msg.id)}</p>
-                              </div>
-                              <span className="text-[10px] text-zinc-500 whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
-                              {msg.message !== "메시지가 삭제되었습니다." && (
-                                <div className="flex items-center self-end shrink-0"><button onClick={(e) => openConfirmation(e, 'delete', msg.id)} className="text-zinc-400 hover:text-red-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 삭제"><Trash2 className="w-4 h-4" /></button></div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="group flex gap-2.5 animate-fade-in-up">
-                          <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-zinc-700 mt-1"><Image src={msg.profile_image_url!} alt={`${msg.author}'s profile`} fill className="rounded-full object-cover" unoptimized /></div>
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-sm text-zinc-400 font-medium">{msg.author}</span>
-                            <div className="flex gap-1 items-end">
-                              <div className="px-3 py-2 rounded-2xl max-w-xs lg:max-w-md wrap-break-word bg-zinc-700 text-white">
-                                <p className="text-sm">{renderMessageWithHighlight(msg.message, searchQuery, activeResult, msg.id)}</p>
-                              </div>
-                              <span className="text-[10px] text-zinc-500 whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
-                              {msg.message !== "메시지가 삭제되었습니다." && (
-                                <div className="flex items-center self-end shrink-0"><button onClick={(e) => openConfirmation(e, 'report', msg.id)} className="text-zinc-500 hover:text-yellow-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 신고"><Siren className="w-4 h-4" /></button></div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                <div ref={messagesEndRef} />
-              </>
-            )}
-          </div>
-    
-          <div className="shrink-0 px-4 py-4 bg-zinc-900/50 backdrop-blur-sm">
-            {socketError && (<div className="flex items-center text-red-500 text-xs mb-2"><AlertTriangle className="w-4 h-4 mr-1" />{socketError}</div>)}
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-              <input type="file" ref={fileInputRef} onChange={handleFileSelect} style={{ display: 'none' }} accept="image/*,video/*" />
-              <button 
-                type="button" 
-                onClick={() => fileInputRef.current?.click()} 
-                className="p-2 h-10 w-10 flex justify-center items-center bg-zinc-700 hover:bg-zinc-600 rounded-md text-zinc-300 transition-colors disabled:bg-zinc-800 disabled:cursor-not-allowed" 
-                disabled={!isConnected || !user || !!socketError || isSending || !topic}
-                title="Attach file"
-              >
-                <Paperclip className="w-5 h-5" />
-              </button>
-              <input type="text" placeholder={getPlaceholderText()} disabled={!isConnected || !user || !!socketError || isSending || !topic} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-              <button type="submit" disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic} className={`p-2 h-10 w-10 flex justify-center items-center bg-blue-600 rounded-md text-white transition-all duration-200 ease-in-out disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${!(!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic) ? 'scale-110' : ''}`}>
-                {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-              </button>
-            </form>
-          </div>
-          <style jsx>{`
-            .chat-background-boxing {
-              /* 복싱 링 로프 효과 */
-              box-shadow:
-                /* 안쪽 밝은 로프 */
-                0 0 0 1px rgba(255, 100, 100, 0.8),
-                /* 중간 두께 로프 */
-                0 0 0 3px rgba(200, 0, 0, 0.6),
-                /* 바깥쪽 네온 효과 */
-                0 0 15px 5px rgba(255, 0, 0, 0.4);
-              
-              /* --- 기존 내부 배경 스타일 --- */
-              background-color: transparent;
-              position: relative;
-              z-index: 0;
-            }
-            .chat-background-boxing::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              z-index: -2;
-              background-image: url('/360_F_948079407_7qSn6DZAT9njgxFGhumiviPQyur2ThqV.jpg');
-              background-size: cover;
-              background-position: center;
-              background-repeat: no-repeat;
-              opacity: 0.25;
-              filter: blur(1px);
-              border-radius: 1rem; /* 부모와 동일한 radius 적용 */
-            }
-            .chat-background-boxing::after {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              z-index: -1;
-              background-color: rgba(0, 0, 0, 0.3);
-              border-radius: 1rem; /* 부모와 동일한 radius 적용 */
-            }
-          `}</style>
+          <button onClick={() => { setIsSearchVisible(false); setSearchQuery(''); }} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors ml-2"><X className="w-5 h-5" /></button>
         </div>
-      );
-    }
+      )}
+    
+      {dialog && <ConfirmationPopover title={dialog.type === 'delete' ? '메시지 삭제' : '메시지 신고'} message={dialog.type === 'delete' ? '이 메시지를 삭제하시겠습니까?' : '이 메시지를 신고하시겠습니까?'} confirmText={dialog.type === 'delete' ? '삭제' : '신고'} cancelText="취소" onConfirm={confirmAction} onCancel={cancelAction} />}
+      
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4 bg-transparent">
+        {isLoadingHistory ? (
+          <div className="flex justify-center items-center h-full text-zinc-400"><Loader2 className="w-8 h-8 animate-spin" /><p className="ml-3 text-lg">이전 대화 기록을 불러오는 중...</p></div>
+        ) : (
+          <>
+            {messages.length === 0 && (
+              <div className="flex flex-col justify-center items-center h-full text-zinc-500">
+                <MessageSquareText size={48} />
+                <p className="mt-4 text-lg font-semibold">지금 첫 번째 메시지를 보내</p>
+                <p>토론을 시작해 보세요!</p>
+              </div>
+            )}
+            {messages.map((msg) => {
+              const isMyMessage = user ? msg.author === (user.nickname || user.name) : false;
+              const activeResult = searchResults[currentResultIndex];
+              return (
+                <div key={msg.id} ref={(el) => { if (el) messageRefs.current.set(msg.id, el); else messageRefs.current.delete(msg.id); }} data-message-id={msg.id}>
+                  {isMyMessage ? (
+                    <div className="group flex justify-end animate-fade-in-up">
+                      <div className="flex flex-col gap-1 items-end">
+                        <div className="flex gap-1 items-end flex-row-reverse">
+                          <div className="px-3 py-2 rounded-2xl max-w-xs lg:max-w-md wrap-break-word bg-blue-600 text-white">
+                            <div className="text-sm">{renderMessageContent(msg, activeResult)}</div>
+                          </div>
+                          <span className="text-[10px] text-zinc-500 whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
+                          {msg.message !== "메시지가 삭제되었습니다." && (
+                            <div className="flex items-center self-end shrink-0"><button onClick={(e) => openConfirmation(e, 'delete', msg.id)} className="text-zinc-400 hover:text-red-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 삭제"><Trash2 className="w-4 h-4" /></button></div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="group flex gap-2.5 animate-fade-in-up">
+                      <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-zinc-700 mt-1"><Image src={msg.profile_image_url!} alt={`${msg.author}'s profile`} fill className="rounded-full object-cover" unoptimized /></div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-sm text-zinc-400 font-medium">{msg.author}</span>
+                        <div className="flex gap-1 items-end">
+                          <div className="px-3 py-2 rounded-2xl max-w-xs lg:max-w-md wrap-break-word bg-zinc-700 text-white">
+                            <div className="text-sm">{renderMessageContent(msg, activeResult)}</div>
+                          </div>
+                          <span className="text-[10px] text-zinc-500 whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
+                          {msg.message !== "메시지가 삭제되었습니다." && (
+                            <div className="flex items-center self-end shrink-0"><button onClick={(e) => openConfirmation(e, 'report', msg.id)} className="text-zinc-500 hover:text-yellow-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 신고"><Siren className="w-4 h-4" /></button></div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </div>
+    
+      <div className="shrink-0 px-4 py-4 bg-zinc-900/50 backdrop-blur-sm">
+        {socketError && (<div className="flex items-center text-red-500 text-xs mb-2"><AlertTriangle className="w-4 h-4 mr-1" />{socketError}</div>)}
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+          <input type="file" ref={fileInputRef} onChange={handleFileSelect} style={{ display: 'none' }} accept="image/*,video/*" />
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 h-10 w-10 flex justify-center items-center bg-zinc-700 hover:bg-zinc-600 rounded-md text-zinc-300 transition-colors disabled:bg-zinc-800 disabled:cursor-not-allowed" disabled={!isConnected || !user || !!socketError || isSending || isUploading || !topic} title="Attach file">
+            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
+          </button>
+          <input type="text" placeholder={getPlaceholderText()} disabled={!isConnected || !user || !!socketError || isSending || isUploading || !topic} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+          <button type="submit" disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending || isUploading || !topic} className={`p-2 h-10 w-10 flex justify-center items-center bg-blue-600 rounded-md text-white transition-all duration-200 ease-in-out disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${!(!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic) ? 'scale-110' : ''}`}>
+            {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+          </button>
+        </form>
+      </div>
+
+      {/* --- Improved Image Lightbox --- */}
+      {zoomedImageUrl && (
+        <div
+          className="fixed inset-0 bg-zinc-900/80 flex items-center justify-center p-4 sm:p-8 z-[9999] animate-fade-in-fast"
+          onClick={() => setZoomedImageUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white opacity-80 hover:opacity-100 transition-opacity z-[10001]"
+            title="Close (Esc)"
+            onClick={() => setZoomedImageUrl(null)}
+          >
+            <X size={32} />
+          </button>
+          <div
+            className="relative max-w-full max-h-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={zoomedImageUrl}
+              alt="Zoomed content"
+              className="block max-w-full max-h-full object-contain animate-zoom-in opacity-100"
+            />
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .chat-background-boxing {
+          box-shadow: 0 0 0 1px rgba(255, 100, 100, 0.8), 0 0 0 3px rgba(200, 0, 0, 0.6), 0 0 15px 5px rgba(255, 0, 0, 0.4);
+          background-color: transparent;
+          position: relative;
+          z-index: 0;
+        }
+        .chat-background-boxing::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          z-index: -2;
+          background-image: url('/360_F_948079407_7qSn6DZAT9njgxFGhumiviPQyur2ThqV.jpg');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          opacity: 0.25;
+          filter: blur(1px);
+          border-radius: 1rem;
+        }
+        .chat-background-boxing::after {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          z-index: -1;
+          background-color: rgba(0, 0, 0, 0.3);
+          border-radius: 1rem;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in-fast { animation: fadeIn 0.2s ease-out forwards; }
+        @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .animate-zoom-in { animation: zoomIn 0.2s ease-out forwards; }
+      `}</style>
+    </div>
+  );
+}

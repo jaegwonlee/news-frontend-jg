@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { formatRelativeTime } from '@/lib/utils'; // Import the correct function
+import { format } from 'date-fns'; // Import date-fns format
 
 interface ClientOnlyTimeProps {
   date: string;
+  format?: string; // Add optional format prop
 }
 
-export default function ClientOnlyTime({ date }: ClientOnlyTimeProps) {
+export default function ClientOnlyTime({ date, format: formatStr }: ClientOnlyTimeProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -30,6 +32,9 @@ export default function ClientOnlyTime({ date }: ClientOnlyTimeProps) {
     return <time dateTime={getKstIsoString(date)}></time>;
   }
 
-  // After mounting on the client, render the relative time
-  return <time dateTime={getKstIsoString(date)}>{formatRelativeTime(date)}</time>;
+  const dateObj = new Date(date);
+  const displayTime = formatStr ? format(dateObj, formatStr) : formatRelativeTime(date);
+
+  // After mounting on the client, render the relative time or formatted time
+  return <time dateTime={getKstIsoString(date)}>{displayTime}</time>;
 }
