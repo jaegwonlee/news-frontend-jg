@@ -46,7 +46,16 @@ export const useLikedArticles = () => {
         setIsLoading(false);
       }
     };
+    
     fetchLiked();
+
+    // Add event listener for window focus to refetch data
+    window.addEventListener('focus', fetchLiked);
+
+    // Cleanup the event listener
+    return () => {
+      window.removeEventListener('focus', fetchLiked);
+    };
   }, [token, logout, router]);
 
   const handleUnlike = useCallback((articleId: number) => {

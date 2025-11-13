@@ -41,7 +41,23 @@ export default function LivingNewsWall({ articles, category, icon, href }: Livin
   }, [articles]);
 
   if (!articles || articles.length === 0) {
-    return null;
+    return (
+      <div className={`relative w-full my-8`}>
+        <div className={`absolute inset-0 rounded-3xl ${theme.bg}`}></div>
+        <div className="relative flex flex-col items-center justify-center h-[450px] p-4 text-center">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/20">
+              {icon}
+            </div>
+            <h2 className="text-xl font-bold text-white">{category}</h2>
+          </div>
+          <p className="text-zinc-400">이 카테고리에는 현재 기사가 없습니다.</p>
+          <Link href={href} className="mt-4 text-zinc-300 hover:text-white transition-colors flex items-center gap-2">
+            더보기 <ArrowRight size={16} />
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const featuredArticle = articles[0];

@@ -1,114 +1,84 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import { User } from '@/types';
 import { useSavedArticlesManager } from '@/hooks/useSavedArticles';
 import { useLikedArticles } from '@/hooks/useLikedArticles';
-import { Bookmark, Heart, User as UserIcon, Phone, Info } from 'lucide-react';
+import { Bookmark, Heart } from 'lucide-react';
 
 interface ProfileHeaderProps {
   profile: User;
+  onEditClick: () => void;
 }
 
-type InnerTab = 'info' | 'activity';
-
-export default function ProfileHeader({ profile }: ProfileHeaderProps) {
-  const [innerTab, setInnerTab] = useState<InnerTab>('info');
+export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderProps) {
   const { articles: savedArticles } = useSavedArticlesManager();
   const { articles: likedArticles } = useLikedArticles();
 
-  const TabButton = ({ tab, label }: { tab: InnerTab; label: string }) => (
-    <button
-      type="button"
-      onClick={() => setInnerTab(tab)}
-      className={`px-6 py-2.5 text-sm font-bold rounded-full transition-all duration-300 ${
-        innerTab === tab ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-      }`}
-    >
-      {label}
-    </button>
-  );
-
-  const infoItems = [
-    { icon: <UserIcon className="w-5 h-5 text-zinc-400" />, label: '닉네임', value: profile.nickname },
-    { icon: <Phone className="w-5 h-5 text-zinc-400" />, label: '전화번호', value: profile.phone },
+  const activityStats = [
+    {
+      icon: <Bookmark className="w-7 h-7 text-blue-400" />,
+      label: '저장한 기사',
+      value: savedArticles.length,
+      color: 'text-blue-400',
+    },
+    {
+      icon: <Heart className="w-7 h-7 text-red-400" />,
+      label: '좋아요한 기사',
+      value: likedArticles.length,
+      color: 'text-red-400',
+    },
   ];
 
   return (
-    <div className="bg-zinc-900/50 border border-zinc-700 rounded-2xl shadow-2xl p-6 md:p-8">
-      {/* Centered Header */}
-      <div className="flex flex-col items-center text-center">
-        <div className="relative w-32 h-32 rounded-full overflow-hidden ring-4 ring-offset-4 ring-offset-zinc-900 ring-blue-500">
+    <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl shadow-2xl p-6 md:p-8">
+      <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+        {/* Avatar */}
+        <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden ring-4 ring-offset-4 ring-offset-zinc-900 ring-blue-500 flex-shrink-0">
           <Image
-            src={profile.profile_image_url || "/user-placeholder.svg"}
+            src={profile.profile_image_url || '/user-placeholder.svg'}
             alt="Current Avatar"
             layout="fill"
             objectFit="cover"
-            className="rounded-full"
             unoptimized={true}
           />
         </div>
-        <h2 className="mt-4 text-3xl font-bold text-white">{profile.name}</h2>
-        <p className="text-md text-zinc-400">{profile.email}</p>
+
+        {/* Profile Info */}
+        <div className="flex-grow text-center md:text-left">
+          <h2 className="text-3xl md:text-4xl font-bold text-white">{profile.name}</h2>
+          <p className="text-md text-zinc-400 mt-1">{profile.email}</p>
+          {profile.introduction && (
+            <p className="text-base text-zinc-300 mt-4 max-w-xl mx-auto md:mx-0">
+              {profile.introduction}
+            </p>
+          )}
+        </div>
+
+        {/* Edit Button */}
+        <div className="flex-shrink-0">
+          <button
+            onClick={onEditClick}
+            className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors duration-300 shadow-md"
+          >
+            프로필 수정
+          </button>
+        </div>
       </div>
 
-      {/* Inner Tab Switcher */}
-      <div className="flex justify-center my-8 p-1 bg-zinc-900 rounded-full">
-        <TabButton tab="info" label="프로필 정보" />
-        <TabButton tab="activity" label="나의 활동" />
-      </div>
-
-      {/* Tab Content */}
-      <div className="min-h-[250px]">
-        {innerTab === 'info' && (
-          <div className="space-y-6 animate-fade-in-up">
-            <div className="space-y-4">
-              {infoItems.map((item, index) => (
-                item.value ? (
-                  <div key={index} className="flex items-start gap-4 p-4 bg-zinc-800/70 rounded-lg border border-zinc-700">
-                    <div className="flex-shrink-0 mt-1">{item.icon}</div>
-                    <div className="flex-1">
-                      <p className="text-sm text-zinc-400">{item.label}</p>
-                      <p className="text-base font-semibold text-white">{item.value}</p>
-                    </div>
-                  </div>
-                ) : null
-              ))}
-            </div>
-            {profile.introduction && (
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <Info className="w-5 h-5 text-zinc-400" />
-                  <h4 className="text-sm font-semibold text-zinc-300">자기소개</h4>
-                </div>
-                <p className="text-base text-zinc-200 bg-zinc-800/70 border border-zinc-700 p-4 rounded-lg whitespace-pre-wrap">
-                  {profile.introduction}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {innerTab === 'activity' && (
-          <div className="space-y-4 animate-fade-in-up">
-            <div className="flex items-center justify-between p-4 bg-zinc-800/70 rounded-lg border border-zinc-700">
-              <div className="flex items-center gap-4">
-                <Bookmark className="w-6 h-6 text-blue-400" />
-                <span className="font-semibold text-white text-lg">저장한 기사</span>
-              </div>
-              <span className="font-bold text-2xl text-blue-400">{savedArticles.length}</span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-zinc-800/70 rounded-lg border border-zinc-700">
-              <div className="flex items-center gap-4">
-                <Heart className="w-6 h-6 text-red-400" />
-                <span className="font-semibold text-white text-lg">좋아요한 기사</span>
-              </div>
-              <span className="font-bold text-2xl text-red-400">{likedArticles.length}</span>
+      {/* Activity Stats */}
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {activityStats.map((stat, index) => (
+          <div key={index} className="flex items-center p-5 bg-zinc-800/70 rounded-xl border border-zinc-700">
+            <div className="mr-5">{stat.icon}</div>
+            <div className="flex-grow">
+              <p className="text-sm text-zinc-400">{stat.label}</p>
+              <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
 }
+

@@ -1,9 +1,9 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Article, SavedArticleCategory } from '@/types';
-import { X, PlusCircle, MinusCircle } from 'lucide-react';
+import { X, PlusCircle, MinusCircle, Trash2 } from 'lucide-react';
+import ConfirmationPopover from '@/app/components/common/ConfirmationPopover';
 
 interface EditCategoryModalProps {
   category: SavedArticleCategory;
@@ -11,6 +11,7 @@ interface EditCategoryModalProps {
   uncategorizedArticles: Article[];
   onClose: () => void;
   onSave: (categoryId: number, newName: string, articlesToAdd: number[], articlesToRemove: number[]) => Promise<void>;
+  onDelete: () => void;
 }
 
 import Image from 'next/image';
@@ -37,11 +38,12 @@ const ArticleItem = ({ article, onToggle, isSelected, action }: { article: Artic
   </div>
 );
 
-export default function EditCategoryModal({ category, articlesInCategory, uncategorizedArticles, onClose, onSave }: EditCategoryModalProps) {
+export default function EditCategoryModal({ category, articlesInCategory, uncategorizedArticles, onClose, onSave, onDelete }: EditCategoryModalProps) {
   const [categoryName, setCategoryName] = useState(category.name);
   const [articlesToAdd, setArticlesToAdd] = useState<number[]>([]);
   const [articlesToRemove, setArticlesToRemove] = useState<number[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const toggleArticleToAdd = (id: number) => {
     setArticlesToAdd(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -58,63 +60,90 @@ export default function EditCategoryModal({ category, articlesInCategory, uncate
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4" onClick={onClose}>
-      <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md md:max-w-2xl lg:max-w-4xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        <header className="p-4 md:p-6 flex justify-between items-center border-b border-zinc-700">
-          <h2 className="text-xl md:text-2xl font-bold text-white">카테고리 수정</h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-zinc-800 transition-colors"><X className="text-zinc-400" /></button>
-        </header>
+  const handleDeleteConfirm = () => {
+    onDelete();
+    setIsDeleteConfirmOpen(false);
+    onClose();
+  };
 
-        <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 overflow-y-auto">
-          {/* Left Side: Rename & Articles to Add */}
-          <div className="flex flex-col gap-4 md:gap-6">
-            <div>
-              <label htmlFor="category-name" className="block text-sm font-medium text-zinc-300 mb-2">카테고리 이름</label>
-              <input
-                id="category-name"
-                type="text"
-                value={categoryName}
-                onChange={e => setCategoryName(e.target.value)}
-                className="w-full p-3 rounded-md bg-zinc-800 text-white border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
+  return (
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4" onClick={onClose}>
+        <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md md:max-w-2xl lg:max-w-4xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+          <header className="p-4 md:p-6 flex justify-between items-center border-b border-zinc-700">
+            <h2 className="text-xl md:text-2xl font-bold text-white">카테고리 수정</h2>
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-zinc-800 transition-colors"><X className="text-zinc-400" /></button>
+          </header>
+
+          <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 overflow-y-auto">
+            {/* Left Side: Rename & Articles to Add */}
+            <div className="flex flex-col gap-4 md:gap-6">
+              <div>
+                <label htmlFor="category-name" className="block text-sm font-medium text-zinc-300 mb-2">카테고리 이름</label>
+                <input
+                  id="category-name"
+                  type="text"
+                  value={categoryName}
+                  onChange={e => setCategoryName(e.target.value)}
+                  className="w-full p-3 rounded-md bg-zinc-800 text-white border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <h3 className="text-base md:text-lg font-semibold text-white mb-3">기사 추가하기 (미분류)</h3>
+                <div className="bg-zinc-800/50 rounded-lg p-2 md:p-3 border border-zinc-700 h-48 md:h-64 overflow-y-auto space-y-2">
+                  {uncategorizedArticles.length > 0 ? (
+                    uncategorizedArticles.map(article => (
+                      <ArticleItem key={article.saved_article_id} article={article} onToggle={toggleArticleToAdd} isSelected={articlesToAdd.includes(article.saved_article_id!)} action="add" />
+                    ))
+                  ) : (
+                    <p className="text-center text-zinc-500 pt-10">추가할 미분류 기사가 없습니다.</p>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {/* Right Side: Articles to Remove */}
             <div>
-              <h3 className="text-base md:text-lg font-semibold text-white mb-3">기사 추가하기 (미분류)</h3>
-              <div className="bg-zinc-800/50 rounded-lg p-2 md:p-3 border border-zinc-700 h-48 md:h-64 overflow-y-auto space-y-2">
-                {uncategorizedArticles.length > 0 ? (
-                  uncategorizedArticles.map(article => (
-                    <ArticleItem key={article.saved_article_id} article={article} onToggle={toggleArticleToAdd} isSelected={articlesToAdd.includes(article.saved_article_id!)} action="add" />
+              <h3 className="text-base md:text-lg font-semibold text-white mb-3">현재 포함된 기사 ({articlesInCategory.length})</h3>
+              <div className="bg-zinc-800/50 rounded-lg p-2 md:p-3 border border-zinc-700 h-48 md:h-[20.5rem] overflow-y-auto space-y-2">
+                {articlesInCategory.length > 0 ? (
+                  articlesInCategory.map(article => (
+                    <ArticleItem key={article.saved_article_id} article={article} onToggle={toggleArticleToRemove} isSelected={articlesToRemove.includes(article.saved_article_id!)} action="remove" />
                   ))
                 ) : (
-                  <p className="text-center text-zinc-500 pt-10">추가할 미분류 기사가 없습니다.</p>
+                  <p className="text-center text-zinc-500 pt-10">카테고리에 기사가 없습니다.</p>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Right Side: Articles to Remove */}
-          <div>
-            <h3 className="text-base md:text-lg font-semibold text-white mb-3">현재 포함된 기사 ({articlesInCategory.length})</h3>
-            <div className="bg-zinc-800/50 rounded-lg p-2 md:p-3 border border-zinc-700 h-48 md:h-[20.5rem] overflow-y-auto space-y-2">
-              {articlesInCategory.length > 0 ? (
-                articlesInCategory.map(article => (
-                  <ArticleItem key={article.saved_article_id} article={article} onToggle={toggleArticleToRemove} isSelected={articlesToRemove.includes(article.saved_article_id!)} action="remove" />
-                ))
-              ) : (
-                <p className="text-center text-zinc-500 pt-10">카테고리에 기사가 없습니다.</p>
-              )}
+          <footer className="p-4 md:p-6 flex justify-between items-center gap-4 border-t border-zinc-700">
+            <button 
+              onClick={() => setIsDeleteConfirmOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-red-400 bg-red-500/10 rounded-md hover:bg-red-500/20 transition-colors"
+            >
+              <Trash2 size={16} />
+              카테고리 삭제
+            </button>
+            <div className="flex gap-4">
+              <button onClick={onClose} className="px-4 py-2 md:px-6 md:py-3 bg-zinc-700 text-white rounded-md font-semibold hover:bg-zinc-600 transition-colors">취소</button>
+              <button onClick={handleSave} disabled={isSaving || !categoryName.trim()} className="px-4 py-2 md:px-6 md:py-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors disabled:bg-zinc-500 disabled:cursor-not-allowed">
+                {isSaving ? '저장 중...' : '변경사항 저장'}
+              </button>
             </div>
-          </div>
+          </footer>
         </div>
-
-        <footer className="p-4 md:p-6 flex flex-col sm:flex-row justify-end gap-4 border-t border-zinc-700">
-          <button onClick={onClose} className="px-4 py-2 md:px-6 md:py-3 bg-zinc-700 text-white rounded-md font-semibold hover:bg-zinc-600 transition-colors">취소</button>
-          <button onClick={handleSave} disabled={isSaving || !categoryName.trim()} className="px-4 py-2 md:px-6 md:py-3 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition-colors disabled:bg-zinc-500 disabled:cursor-not-allowed">
-            {isSaving ? '저장 중...' : '변경사항 저장'}
-          </button>
-        </footer>
       </div>
-    </div>
+      {isDeleteConfirmOpen && (
+        <ConfirmationPopover
+          title={`'${category.name}' 삭제`}
+          message="이 카테고리를 정말로 삭제하시겠습니까? 카테고리 안의 기사들은 '미분류' 상태로 변경됩니다."
+          confirmText="삭제"
+          cancelText="취소"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setIsDeleteConfirmOpen(false)}
+        />
+      )}
+    </>
   );
 }

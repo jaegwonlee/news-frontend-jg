@@ -21,8 +21,7 @@ export interface Article {
   isSaved?: boolean;
   saved_article_id?: number; // For category management
   category_id?: number | null; // Added for category management
-
-
+  category?: string; // Added for mock data filtering
 }
 
 /**

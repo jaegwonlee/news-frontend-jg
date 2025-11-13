@@ -16,7 +16,7 @@ export const useSavedArticlesManager = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [categories, setCategories] = useState<SavedArticleCategory[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null | 'all'>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +53,14 @@ export const useSavedArticlesManager = () => {
 
   useEffect(() => {
     fetchData();
+
+    // Add event listener for window focus to refetch data
+    window.addEventListener('focus', fetchData);
+
+    // Cleanup the event listener
+    return () => {
+      window.removeEventListener('focus', fetchData);
+    };
   }, [fetchData]);
 
   const handleCreateCategory = useCallback(async (name: string) => {
@@ -144,6 +152,9 @@ export const useSavedArticlesManager = () => {
   }, [token]);
 
   const filteredArticles = useMemo(() => {
+    if (selectedCategoryId === 'all') {
+      return articles;
+    }
     if (selectedCategoryId === null) {
       return articles.filter(a => a.category_id === null);
     }

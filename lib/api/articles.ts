@@ -50,28 +50,39 @@ export async function getExclusiveNews(): Promise<Article[]> {
   }
 }
 
+import { mockArticles } from '../mockData';
+
 /**
  * @function getCategoryNews
  * @description 특정 카테고리에 해당하는 뉴스 기사 목록을 가져옵니다.
+ *              개발 환경에서는 목업 데이터를 사용하고, 프로덕션 환경에서는 실제 API를 호출합니다.
  * @param {string} categoryName - 가져올 뉴스의 카테고리 이름 (예: "정치", "경제").
  * @param {number} [limit=10] - 가져올 기사의 최대 개수.
  * @param {string} [token] - 사용자 인증 토큰. 제공될 경우, 개인화된 데이터를 포함할 수 있습니다.
  * @returns {Promise<Article[]>} - 해당 카테고리의 기사 객체 배열을 반환하는 프로미스.
- * @cache "no-store" 옵션을 사용하여 이 요청은 캐시되지 않고 항상 최신 데이터를 서버에 요청합니다.
- *        이는 페이지가 동적으로 렌더링될 때 사용됩니다.
  */
 export async function getCategoryNews(categoryName: string, limit: number = 10, token?: string): Promise<Article[]> {
-  const encodedCategoryName = encodeURIComponent(categoryName); // URL에 안전하게 포함시키기 위해 인코딩
+  // 개발 환경에서는 목업 데이터를 사용합니다.
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[Mock Data] Filtering for category: "${categoryName}"`);
+    // console.log('[Mock Data] All mock articles:', mockArticles); // 너무 길어서 주석 처리
+    const filtered = mockArticles.filter(article => article.category === categoryName);
+    console.log('[Mock Data] Filtered articles count:', filtered.length);
+    return Promise.resolve(filtered.slice(0, limit));
+  }
+
+  // 프로덕션 환경에서는 실제 API를 호출합니다.
+  const encodedCategoryName = encodeURIComponent(categoryName);
   const apiUrl = `/api/articles/by-category?name=${encodedCategoryName}&limit=${limit}&offset=0`;
   
   const headers: HeadersInit = {};
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`; // 토큰이 있으면 Authorization 헤더에 추가
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   try {
     const response = await fetchWrapper(apiUrl, {
-      cache: "no-store", // 캐시를 사용하지 않음
+      cache: "no-store",
       headers: headers
     });
     if (!response.ok) {

@@ -1,0 +1,94 @@
+'use client';
+
+import { useState } from 'react';
+import { SavedArticleCategory } from '@/types';
+import { X, Trash2, Edit, Check, Loader } from 'lucide-react';
+
+interface ManageCategoriesModalProps {
+  categories: SavedArticleCategory[];
+  onClose: () => void;
+  onRename: (categoryId: number, newName: string) => Promise<void>;
+  onDelete: (categoryId: number) => Promise<void>;
+}
+
+export default function ManageCategoriesModal({ categories, onClose, onRename, onDelete }: ManageCategoriesModalProps) {
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [loadingState, setLoadingState] = useState<{ type: 'rename' | 'delete'; id: number } | null>(null);
+
+  const handleStartEdit = (category: SavedArticleCategory) => {
+    setEditingCategoryId(category.id);
+    setNewCategoryName(category.name);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCategoryId(null);
+    setNewCategoryName('');
+  };
+
+  const handleSaveRename = async (categoryId: number) => {
+    if (!newCategoryName.trim()) return;
+    setLoadingState({ type: 'rename', id: categoryId });
+    await onRename(categoryId, newCategoryName);
+    setLoadingState(null);
+    handleCancelEdit();
+  };
+
+  const handleDeleteCategory = async (categoryId: number) => {
+    setLoadingState({ type: 'delete', id: categoryId });
+    await onDelete(categoryId);
+    setLoadingState(null);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4" onClick={onClose}>
+      <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <header className="p-5 flex justify-between items-center border-b border-zinc-700">
+          <h2 className="text-xl font-bold text-white">카테고리 관리</h2>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-zinc-800 transition-colors"><X className="text-zinc-400" /></button>
+        </header>
+
+        <div className="p-5 overflow-y-auto space-y-3">
+          {categories.map((cat) => (
+            <div key={cat.id} className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+              {editingCategoryId === cat.id ? (
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveRename(cat.id)}
+                  className="flex-grow bg-zinc-700 text-white px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              ) : (
+                <span className="text-white">{cat.name}</span>
+              )}
+              <div className="flex items-center gap-2 ml-4">
+                {editingCategoryId === cat.id ? (
+                  <>
+                    <button onClick={() => handleSaveRename(cat.id)} className="p-2 text-green-400 hover:bg-green-500/20 rounded-full" disabled={loadingState?.id === cat.id}>
+                      {loadingState?.type === 'rename' && loadingState.id === cat.id ? <Loader size={18} className="animate-spin" /> : <Check size={18} />}
+                    </button>
+                    <button onClick={handleCancelEdit} className="p-2 text-zinc-400 hover:bg-zinc-700 rounded-full"><X size={18} /></button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => handleStartEdit(cat)} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full" disabled={!!loadingState}>
+                      <Edit size={16} />
+                    </button>
+                    <button onClick={() => handleDeleteCategory(cat.id)} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-full" disabled={loadingState?.id === cat.id}>
+                      {loadingState?.type === 'delete' && loadingState.id === cat.id ? <Loader size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        <footer className="p-5 border-t border-zinc-700">
+            <p className="text-xs text-zinc-500 text-center">카테고리를 삭제하면 해당 카테고리의 기사들은 '미분류' 상태가 됩니다.</p>
+        </footer>
+      </div>
+    </div>
+  );
+}

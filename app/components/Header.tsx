@@ -17,7 +17,7 @@ export default function Header() {
   const pathname = usePathname(); // Get the current path
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-700 bg-black/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-zinc-700 bg-black">
       <div className="max-w-[1920px] mx-auto px-12 md:px-16 lg:px-20">
         <div className="flex justify-between items-center h-16">
           {/* Left Section: Logo */}

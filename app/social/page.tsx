@@ -1,40 +1,14 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import { getCategoryNews } from '@/lib/api/articles';
 import { Article } from '@/types';
 import CategoryArticleCard from '@/app/components/CategoryArticleCard';
 import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 
-async function fetchArticlesByCategory(categoryName: string): Promise<Article[]> {
-  const encodedCategoryName = encodeURIComponent(categoryName);
-  const apiUrl = `https://news02.onrender.com/api/articles/by-category?name=${encodedCategoryName}&limit=25&offset=0`;
-  try {
-    const response = await fetch(apiUrl, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`API call failed: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching news data:", error);
-    return [];
-  }
-}
-
-export default function SocialPage() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+// This is now a Server Component
+export default async function SocialPage() {
   const categoryName = "사회";
   const accentColor = "yellow"; // Accent color for Social
-
-  useEffect(() => {
-    const loadArticles = async () => {
-      setIsLoading(true);
-      const fetchedArticles = await fetchArticlesByCategory(categoryName);
-      setArticles(fetchedArticles);
-      setIsLoading(false);
-    };
-    loadArticles();
-  }, []);
+  // Fetch data on the server
+  const articles = await getCategoryNews(categoryName, 50);
 
   const heroArticle = articles.length > 0 ? articles[0] : null;
   const remainingArticles = articles.length > 1 ? articles.slice(1) : [];
@@ -47,32 +21,24 @@ export default function SocialPage() {
         </h1>
       </header>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-96">
-          <LoadingSpinner />
+      {articles.length === 0 ? (
+        <div className="text-center text-zinc-400 py-20">
+          <p className="text-lg">해당 카테고리에 뉴스가 없습니다.</p>
         </div>
       ) : (
-        <>
-          {articles.length === 0 ? (
-            <div className="text-center text-zinc-400 py-20">
-              <p className="text-lg">해당 카테고리에 뉴스가 없습니다.</p>
-            </div>
-          ) : (
-            <div className="space-y-12">
-              {heroArticle && (
-                <CategoryArticleCard article={heroArticle} layout="hero" accentColor={accentColor} />
-              )}
-              
-              {remainingArticles.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {remainingArticles.map(article => (
-                    <CategoryArticleCard key={article.id} article={article} layout="default" accentColor={accentColor} />
-                  ))}
-                </div>
-              )}
+        <div className="space-y-12">
+          {heroArticle && (
+            <CategoryArticleCard article={heroArticle} layout="hero" accentColor={accentColor} />
+          )}
+          
+          {remainingArticles.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {remainingArticles.map(article => (
+                <CategoryArticleCard key={article.id} article={article} layout="default" accentColor={accentColor} />
+              ))}
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
