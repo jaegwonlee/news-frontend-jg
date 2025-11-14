@@ -30,6 +30,7 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
+  const [areChildrenVisible, setAreChildrenVisible] = useState(false);
   const [editText, setEditText] = useState(comment.content);
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +53,7 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
     setIsSubmitting(false);
     setReplyText('');
     setIsReplying(false);
+    setAreChildrenVisible(true); // Show replies after posting a new one
   };
 
   return (
@@ -126,6 +128,18 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
         )}
 
         {comment.children && comment.children.length > 0 && (
+          <button 
+            onClick={() => setAreChildrenVisible(!areChildrenVisible)}
+            className="mt-2 flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300"
+          >
+            <CornerDownRight size={16} />
+            <span>
+              {areChildrenVisible ? '답글 숨기기' : `답글 ${comment.children.length}개 보기`}
+            </span>
+          </button>
+        )}
+
+        {areChildrenVisible && comment.children && comment.children.length > 0 && (
           <div className="mt-4 space-y-4 pl-5 border-l-2 border-zinc-700">
             {comment.children.map(childComment => (
               <CommentItem key={childComment.id} comment={childComment} handlers={handlers} />
