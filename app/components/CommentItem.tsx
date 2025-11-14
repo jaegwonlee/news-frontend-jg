@@ -35,6 +35,11 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // If the comment is the author's, forcefully use the context user's info
+  // as the most reliable source of truth, bypassing potentially stale props.
+  const authorName = comment.is_author ? (user?.nickname || user?.name) : comment.author_name;
+  const authorImageUrl = comment.is_author ? user?.profile_image_url : comment.author_profile_image_url;
+
   const handleEdit = async () => {
     setIsSubmitting(true);
     await handlers.onUpdate(comment.id, editText);
@@ -59,15 +64,15 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
   return (
     <div className={`flex items-start gap-3 group ${comment.parent_id ? 'bg-zinc-800/50 p-2 rounded-lg' : ''}`}>
       <Image
-        src={getFullImageUrl(comment.author_profile_image_url)}
-        alt={comment.author_name || 'User profile image'}
+        src={getFullImageUrl(authorImageUrl)}
+        alt={authorName || 'User profile image'}
         width={32}
         height={32}
         className="rounded-full mt-1"
       />
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm text-zinc-200">{comment.author_name}</span>
+          <span className="font-semibold text-sm text-zinc-200">{authorName}</span>
           <span className="text-xs text-zinc-500">
             {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ko })}
           </span>
