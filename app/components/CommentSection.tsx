@@ -100,9 +100,19 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
 
     setIsSubmitting(true);
     try {
-      await addComment(articleId, newComment, token);
+      const apiResponse = await addComment(articleId, newComment, token);
+      const newCommentObject: Comment = {
+        id: apiResponse.id,
+        content: apiResponse.content,
+        created_at: apiResponse.created_at,
+        parent_id: null,
+        author_name: user.nickname || user.name,
+        author_profile_image_url: user.profile_image_url,
+        is_author: true,
+        children: [],
+      };
+      setComments((prev) => [newCommentObject, ...prev]);
       setNewComment('');
-      await fetchComments(); // Re-fetch all comments
     } catch (err) {
       setError('댓글 작성에 실패했습니다.');
     } finally {
@@ -114,33 +124,41 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
     onUpdate: async (commentId: number, text: string) => {
       if (!text.trim() || !token) return;
       const originalComments = comments;
-      // Optimistic update
       setComments(prev => updateCommentInTree(prev, { id: commentId, content: text } as Comment));
       try {
         const updatedComment = await updateComment(commentId, text, token);
         setComments(prev => updateCommentInTree(prev, updatedComment));
       } catch (err) {
         setError('댓글 수정에 실패했습니다.');
-        setComments(originalComments); // Rollback
+        setComments(originalComments);
       }
     },
     onDelete: async (commentId: number) => {
       if (!token) return;
       const originalComments = comments;
-      // Optimistic update
       setComments(prev => deleteCommentInTree(prev, commentId));
       try {
         await deleteComment(commentId, token);
       } catch (err) {
         setError('댓글 삭제에 실패했습니다.');
-        setComments(originalComments); // Rollback
+        setComments(originalComments);
       }
     },
     onReply: async (parentId: number, text: string) => {
       if (!text.trim() || !token || !user) return;
       try {
-        await addComment(articleId, text, token, parentId);
-        await fetchComments(); // Re-fetch all comments
+        const apiResponse = await addComment(articleId, text, token, parentId);
+        const newReply: Comment = {
+          id: apiResponse.id,
+          content: apiResponse.content,
+          created_at: apiResponse.created_at,
+          parent_id: apiResponse.parent_id,
+          author_name: user.nickname || user.name,
+          author_profile_image_url: user.profile_image_url,
+          is_author: true,
+          children: [],
+        };
+        setComments(prev => addReplyInTree(prev, newReply));
       } catch (err) {
         setError('답글 작성에 실패했습니다.');
       }

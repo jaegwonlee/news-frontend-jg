@@ -140,7 +140,7 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
         )}
 
         {areChildrenVisible && comment.children && comment.children.length > 0 && (
-          <div className="mt-4 space-y-4 pl-5 border-l-2 border-zinc-700">
+          <div className="mt-4 space-y-4 pl-8 border-l-2 border-zinc-700">
             {comment.children.map(childComment => (
               <CommentItem key={childComment.id} comment={childComment} handlers={handlers} />
             ))}
