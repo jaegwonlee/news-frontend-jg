@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from "react";
 import { Article } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,7 +8,8 @@ import ArticleLikeButton from "./ArticleLikeButton";
 import ArticleSaveButton from "./ArticleSaveButton";
 import Favicon from "./common/Favicon";
 import ClientOnlyTime from "./common/ClientOnlyTime";
-// import { incrementArticleView } from "@/lib/api/articles"; // Removed
+import CommentSection from "./CommentSection"; // Import CommentSection
+import { MessageSquare } from "lucide-react"; // Import comment icon
 
 interface ArticleCardProps {
   article: Article;
@@ -26,48 +28,55 @@ export default function ArticleCard({
   className,
   hoverColor = 'red',
 }: ArticleCardProps) {
-
-  // const handleArticleClick = () => { // Removed
-  //   incrementArticleView(article.id);
-  // };
+  const [isCommentSectionVisible, setIsCommentSectionVisible] = useState(false);
 
   const borderColorClass = hoverColor === 'red' ? 'border-red-500' : 'border-blue-500';
 
   if (variant === 'horizontal') {
     return (
-      <div className={`relative flex bg-zinc-800 rounded-lg overflow-hidden border-2 ${borderColorClass} ${className || ''}`}>
-        <div className="w-32 flex-shrink-0">
-          <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative"> {/* Removed onClick={handleArticleClick} */}
-            <Image
-              src={article.thumbnail_url || '/placeholder.png'}
-              alt={`${article.title} thumbnail`}
-              fill
-              sizes="128px"
-              style={{ objectFit: "cover" }}
-              unoptimized={true}
-            />
-          </Link>
-        </div>
-        <div className="flex flex-col flex-grow p-3">
-          <Link href={article.url} target="_blank" rel="noopener noreferrer"> {/* Removed onClick={handleArticleClick} */}
-            <h3 className={`font-bold text-sm text-zinc-100 mb-1 line-clamp-2`}>{article.title}</h3>
-          </Link>
-          <div className="flex items-center text-xs text-zinc-400 mt-1">
-            {article.favicon_url && <Favicon src={article.favicon_url} alt={`${article.source} favicon`} size={16} />}
-            <span className="ml-2">{article.source}</span>
-            <span className="mx-1.5">·</span>
-            <ClientOnlyTime date={article.published_at} />
+      <div className={`bg-zinc-800 rounded-lg border-2 ${borderColorClass} ${className || ''}`}>
+        <div className="flex overflow-hidden">
+          <div className="w-32 flex-shrink-0">
+            <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
+              <Image
+                src={article.thumbnail_url || '/placeholder.png'}
+                alt={`${article.title} thumbnail`}
+                fill
+                sizes="128px"
+                style={{ objectFit: "cover" }}
+                unoptimized={true}
+              />
+            </Link>
           </div>
-          <div className="flex-grow"></div>
-          <div className="flex justify-end items-center">
-            <div className="flex gap-2">
-              {onLikeToggle && (article.id && article.like_count !== undefined && article.isLiked !== undefined) &&
-                <ArticleLikeButton articleId={article.id} initialLikes={article.like_count} initialIsLiked={article.isLiked} onLikeToggle={onLikeToggle} />}
-              {onSaveToggle && (article.id && article.isSaved !== undefined) &&
-                <ArticleSaveButton articleId={article.id} initialIsSaved={article.isSaved} onSaveToggle={() => onSaveToggle(article.id)} />}
+          <div className="flex flex-col flex-grow p-3">
+            <Link href={article.url} target="_blank" rel="noopener noreferrer">
+              <h3 className={`font-bold text-sm text-zinc-100 mb-1 line-clamp-2`}>{article.title}</h3>
+            </Link>
+            <div className="flex items-center text-xs text-zinc-400 mt-1">
+              {article.favicon_url && <Favicon src={article.favicon_url} alt={`${article.source} favicon`} size={16} />}
+              <span className="ml-2">{article.source}</span>
+              <span className="mx-1.5">·</span>
+              <ClientOnlyTime date={article.published_at} />
+            </div>
+            <div className="flex-grow"></div>
+            <div className="flex justify-end items-center">
+              <div className="flex gap-2 items-center">
+                <button 
+                  onClick={() => setIsCommentSectionVisible(!isCommentSectionVisible)}
+                  className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors"
+                >
+                  <MessageSquare size={16} />
+                  <span>{article.comment_count ?? 0}</span>
+                </button>
+                {onLikeToggle && (article.id && article.like_count !== undefined && article.isLiked !== undefined) &&
+                  <ArticleLikeButton articleId={article.id} initialLikes={article.like_count} initialIsLiked={article.isLiked} onLikeToggle={onLikeToggle} />}
+                {onSaveToggle && (article.id && article.isSaved !== undefined) &&
+                  <ArticleSaveButton articleId={article.id} initialIsSaved={article.isSaved} onSaveToggle={() => onSaveToggle(article.id)} />}
+              </div>
             </div>
           </div>
         </div>
+        {isCommentSectionVisible && <CommentSection articleId={article.id} />}
       </div>
     );
   }
@@ -75,7 +84,7 @@ export default function ArticleCard({
   // Default variant (original vertical layout)
   return (
     <div className={`relative block bg-zinc-800 rounded-lg overflow-hidden group transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-red-500/20 hover:-translate-y-1 ${className || ''}`}>
-      <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block"> {/* Removed onClick={handleArticleClick} */}
+      <Link href={article.url} target="_blank" rel="noopener noreferrer" className="block">
         <div className="relative w-full h-32 sm:h-40 overflow-hidden">
           <Image
             src={article.thumbnail_url || '/placeholder.png'}

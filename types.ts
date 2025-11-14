@@ -22,6 +22,19 @@ export interface Article {
   saved_article_id?: number; // For category management
   category_id?: number | null; // Added for category management
   category?: string; // Added for mock data filtering
+  comment_count?: number;
+}
+
+/**
+ * API에서 받아오는 댓글(Comment) 데이터 구조 정의
+ */
+export interface Comment {
+  id: number;
+  author_name: string;
+  author_profile_image_url?: string;
+  content: string;
+  created_at: string;
+  is_author: boolean;
 }
 
 /**
