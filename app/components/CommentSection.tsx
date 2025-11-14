@@ -140,7 +140,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
             <div key={comment.id} className="flex items-start gap-3 group">
               <Image
                 src={getFullImageUrl(comment.author_profile_image_url)}
-                alt={comment.author_name}
+                alt={comment.author_name || 'User profile image'}
                 width={32}
                 height={32}
                 className="rounded-full mt-1"
