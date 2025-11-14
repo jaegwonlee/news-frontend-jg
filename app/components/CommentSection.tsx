@@ -83,16 +83,9 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
     setIsSubmitting(true);
     try {
-      const apiResponseComment = await addComment(articleId, newComment, token);
-      const newOptimisticComment: Comment = {
-        ...apiResponseComment,
-        author_name: user.nickname || user.name,
-        author_profile_image_url: user.profile_image_url,
-        is_author: true,
-        children: [],
-      };
-      setComments((prev) => [newOptimisticComment, ...prev]);
+      await addComment(articleId, newComment, token);
       setNewComment('');
+      await fetchComments(); // Re-fetch all comments
     } catch (err) {
       setError('댓글 작성에 실패했습니다.');
     } finally {
@@ -129,15 +122,8 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     onReply: async (parentId: number, text: string) => {
       if (!text.trim() || !token || !user) return;
       try {
-        const apiResponseReply = await addComment(articleId, text, token, parentId);
-        const newOptimisticReply: Comment = {
-          ...apiResponseReply,
-          author_name: user.nickname || user.name,
-          author_profile_image_url: user.profile_image_url,
-          is_author: true,
-          children: [],
-        };
-        setComments(prev => addReplyInTree(prev, newOptimisticReply));
+        await addComment(articleId, text, token, parentId);
+        await fetchComments(); // Re-fetch all comments
       } catch (err) {
         setError('답글 작성에 실패했습니다.');
       }
