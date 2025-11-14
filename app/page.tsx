@@ -40,7 +40,7 @@ export default async function Home() {
     .slice(0, 10);
 
   return (
-    <div className="w-full max-w-[1920px] mx-auto px-16 md:px-24 lg:px-32 pt-2 md:pt-3 lg:pt-4">
+    <div className="w-full max-w-[1920px] mx-auto px-[67px] md:px-[101px] lg:px-[134px] pt-2 md:pt-3 lg:pt-4">
       <main className="flex flex-col gap-6 lg:gap-8">
         {/* Render the client component with data as props */}
         <MainGrid 

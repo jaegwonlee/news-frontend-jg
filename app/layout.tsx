@@ -10,6 +10,7 @@ import Footer from "./components/Footer";
 import { getBreakingNews, getExclusiveNews } from "@/lib/api";
 import HorizontalNewsScroller from "./components/common/HorizontalNewsScroller";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

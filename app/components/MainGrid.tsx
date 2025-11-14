@@ -24,7 +24,7 @@ export default function MainGrid({ mainTopic, latestNews, isLoading }: MainGridP
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
-      <div className="rounded-2xl border border-zinc-700 p-6 xl:col-span-1 flex flex-col h-[665px] lg:h-[807px]">
+      <div className="rounded-2xl border border-zinc-700 p-6 xl:col-span-1 flex flex-col h-[600px] lg:h-[729px]">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold text-white">라운드톡</h2>
@@ -53,13 +53,13 @@ export default function MainGrid({ mainTopic, latestNews, isLoading }: MainGridP
         </div>
       </div>
 
-      <div className="relative z-20 rounded-2xl md:col-span-2 xl:col-span-2 h-[665px] lg:h-[807px] flex flex-col">
+      <div className="relative z-20 rounded-2xl md:col-span-2 xl:col-span-2 h-[600px] lg:h-[729px] flex flex-col">
         <div className="flex-1 min-h-0">
-          <ChatRoom topic={mainTopic} />
+          <ChatRoom topic={mainTopic} articles={latestNews} />
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-700 px-6 pb-6 pt-3 xl:col-span-1 flex flex-col h-[665px] lg:h-[807px]">
+      <div className="rounded-2xl border border-zinc-700 px-6 pb-6 pt-3 xl:col-span-1 flex flex-col h-[600px] lg:h-[729px]">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold text-white">최신 뉴스</h2>

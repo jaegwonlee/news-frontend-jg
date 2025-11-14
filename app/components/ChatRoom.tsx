@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Send, Loader2, AlertTriangle, MessageSquareText, Trash2, Siren, Users, Search, MoreVertical, X, ChevronUp, ChevronDown, Paperclip, Download } from 'lucide-react';
 import { useSocket } from '@/app/context/SocketContext';
 import { useAuth } from '@/app/context/AuthContext';
@@ -11,6 +12,7 @@ import { BACKEND_BASE_URL } from '@/lib/constants';
 import { format } from 'date-fns';
 import { Topic, Article } from '@/types';
 import ChatArticleCard from './ChatArticleCard';
+import ToastNotification, { ToastType } from './common/ToastNotification';
 
 type Message = {
   id: number;
@@ -24,6 +26,14 @@ type SearchResult = {
   messageId: number;
   matchIndex: number;
 };
+
+type ToastState = {
+  message: string;
+  type: ToastType;
+  top: number;
+  left: number;
+  alignment: 'left' | 'right';
+} | null;
 
 const getFullImageUrl = (url?: string): string => {
   if (!url) return '/user-placeholder.svg';
@@ -61,6 +71,7 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
 
   const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState>(null);
 
   const room = topic?.id ? `topic-${topic.id}` : 'mainpage';
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -95,7 +106,6 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        // Fallback for cross-origin issues: open in new tab
         window.open(url, '_blank');
         throw new Error('Response not OK, opening in new tab.');
       }
@@ -359,8 +369,8 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
         await sendChatMessage(topic.id, messageToSend, token);
       } catch (error) {
         console.error("Failed to send message:", error);
-        setNewMessage(messageToSend);
         alert("메시지 전송에 실패했습니다. 다시 시도해주세요.");
+        setNewMessage(messageToSend);
       } finally {
         setIsSending(false);
       }
@@ -371,19 +381,86 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     setDialog({ type, messageId });
   };
 
+  const showToast = (messageId: number, message: string, type: ToastType) => {
+    const messageEl = messageRefs.current.get(messageId);
+    if (messageEl && chatContainerRef.current) {
+      const messageRect = messageEl.getBoundingClientRect();
+      const containerRect = chatContainerRef.current.getBoundingClientRect();
+      
+      const msg = messages.find(m => m.id === messageId);
+      const isMyMessage = user ? msg?.author === (user.nickname || user.name) : false;
+
+      let top = messageRect.top - 8; // 8px margin above the message
+      let left;
+      let alignment: 'left' | 'right';
+
+      if (isMyMessage) {
+        left = messageRect.right;
+        alignment = 'right';
+      } else {
+        left = messageRect.left;
+        alignment = 'left';
+      }
+
+      // Constrain toast within chat container's horizontal bounds
+      // This is a rough estimate as toast width is unknown before render
+      const estimatedToastWidth = 320; // max-w-sm from ToastNotification
+      const toastMargin = 16; // Margin from the edge of the chat container
+
+      if (alignment === 'left') {
+        // If toast would go past the right edge of the container
+        if (left + estimatedToastWidth > containerRect.right - toastMargin) {
+          left = containerRect.right - estimatedToastWidth - toastMargin;
+        }
+        // If toast would go past the left edge of the container (shouldn't happen if messageRect.left is within container)
+        if (left < containerRect.left + toastMargin) {
+          left = containerRect.left + toastMargin;
+        }
+      } else { // alignment === 'right'
+        // If toast would go past the left edge of the container
+        if (left - estimatedToastWidth < containerRect.left + toastMargin) {
+          left = containerRect.left + estimatedToastWidth + toastMargin;
+        }
+        // If toast would go past the right edge of the container (shouldn't happen if messageRect.right is within container)
+        if (left > containerRect.right - toastMargin) {
+          left = containerRect.right - toastMargin;
+        }
+      }
+      
+      // Ensure toast doesn't go above the chat container
+      if (top < containerRect.top + toastMargin) {
+        top = containerRect.top + toastMargin; // Place it at the top of the container with some margin
+      }
+
+      setToast({
+        message,
+        type,
+        top,
+        left,
+        alignment,
+      });
+      setTimeout(() => {
+        setToast(null);
+      }, 4000);
+    }
+  };
+
   const confirmAction = async () => {
     if (!dialog || !token) return;
     const { type, messageId } = dialog;
     setDialog(null);
     try {
-      if (type === 'delete') await deleteChatMessage(messageId, token);
-      else if (type === 'report') {
-        await reportChatMessage(messageId, token);
-        alert('메시지가 성공적으로 신고되었습니다.');
+      if (type === 'delete') {
+        await deleteChatMessage(messageId, token);
+        // Deletion is handled by socket event, no toast needed here as the message content changes.
+      } else if (type === 'report') {
+        const response = await reportChatMessage(messageId, token);
+        const toastType: ToastType = response.message.includes('이미') ? 'info' : 'success';
+        showToast(messageId, response.message, toastType);
       }
     } catch (error) {
-      console.error(`Failed to ${type} message:`, error);
-      alert((error as Error).message || `${type === 'delete' ? '삭제' : '신고'}에 실패했습니다.`);
+      const errorMessage = (error as Error).message || `${type === 'delete' ? '삭제' : '신고'}에 실패했습니다.`;
+      showToast(messageId, errorMessage, 'error');
     }
   };
 
@@ -485,6 +562,25 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
         )}
       </div>
     
+      {toast && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: toast.top,
+          left: toast.left,
+          transform: `translateY(-100%) ${toast.alignment === 'right' ? 'translateX(-100%)' : ''}`,
+          zIndex: 9999
+        }}>
+          <ToastNotification
+            id="portal-toast"
+            message={toast.message}
+            type={toast.type}
+            onDismiss={() => setToast(null)}
+            duration={3500}
+          />
+        </div>,
+        document.body
+      )}
+
       <div className="shrink-0 px-4 py-4 bg-zinc-900/50 backdrop-blur-sm">
         {socketError && (<div className="flex items-center text-red-500 text-xs mb-2"><AlertTriangle className="w-4 h-4 mr-1" />{socketError}</div>)}
         <form onSubmit={handleSendMessage} className="flex items-center gap-2">

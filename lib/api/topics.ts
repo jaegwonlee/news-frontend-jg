@@ -252,7 +252,7 @@ export async function getPresignedUrlForChat(token: string, fileName: string, fi
  * @param reason The reason for the report.
  * @param token The user's authentication token.
  */
-export async function reportChatMessage(messageId: number, token: string): Promise<void> {
+export async function reportChatMessage(messageId: number, token: string): Promise<{ message: string }> {
   const response = await fetchWrapper(`/api/chat/${messageId}/report`, {
     method: 'POST',
     headers: {
@@ -264,4 +264,6 @@ export async function reportChatMessage(messageId: number, token: string): Promi
     const errorData = await response.json();
     throw new Error(errorData.message || '메시지 신고에 실패했습니다.');
   }
+
+  return response.json();
 }
