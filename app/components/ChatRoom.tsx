@@ -452,7 +452,7 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     try {
       if (type === 'delete') {
         await deleteChatMessage(messageId, token);
-        // Deletion is handled by socket event, no toast needed here as the message content changes.
+        setMessages((prev) => prev.filter((m) => m.id !== messageId));
       } else if (type === 'report') {
         const response = await reportChatMessage(messageId, token);
         const toastType: ToastType = response.message.includes('이미') ? 'info' : 'success';
