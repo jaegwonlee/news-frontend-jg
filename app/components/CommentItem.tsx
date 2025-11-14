@@ -49,11 +49,11 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
   const handleReply = async () => {
     if (!replyText.trim()) return;
     setIsSubmitting(true);
+    setAreChildrenVisible(true); // Set visible before awaiting, to ensure it's open on re-render
     await handlers.onReply(comment.id, replyText);
     setIsSubmitting(false);
     setReplyText('');
     setIsReplying(false);
-    setAreChildrenVisible(true); // Show replies after posting a new one
   };
 
   return (
