@@ -104,7 +104,7 @@ export default function TopicDetailPage() {
       {id && <TopicViewCounter topicId={id} />}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-4">
         <aside className="lg:col-span-3">
-          <div className="space-y-6 h-[750px] overflow-y-auto pr-2 pt-4 w-full">
+          <div className="space-y-6 h-[600px] lg:h-[729px] overflow-y-auto pr-2 pt-4 w-full">
             {leftArticles.map((article) => (
               <ArticleCard
                 key={article.id}
@@ -118,14 +118,14 @@ export default function TopicDetailPage() {
           </div>
         </aside>
         <main className="lg:col-span-6">
-          <div className="border border-zinc-700 rounded-lg h-[665px] lg:h-[807px] flex flex-col">
+          <div className="border border-zinc-700 rounded-lg h-[600px] lg:h-[729px] flex flex-col">
             <div className="flex-1 min-h-0">
               <ChatRoom topic={topic} articles={articles} />
             </div>
           </div>
         </main>
         <aside className="lg:col-span-3">
-          <div className="space-y-6 h-[750px] overflow-y-auto pr-2 pt-4 w-full">
+          <div className="space-y-6 h-[600px] lg:h-[729px] overflow-y-auto pr-2 pt-4 w-full">
             {rightArticles.map((article) => (
               <ArticleCard
                 key={article.id}
