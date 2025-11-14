@@ -9,7 +9,19 @@ import CommentItem from './CommentItem';
 
 interface CommentSectionProps {
   articleId: number;
+  onCommentCountChange: (count: number) => void;
 }
+
+// Helper function to recursively count all comments and their children
+const countTotalComments = (comments: Comment[]): number => {
+  let count = comments.length;
+  for (const comment of comments) {
+    if (comment.children) {
+      count += countTotalComments(comment.children);
+    }
+  }
+  return count;
+};
 
 // Helper function to recursively update a comment in the state tree
 const updateCommentInTree = (comments: Comment[], updatedComment: Comment): Comment[] => {
@@ -52,13 +64,18 @@ const addReplyInTree = (comments: Comment[], reply: Comment): Comment[] => {
 };
 
 
-export default function CommentSection({ articleId }: CommentSectionProps) {
+export default function CommentSection({ articleId, onCommentCountChange }: CommentSectionProps) {
   const { user, token } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const totalCount = countTotalComments(comments);
+    onCommentCountChange(totalCount);
+  }, [comments, onCommentCountChange]);
 
   const fetchComments = useCallback(async () => {
     try {

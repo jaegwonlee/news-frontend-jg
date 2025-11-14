@@ -29,6 +29,7 @@ export default function ArticleCard({
   hoverColor = 'red',
 }: ArticleCardProps) {
   const [isCommentSectionVisible, setIsCommentSectionVisible] = useState(false);
+  const [totalCommentCount, setTotalCommentCount] = useState(article.comment_count ?? 0);
 
   const borderColorClass = hoverColor === 'red' ? 'border-red-500' : 'border-blue-500';
 
@@ -66,7 +67,7 @@ export default function ArticleCard({
                   className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors"
                 >
                   <MessageSquare size={16} />
-                  <span>{article.comment_count ?? 0}</span>
+                  <span>{totalCommentCount}</span>
                 </button>
                 {onLikeToggle && (article.id && article.like_count !== undefined && article.isLiked !== undefined) &&
                   <ArticleLikeButton articleId={article.id} initialLikes={article.like_count} initialIsLiked={article.isLiked} onLikeToggle={onLikeToggle} />}
@@ -76,7 +77,7 @@ export default function ArticleCard({
             </div>
           </div>
         </div>
-        {isCommentSectionVisible && <CommentSection articleId={article.id} />}
+        {isCommentSectionVisible && <CommentSection articleId={article.id} onCommentCountChange={setTotalCommentCount} />}
       </div>
     );
   }
