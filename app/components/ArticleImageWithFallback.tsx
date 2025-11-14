@@ -25,6 +25,10 @@ export default function ArticleImageWithFallback({
       setImgSrc('/user-placeholder.svg');
       return;
     }
+
+    // Optimistically set the new src. If it fails, the onerror will correct it.
+    setImgSrc(src);
+
     const image = new window.Image();
     image.src = src;
     image.onerror = () => {
