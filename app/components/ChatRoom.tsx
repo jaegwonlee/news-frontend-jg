@@ -345,7 +345,7 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
       };
       socket.on('receive_message', messageListener);
       const deleteListener = (data: { messageId: number }) => {
-        setMessages((prev) => prev.map((m) => m.id === data.messageId ? { ...m, message: '메시지가 삭제되었습니다.' } : m));
+        setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
       };
       socket.on('message_deleted', deleteListener);
       return () => {
