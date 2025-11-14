@@ -35,6 +35,8 @@ export interface Comment {
   content: string;
   created_at: string;
   is_author: boolean;
+  parent_id?: number | null;
+  children?: Comment[];
 }
 
 /**

@@ -25,14 +25,14 @@ export const getComments = async (articleId: number, token?: string): Promise<Co
  * @param token - 사용자 인증 토큰
  * @returns 생성된 댓글 Promise
  */
-export const addComment = async (articleId: number, content: string, token: string): Promise<Comment> => {
+export const addComment = async (articleId: number, content: string, token: string, parentId?: number): Promise<Comment> => {
   const response = await fetchWrapper(`/api/articles/${articleId}/comments`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, parent_id: parentId }),
   });
   if (!response.ok) {
     throw new Error(`Failed to add comment to article ${articleId}`);

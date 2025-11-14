@@ -4,21 +4,53 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { getComments, addComment, deleteComment, updateComment } from '@/lib/api/comments';
 import { Comment } from '@/types';
-import { Send, Trash2, Loader2, MessageSquare, Pencil, X, Check } from 'lucide-react';
-import Image from 'next/image';
-import { formatDistanceToNow } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { Send, Loader2, MessageSquare } from 'lucide-react';
+import CommentItem from './CommentItem';
 
 interface CommentSectionProps {
   articleId: number;
 }
 
-const getFullImageUrl = (url?: string): string => {
-  if (!url) return '/user-placeholder.svg';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-  return `${BACKEND_BASE_URL}${url}`;
+// Helper function to recursively update a comment in the state tree
+const updateCommentInTree = (comments: Comment[], updatedComment: Comment): Comment[] => {
+  return comments.map(comment => {
+    if (comment.id === updatedComment.id) {
+      return { ...comment, ...updatedComment };
+    }
+    if (comment.children) {
+      return { ...comment, children: updateCommentInTree(comment.children, updatedComment) };
+    }
+    return comment;
+  });
 };
+
+// Helper function to recursively delete a comment from the state tree
+const deleteCommentInTree = (comments: Comment[], commentId: number): Comment[] => {
+  return comments.reduce((acc, comment) => {
+    if (comment.id === commentId) {
+      return acc; // Exclude the comment
+    }
+    if (comment.children) {
+      comment.children = deleteCommentInTree(comment.children, commentId);
+    }
+    acc.push(comment);
+    return acc;
+  }, [] as Comment[]);
+};
+
+// Helper function to recursively add a reply to the state tree
+const addReplyInTree = (comments: Comment[], reply: Comment): Comment[] => {
+  return comments.map(comment => {
+    if (comment.id === reply.parent_id) {
+      return { ...comment, children: [reply, ...(comment.children || [])] };
+    }
+    if (comment.children) {
+      return { ...comment, children: addReplyInTree(comment.children, reply) };
+    }
+    return comment;
+  });
+};
+
 
 export default function CommentSection({ articleId }: CommentSectionProps) {
   const { user, token } = useAuth();
@@ -27,9 +59,6 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
-  const [editingText, setEditingText] = useState('');
 
   const fetchComments = useCallback(async () => {
     try {
@@ -48,23 +77,20 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     fetchComments();
   }, [fetchComments]);
 
-  const handleSubmitComment = async (e: React.FormEvent) => {
+  const handleSubmitTopLevelComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !token || !user) return;
 
     setIsSubmitting(true);
     try {
-      // The API response might be incomplete, so we'll use it
-      // but construct a more complete object for the optimistic update.
       const apiResponseComment = await addComment(articleId, newComment, token);
-
       const newOptimisticComment: Comment = {
-        ...apiResponseComment, // Contains id, content, created_at from server
-        author_name: user.nickname || user.name, // Use current user's name
-        author_profile_image_url: user.profile_image_url, // Use current user's image
-        is_author: true, // We know this is the author
+        ...apiResponseComment,
+        author_name: user.nickname || user.name,
+        author_profile_image_url: user.profile_image_url,
+        is_author: true,
+        children: [],
       };
-
       setComments((prev) => [newOptimisticComment, ...prev]);
       setNewComment('');
     } catch (err) {
@@ -74,48 +100,53 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     }
   };
 
-  const handleDeleteComment = async (commentId: number) => {
-    if (!token) return;
-    
-    const originalComments = comments;
-    setComments(prev => prev.filter(c => c.id !== commentId));
-
-    try {
-      await deleteComment(commentId, token);
-    } catch (err) {
-      setError('댓글 삭제에 실패했습니다.');
-      setComments(originalComments);
-    }
-  };
-
-  const handleEditClick = (comment: Comment) => {
-    setEditingCommentId(comment.id);
-    setEditingText(comment.content);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingCommentId(null);
-    setEditingText('');
-  };
-
-  const handleUpdateComment = async (commentId: number) => {
-    if (!editingText.trim() || !token) return;
-
-    setIsSubmitting(true);
-    try {
-      const updatedComment = await updateComment(commentId, editingText, token);
-      setComments(prev => prev.map(c => c.id === commentId ? updatedComment : c));
-      handleCancelEdit();
-    } catch (err) {
-      setError('댓글 수정에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handlers = {
+    onUpdate: async (commentId: number, text: string) => {
+      if (!text.trim() || !token) return;
+      const originalComments = comments;
+      // Optimistic update
+      setComments(prev => updateCommentInTree(prev, { id: commentId, content: text } as Comment));
+      try {
+        const updatedComment = await updateComment(commentId, text, token);
+        setComments(prev => updateCommentInTree(prev, updatedComment));
+      } catch (err) {
+        setError('댓글 수정에 실패했습니다.');
+        setComments(originalComments); // Rollback
+      }
+    },
+    onDelete: async (commentId: number) => {
+      if (!token) return;
+      const originalComments = comments;
+      // Optimistic update
+      setComments(prev => deleteCommentInTree(prev, commentId));
+      try {
+        await deleteComment(commentId, token);
+      } catch (err) {
+        setError('댓글 삭제에 실패했습니다.');
+        setComments(originalComments); // Rollback
+      }
+    },
+    onReply: async (parentId: number, text: string) => {
+      if (!text.trim() || !token || !user) return;
+      try {
+        const apiResponseReply = await addComment(articleId, text, token, parentId);
+        const newOptimisticReply: Comment = {
+          ...apiResponseReply,
+          author_name: user.nickname || user.name,
+          author_profile_image_url: user.profile_image_url,
+          is_author: true,
+          children: [],
+        };
+        setComments(prev => addReplyInTree(prev, newOptimisticReply));
+      } catch (err) {
+        setError('답글 작성에 실패했습니다.');
+      }
+    },
   };
 
   return (
     <div className="bg-zinc-900/50 p-4 rounded-b-lg mt-2">
-      <form onSubmit={handleSubmitComment} className="flex items-center gap-2 mb-4">
+      <form onSubmit={handleSubmitTopLevelComment} className="flex items-center gap-2 mb-4">
         <input
           type="text"
           value={newComment}
@@ -129,13 +160,13 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
           disabled={!user || !newComment.trim() || isSubmitting}
           className="p-2 bg-blue-600 rounded-md text-white transition-colors disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700"
         >
-          {isSubmitting && !editingCommentId ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
         </button>
       </form>
 
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-      <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
         {isLoading ? (
           <div className="flex justify-center items-center py-4">
             <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
@@ -147,59 +178,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
           </div>
         ) : (
           comments.map((comment) => (
-            <div key={comment.id} className="flex items-start gap-3 group">
-              <Image
-                src={getFullImageUrl(comment.author_profile_image_url)}
-                alt={comment.author_name || 'User profile image'}
-                width={32}
-                height={32}
-                className="rounded-full mt-1"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm text-zinc-200">{comment.author_name}</span>
-                  <span className="text-xs text-zinc-500">
-                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ko })}
-                  </span>
-                </div>
-                {editingCommentId === comment.id ? (
-                  <div className="mt-2">
-                    <textarea
-                      value={editingText}
-                      onChange={(e) => setEditingText(e.target.value)}
-                      className="w-full p-2 bg-zinc-700 border border-zinc-600 rounded-md text-sm text-white"
-                      rows={2}
-                    />
-                    <div className="flex justify-end gap-2 mt-2">
-                      <button onClick={handleCancelEdit} className="p-1 text-zinc-400 hover:text-white"><X size={16} /></button>
-                      <button onClick={() => handleUpdateComment(comment.id)} disabled={isSubmitting} className="p-1 text-green-500 hover:text-green-400 disabled:text-zinc-600">
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={16} />}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-zinc-300 whitespace-pre-wrap">{comment.content}</p>
-                )}
-              </div>
-              {comment.is_author && editingCommentId !== comment.id && (
-                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    onClick={() => handleEditClick(comment)}
-                    className="text-zinc-500 hover:text-blue-500 p-1"
-                    title="수정"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteComment(comment.id)}
-                    className="text-zinc-500 hover:text-red-500 p-1"
-                    title="삭제"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              )}
-            </div>
+            <CommentItem key={comment.id} comment={comment} handlers={handlers} />
           ))
         )}
       </div>
