@@ -50,12 +50,22 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !token) return;
+    if (!newComment.trim() || !token || !user) return;
 
     setIsSubmitting(true);
     try {
-      const addedComment = await addComment(articleId, newComment, token);
-      setComments((prev) => [addedComment, ...prev]);
+      // The API response might be incomplete, so we'll use it
+      // but construct a more complete object for the optimistic update.
+      const apiResponseComment = await addComment(articleId, newComment, token);
+
+      const newOptimisticComment: Comment = {
+        ...apiResponseComment, // Contains id, content, created_at from server
+        author_name: user.nickname || user.name, // Use current user's name
+        author_profile_image_url: user.profile_image_url, // Use current user's image
+        is_author: true, // We know this is the author
+      };
+
+      setComments((prev) => [newOptimisticComment, ...prev]);
       setNewComment('');
     } catch (err) {
       setError('댓글 작성에 실패했습니다.');
