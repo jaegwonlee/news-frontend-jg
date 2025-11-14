@@ -27,15 +27,16 @@ export default function CategoryNewsClientPage({ articles, categoryName }: Categ
     return ['전체', ...Array.from(new Set(allSources))];
   }, [articles]);
 
-  const filteredArticles = useMemo(() => {
-    if (selectedSource === '전체') {
-      return articles;
-    }
-    return articles.filter(article => article.source === selectedSource);
-  }, [articles, selectedSource]);
+  const { heroArticle, remainingArticles, filteredArticles } = useMemo(() => {
+    const filtered = selectedSource === '전체'
+      ? articles
+      : articles.filter(article => article.source === selectedSource);
+    
+    const hero = filtered.length > 0 ? filtered[0] : null;
+    const remaining = filtered.length > 1 ? filtered.slice(1) : [];
 
-  const heroArticle = filteredArticles.length > 0 ? filteredArticles[0] : null;
-  const remainingArticles = filteredArticles.length > 1 ? filteredArticles.slice(1) : [];
+    return { heroArticle: hero, remainingArticles: remaining, filteredArticles: filtered };
+  }, [articles, selectedSource]);
 
   return (
     <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in">
