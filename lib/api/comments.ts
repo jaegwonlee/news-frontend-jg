@@ -58,3 +58,25 @@ export const deleteComment = async (commentId: number, token: string): Promise<{
   }
   return response.json();
 };
+
+/**
+ * 댓글을 수정합니다.
+ * @param commentId - 수정할 댓글의 ID
+ * @param content - 수정할 내용
+ * @param token - 사용자 인증 토큰
+ * @returns 수정된 댓글 Promise
+ */
+export const updateComment = async (commentId: number, content: string, token: string): Promise<Comment> => {
+  const response = await fetchWrapper(`/api/comments/${commentId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ content }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to update comment ${commentId}`);
+  }
+  return response.json();
+};

@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
-import { getComments, addComment, deleteComment } from '@/lib/api/comments';
+import { getComments, addComment, deleteComment, updateComment } from '@/lib/api/comments';
 import { Comment } from '@/types';
-import { Send, Trash2, Loader2, MessageSquare } from 'lucide-react';
+import { Send, Trash2, Loader2, MessageSquare, Pencil, X, Check } from 'lucide-react';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -16,7 +16,6 @@ interface CommentSectionProps {
 const getFullImageUrl = (url?: string): string => {
   if (!url) return '/user-placeholder.svg';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  // Assuming BACKEND_BASE_URL is available or defined elsewhere
   const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
   return `${BACKEND_BASE_URL}${url}`;
 };
@@ -28,6 +27,9 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState('');
 
   const fetchComments = useCallback(async () => {
     try {
@@ -65,7 +67,6 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   const handleDeleteComment = async (commentId: number) => {
     if (!token) return;
     
-    // Optimistic deletion
     const originalComments = comments;
     setComments(prev => prev.filter(c => c.id !== commentId));
 
@@ -73,8 +74,32 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       await deleteComment(commentId, token);
     } catch (err) {
       setError('댓글 삭제에 실패했습니다.');
-      // Rollback on error
       setComments(originalComments);
+    }
+  };
+
+  const handleEditClick = (comment: Comment) => {
+    setEditingCommentId(comment.id);
+    setEditingText(comment.content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingText('');
+  };
+
+  const handleUpdateComment = async (commentId: number) => {
+    if (!editingText.trim() || !token) return;
+
+    setIsSubmitting(true);
+    try {
+      const updatedComment = await updateComment(commentId, editingText, token);
+      setComments(prev => prev.map(c => c.id === commentId ? updatedComment : c));
+      handleCancelEdit();
+    } catch (err) {
+      setError('댓글 수정에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -94,7 +119,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
           disabled={!user || !newComment.trim() || isSubmitting}
           className="p-2 bg-blue-600 rounded-md text-white transition-colors disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700"
         >
-          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+          {isSubmitting && !editingCommentId ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
         </button>
       </form>
 
@@ -127,16 +152,42 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
                     {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ko })}
                   </span>
                 </div>
-                <p className="text-sm text-zinc-300 whitespace-pre-wrap">{comment.content}</p>
+                {editingCommentId === comment.id ? (
+                  <div className="mt-2">
+                    <textarea
+                      value={editingText}
+                      onChange={(e) => setEditingText(e.target.value)}
+                      className="w-full p-2 bg-zinc-700 border border-zinc-600 rounded-md text-sm text-white"
+                      rows={2}
+                    />
+                    <div className="flex justify-end gap-2 mt-2">
+                      <button onClick={handleCancelEdit} className="p-1 text-zinc-400 hover:text-white"><X size={16} /></button>
+                      <button onClick={() => handleUpdateComment(comment.id)} disabled={isSubmitting} className="p-1 text-green-500 hover:text-green-400 disabled:text-zinc-600">
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-zinc-300 whitespace-pre-wrap">{comment.content}</p>
+                )}
               </div>
-              {comment.is_author && (
-                <button 
-                  onClick={() => handleDeleteComment(comment.id)}
-                  className="text-zinc-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                  title="삭제"
-                >
-                  <Trash2 size={14} />
-                </button>
+              {comment.is_author && editingCommentId !== comment.id && (
+                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => handleEditClick(comment)}
+                    className="text-zinc-500 hover:text-blue-500 p-1"
+                    title="수정"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteComment(comment.id)}
+                    className="text-zinc-500 hover:text-red-500 p-1"
+                    title="삭제"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               )}
             </div>
           ))
