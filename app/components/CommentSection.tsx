@@ -73,9 +73,12 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const totalCount = countTotalComments(comments);
-    onCommentCountChange(totalCount);
-  }, [comments, onCommentCountChange]);
+    // Only calculate and update the count if we are not in the initial loading state.
+    if (!isLoading) {
+      const totalCount = countTotalComments(comments);
+      onCommentCountChange(totalCount);
+    }
+  }, [comments, isLoading, onCommentCountChange]);
 
   const fetchComments = useCallback(async () => {
     try {
