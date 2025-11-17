@@ -1,11 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/app/context/AuthContext';
-import { Comment } from '@/types';
-import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban } from 'lucide-react';
-import Image from 'next/image';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isBefore, subHours, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 const getFullImageUrl = (url?: string): string => {
@@ -46,6 +41,15 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
 
   const isAuthor = user ? user.id === comment.author_id : false;
   const isDeleted = comment.status === 'DELETED_BY_USER';
+
+  const commentDate = new Date(comment.created_at);
+  const now = new Date();
+  const twentyFourHoursAgo = subHours(now, 24);
+  const isOlderThan24Hours = isBefore(commentDate, twentyFourHoursAgo);
+
+  const formattedTime = isOlderThan24Hours
+    ? format(commentDate, 'yyyy-MM-dd HH:mm', { locale: ko })
+    : formatDistanceToNow(commentDate, { addSuffix: true, locale: ko });
 
   const handleEdit = async () => {
     if (!editText.trim()) return;
@@ -127,7 +131,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm text-zinc-200">{comment.author_name}</span>
             <span className="text-xs text-zinc-500">
-              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ko })}
+              {formattedTime}
             </span>
           </div>
 
