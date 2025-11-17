@@ -26,12 +26,12 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
  * @returns 댓글 목록 Promise
  */
 export const getComments = async (articleId: number, token?: string, sort?: string): Promise<Comment[]> => {
-  const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/articles/${articleId}/comments`);
+  let url = `/api/articles/${articleId}/comments`;
   if (sort) {
-    url.searchParams.append('sort', sort);
+    url += `?sort=${sort}`;
   }
   
-  const response = await fetchWrapper(url.toString(), {
+  const response = await fetchWrapper(url, {
     method: 'GET',
     headers: token ? { 'Authorization': `Bearer ${token}` } : {},
   });
