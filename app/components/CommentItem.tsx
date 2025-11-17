@@ -61,7 +61,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
     )
   );
 
-  const itemClasses = `py-2 ${depth > 0 ? 'pl-6 border-l-2 border-zinc-700/50' : ''}`;
+  const itemClasses = `${depth > 0 ? 'pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg' : 'py-2'}`;
 
   if (isDeleted) {
     return (
