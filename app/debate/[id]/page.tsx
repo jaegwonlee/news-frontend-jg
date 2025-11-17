@@ -19,7 +19,8 @@ export default function TopicDetailPage() {
   const [topicDetail, setTopicDetail] = useState<TopicDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activePanel, setActivePanel] = useState<Article | null>(null);
+  const [leftPanelArticle, setLeftPanelArticle] = useState<Article | null>(null);
+  const [rightPanelArticle, setRightPanelArticle] = useState<Article | null>(null);
 
   useEffect(() => {
     if (id && !isNaN(parseInt(id, 10))) {
@@ -85,11 +86,19 @@ export default function TopicDetailPage() {
   );
 
   const handleCommentIconClick = (article: Article) => {
-    setActivePanel(article);
+    if (article.side === 'LEFT') {
+      setLeftPanelArticle(article);
+    } else if (article.side === 'RIGHT') {
+      setRightPanelArticle(article);
+    }
   };
 
-  const handlePanelClose = () => {
-    setActivePanel(null);
+  const handlePanelClose = (side: 'left' | 'right') => {
+    if (side === 'left') {
+      setLeftPanelArticle(null);
+    } else if (side === 'right') {
+      setRightPanelArticle(null);
+    }
   };
 
   if (isLoading) {
@@ -127,9 +136,9 @@ export default function TopicDetailPage() {
             ))}
           </div>
           <CommentSidePanel
-            isOpen={activePanel?.side === 'LEFT'}
-            onClose={handlePanelClose}
-            article={activePanel}
+            isOpen={!!leftPanelArticle}
+            onClose={() => handlePanelClose('left')}
+            article={leftPanelArticle}
             side="left"
           />
         </aside>
@@ -155,9 +164,9 @@ export default function TopicDetailPage() {
             ))}
           </div>
           <CommentSidePanel
-            isOpen={activePanel?.side === 'RIGHT'}
-            onClose={handlePanelClose}
-            article={activePanel}
+            isOpen={!!rightPanelArticle}
+            onClose={() => handlePanelClose('right')}
+            article={rightPanelArticle}
             side="right"
           />
         </aside>
