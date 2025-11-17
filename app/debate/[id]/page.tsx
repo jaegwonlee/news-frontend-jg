@@ -6,6 +6,7 @@ import ArticleCard from "@/app/components/ArticleCard";
 import ChatRoom from "@/app/components/ChatRoom";
 import TopicViewCounter from "@/app/components/TopicViewCounter";
 import { getTopicDetail, toggleArticleLike, toggleArticleSave } from "@/lib/api";
+import { getComments } from "@/lib/api/comments"; // Import getComments
 import { TopicDetail, Article } from "@/types";
 import { useAuth } from "@/app/context/AuthContext";
 import RelatedTopicsCarousel from "@/app/components/RelatedTopicsCarousel";
@@ -28,7 +29,23 @@ export default function TopicDetailPage() {
         try {
           setIsLoading(true);
           const data = await getTopicDetail(id, token || undefined);
-          setTopicDetail(data);
+          
+          // Fetch comment counts for each article
+          if (data.articles && data.articles.length > 0) {
+            const commentCountPromises = data.articles.map(async (article) => {
+              try {
+                const { totalCount } = await getComments(article.id, token || undefined);
+                return { ...article, comment_count: totalCount };
+              } catch (commentError) {
+                console.error(`Failed to fetch comment count for article ${article.id}:`, commentError);
+                return { ...article, comment_count: 0 }; // Default to 0 on error
+              }
+            });
+            const articlesWithCommentCounts = await Promise.all(commentCountPromises);
+            setTopicDetail({ ...data, articles: articlesWithCommentCounts });
+          } else {
+            setTopicDetail(data);
+          }
         } catch (err) {
           setError("토픽 정보를 불러오는 데 실패했습니다.");
           console.error(err);
@@ -38,7 +55,7 @@ export default function TopicDetailPage() {
       };
       fetchData();
     }
-  }, [id, token]);
+  }, [id, token, getComments]); // Add getComments to dependency array
 
   const handleLikeToggle = useCallback(
     async (articleToToggle: Article) => {
