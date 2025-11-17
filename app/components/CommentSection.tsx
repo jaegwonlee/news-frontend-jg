@@ -30,6 +30,7 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState('latest');
 
   useEffect(() => {
     if (!isLoading) {
@@ -41,7 +42,7 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
   const fetchComments = useCallback(async () => {
     try {
       setIsLoading(true);
-      const fetchedComments = await getComments(articleId, token || undefined); // getComments now returns the tree
+      const fetchedComments = await getComments(articleId, token || undefined, sortBy);
       setComments(fetchedComments);
     } catch (err) {
       setError('댓글을 불러오는 데 실패했습니다.');
@@ -49,7 +50,7 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
     } finally {
       setIsLoading(false);
     }
-  }, [articleId, token]);
+  }, [articleId, token, sortBy]);
 
   useEffect(() => {
     fetchComments();
@@ -57,13 +58,17 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
 
   const handleSubmitTopLevelComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !token) return; // Removed !user check here
+    if (!newComment.trim() || !token) return;
 
     setIsSubmitting(true);
     try {
       await addComment(articleId, newComment, token);
       setNewComment('');
-      await fetchComments(); // Re-fetch to get the most accurate data
+      if (sortBy !== 'latest') {
+        setSortBy('latest');
+      } else {
+        await fetchComments();
+      }
     } catch (err) {
       setError('댓글 작성에 실패했습니다.');
     } finally {
@@ -83,38 +88,40 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
       await fetchComments(); // Re-fetch
     },
     onReply: async (parentId: number, text: string) => {
-      if (!text.trim() || !token) return; // Removed !user check here
+      if (!text.trim() || !token) return;
       try {
         await addComment(articleId, text, token, parentId);
-        await fetchComments(); // Re-fetch
+        if (sortBy !== 'latest') {
+          setSortBy('latest');
+        } else {
+          await fetchComments();
+        }
       } catch (err) {
         setError('답글 작성에 실패했습니다.');
       }
     },
   };
 
+  const SortTab = ({ value, label }: { value: string, label: string }) => (
+    <button
+      onClick={() => setSortBy(value)}
+      className={`px-3 py-1 text-sm rounded-md transition-colors ${
+        sortBy === value
+          ? 'bg-blue-600 text-white'
+          : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div className="bg-zinc-900/50 p-4 rounded-b-lg mt-2">
-      <form onSubmit={handleSubmitTopLevelComment} className="flex items-center gap-2 mb-4">
-        <input
-          type="text"
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder={user ? '댓글을 입력하세요...' : '로그인 후 댓글을 작성할 수 있습니다.'}
-          className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          disabled={!user || isSubmitting}
-        />
-        <button
-          type="submit"
-          disabled={!user || !newComment.trim() || isSubmitting}
-          className="p-2 bg-blue-600 rounded-md text-white transition-colors disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700"
-        >
-          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-        </button>
-      </form>
-
-      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
+      <div className="flex items-center gap-2 mb-4">
+        <SortTab value="latest" label="최신순" />
+        <SortTab value="oldest" label="과거순" />
+        <SortTab value="popular" label="공감순" />
+      </div>
       <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
         {isLoading ? (
           <div className="flex justify-center items-center py-4">
@@ -131,6 +138,26 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
           ))
         )}
       </div>
+
+      {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+
+      <form onSubmit={handleSubmitTopLevelComment} className="flex items-center gap-2 mt-4">
+        <input
+          type="text"
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder={user ? '댓글을 입력하세요...' : '로그인 후 댓글을 작성할 수 있습니다.'}
+          className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={!user || isSubmitting}
+        />
+        <button
+          type="submit"
+          disabled={!user || !newComment.trim() || isSubmitting}
+          className="p-2 bg-blue-600 rounded-md text-white transition-colors disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700"
+        >
+          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+        </button>
+      </form>
     </div>
   );
 }

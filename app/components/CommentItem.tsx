@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { Comment } from '@/types';
-import { Send, Trash2, Loader2, Pencil, X, Check, CornerDownRight } from 'lucide-react';
+import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare } from 'lucide-react';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -105,6 +105,17 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
             >
               답글
             </button>
+
+            {comment.children && comment.children.length > 0 && (
+              <button 
+                onClick={() => setAreChildrenVisible(!areChildrenVisible)}
+                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
+              >
+                <MessageSquare size={14} />
+                <span>{comment.children.length}</span>
+              </button>
+            )}
+
             {isAuthor && (
               <div className="flex items-center">
                 <button onClick={() => setIsEditing(true)} className="text-xs text-zinc-400 hover:text-white">수정</button>
@@ -130,18 +141,6 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
               {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </button>
           </div>
-        )}
-
-        {comment.children && comment.children.length > 0 && (
-          <button 
-            onClick={() => setAreChildrenVisible(!areChildrenVisible)}
-            className="mt-2 flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300"
-          >
-            <CornerDownRight size={16} />
-            <span>
-              {areChildrenVisible ? '답글 숨기기' : `답글 ${comment.children.length}개 보기`}
-            </span>
-          </button>
         )}
 
         {areChildrenVisible && comment.children && comment.children.length > 0 && (

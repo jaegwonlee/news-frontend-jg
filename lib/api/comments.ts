@@ -25,8 +25,13 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
  * @param token - 사용자 인증 토큰 (선택 사항)
  * @returns 댓글 목록 Promise
  */
-export const getComments = async (articleId: number, token?: string): Promise<Comment[]> => {
-  const response = await fetchWrapper(`/api/articles/${articleId}/comments`, {
+export const getComments = async (articleId: number, token?: string, sort?: string): Promise<Comment[]> => {
+  const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/articles/${articleId}/comments`);
+  if (sort) {
+    url.searchParams.append('sort', sort);
+  }
+  
+  const response = await fetchWrapper(url.toString(), {
     method: 'GET',
     headers: token ? { 'Authorization': `Bearer ${token}` } : {},
   });
