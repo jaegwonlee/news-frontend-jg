@@ -62,7 +62,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
   };
 
   const renderChildren = () => (
-    depth === 0 && areChildrenVisible && comment.children && comment.children.length > 0 && (
+    areChildrenVisible && comment.children && comment.children.length > 0 && (
       <div className="pt-2 space-y-2">
         {comment.children.map(childComment => (
           <CommentItem key={childComment.id} comment={childComment} handlers={handlers} depth={depth + 1} />
