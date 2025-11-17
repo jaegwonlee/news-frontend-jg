@@ -2,6 +2,8 @@
 
 import { useState } from 'react'; // Added missing import
 import { useAuth } from '@/app/context/AuthContext'; // Added missing import
+import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban } from 'lucide-react'; // Added MessageSquare
+import Image from 'next/image';
 import { formatDistanceToNow, isBefore, subHours, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
