@@ -5,7 +5,7 @@ import { Comment, ApiComment } from '@/types';
 const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
   const comment: Comment = {
     id: apiComment.id,
-    author_id: apiComment.user_id || 0, // user_id is from GET, POST might not have it, default to 0 for safety
+    author_id: apiComment.user_id,
     author_name: apiComment.nickname,
     author_profile_image_url: apiComment.profile_image_url,
     content: apiComment.content,

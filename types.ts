@@ -30,7 +30,7 @@ export interface Article {
  */
 export interface Comment {
   id: number;
-  author_id: number; // Mapped from API's user_id
+  author_id?: number; // Mapped from API's user_id
   author_name: string; // Mapped from API's nickname
   author_profile_image_url?: string; // Mapped from API's profile_image_url
   content: string;
