@@ -125,7 +125,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
         ) : (
           <div className="space-y-4">
             {comments.map((comment) => (
-              <CommentItem key={comment.id} comment={comment} handlers={handlers} />
+              <CommentItem key={comment.id} comment={comment} handlers={handlers} depth={0} />
             ))}
           </div>
         )}

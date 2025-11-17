@@ -24,9 +24,10 @@ interface CommentHandlers {
 interface CommentItemProps {
   comment: Comment;
   handlers: CommentHandlers;
+  depth: number; // Add depth prop
 }
 
-export default function CommentItem({ comment, handlers }: CommentItemProps) {
+export default function CommentItem({ comment, handlers, depth }: CommentItemProps) {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [areChildrenVisible, setAreChildrenVisible] = useState(false);
@@ -54,15 +55,17 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
     areChildrenVisible && comment.children && comment.children.length > 0 && (
       <div className="pt-2 space-y-2">
         {comment.children.map(childComment => (
-          <CommentItem key={childComment.id} comment={childComment} handlers={handlers} />
+          <CommentItem key={childComment.id} comment={childComment} handlers={handlers} depth={depth + 1} />
         ))}
       </div>
     )
   );
 
+  const itemClasses = `py-2 ${depth > 0 ? 'pl-6 border-l-2 border-zinc-700/50' : ''}`;
+
   if (isDeleted) {
     return (
-      <div className="py-2">
+      <div className={itemClasses}>
         <div className="flex items-center gap-3 text-zinc-500 italic">
           <Ban size={16} className="shrink-0" />
           <div className="flex-1">
@@ -84,7 +87,7 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
   }
 
   return (
-    <div className="py-2">
+    <div className={itemClasses}>
       <div className="flex items-start gap-3 group">
         <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-zinc-700 mt-1">
           <Image
