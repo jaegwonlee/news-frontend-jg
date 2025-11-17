@@ -25,7 +25,7 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
  * @param token - 사용자 인증 토큰 (선택 사항)
  * @returns 댓글 목록 Promise
  */
-export const getComments = async (articleId: number, token?: string, sort?: string): Promise<Comment[]> => {
+export const getComments = async (articleId: number, token?: string, sort?: string): Promise<{ comments: Comment[], totalCount: number }> => {
   let url = `/api/articles/${articleId}/comments`;
   if (sort) {
     url += `?sort=${sort}`;
@@ -39,14 +39,13 @@ export const getComments = async (articleId: number, token?: string, sort?: stri
     throw new Error(`Failed to fetch comments for article ${articleId}`);
   }
   const apiResponse = await response.json();
-  const apiComments: ApiComment[] = apiResponse.comments || [];
-
-  if (!Array.isArray(apiComments)) {
-    console.error("API did not return a 'comments' array.", apiResponse);
-    return [];
-  }
   
-  return apiComments.map(mapApiCommentToComment);
+  const mappedComments = (apiResponse.comments || []).map(mapApiCommentToComment);
+
+  return {
+    comments: mappedComments,
+    totalCount: apiResponse.totalCount || 0,
+  };
 };
 
 /**
