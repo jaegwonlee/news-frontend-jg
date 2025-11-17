@@ -71,7 +71,7 @@ export default function ArticleCard({
                 <button 
                   onClick={() => setIsCommentSectionVisible(!isCommentSectionVisible)}
                   className={`flex items-center gap-1 text-xs transition-colors ${
-                    isCommentSectionVisible ? 'text-blue-400' : 'text-zinc-400 hover:text-white'
+                    isCommentSectionVisible ? 'text-blue-600' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   <MessageSquare size={16} />
@@ -129,7 +129,7 @@ export default function ArticleCard({
           <button 
             onClick={() => setIsCommentSectionVisible(!isCommentSectionVisible)}
             className={`flex items-center gap-1 text-xs transition-colors ${
-              isCommentSectionVisible ? 'text-blue-400' : 'text-zinc-400 hover:text-white'
+              isCommentSectionVisible ? 'text-blue-600' : 'text-zinc-400 hover:text-white'
             }`}
           >
             <MessageSquare size={16} />
