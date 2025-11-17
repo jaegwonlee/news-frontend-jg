@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { getComments, addComment, deleteComment, updateComment } from '@/lib/api/comments';
 import { Comment } from '@/types';
-import { Send, Loader2, MessageSquare } from 'lucide-react';
+import { Send, Loader2, MessageSquare, X } from 'lucide-react';
 import CommentItem from './CommentItem';
+
+interface ReplyTarget {
+  id: number;
+  nickname: string;
+}
 
 interface CommentSectionProps {
   articleId: number;
@@ -20,10 +25,11 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('latest');
+  const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const fetchComments = useCallback(async () => {
     try {
-      // Don't set loading to true on re-fetch to avoid flicker
       const { comments: fetchedComments, totalCount: fetchedTotalCount } = await getComments(articleId, token || undefined, sortBy);
       setComments(fetchedComments);
       setTotalCount(fetchedTotalCount);
@@ -40,14 +46,27 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     fetchComments();
   }, [fetchComments]);
 
-  const handleSubmitTopLevelComment = async (e: React.FormEvent) => {
+  const handleSetReplyTarget = useCallback((target: ReplyTarget | null) => {
+    setReplyTarget(target);
+    if (target) {
+      setNewComment(`@${target.nickname} `);
+      inputRef.current?.focus();
+    } else {
+      setNewComment('');
+    }
+  }, []);
+
+  const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !token) return;
 
     setIsSubmitting(true);
     try {
-      await addComment(articleId, newComment, token);
+      await addComment(articleId, newComment, token, replyTarget?.id);
+      
       setNewComment('');
+      setReplyTarget(null);
+
       if (sortBy !== 'latest') {
         setSortBy('latest');
       } else {
@@ -71,19 +90,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       await deleteComment(commentId, token);
       await fetchComments();
     },
-    onReply: async (parentId: number, text: string) => {
-      if (!text.trim() || !token) return;
-      try {
-        await addComment(articleId, text, token, parentId);
-        if (sortBy !== 'latest') {
-          setSortBy('latest');
-        } else {
-          await fetchComments();
-        }
-      } catch (err) {
-        setError('답글 작성에 실패했습니다.');
-      }
-    },
+    onSetReplyTarget: handleSetReplyTarget,
   };
 
   const SortTab = ({ value, label }: { value: string, label: string }) => (
@@ -126,22 +133,31 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
       <div className="shrink-0 pt-4 mt-auto">
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        <form onSubmit={handleSubmitTopLevelComment} className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder={user ? '댓글을 입력하세요...' : '로그인 후 댓글을 작성할 수 있습니다.'}
-            className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={!user || isSubmitting}
-          />
-          <button
-            type="submit"
-            disabled={!user || !newComment.trim() || isSubmitting}
-            className="p-2 bg-blue-600 rounded-md text-white transition-colors disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700"
-          >
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-          </button>
+        <form onSubmit={handleSubmitComment} className="space-y-2">
+          {replyTarget && (
+            <div className="flex items-center text-sm text-zinc-400">
+              <span>@{replyTarget.nickname}님에게 답글 남기는 중...</span>
+              <button type="button" onClick={() => handleSetReplyTarget(null)} className="ml-2 text-zinc-500 hover:text-white"><X size={16} /></button>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <input
+              ref={inputRef}
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder={user ? '댓글을 입력하세요...' : '로그인 후 댓글을 작성할 수 있습니다.'}
+              className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={!user || isSubmitting}
+            />
+            <button
+              type="submit"
+              disabled={!user || !newComment.trim() || isSubmitting}
+              className="p-2 bg-blue-600 rounded-md text-white transition-colors disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700"
+            >
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+            </button>
+          </div>
         </form>
       </div>
     </div>
