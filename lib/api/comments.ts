@@ -69,8 +69,8 @@ export const addComment = async (articleId: number, content: string, token: stri
   if (!response.ok) {
     throw new Error(`Failed to add comment to article ${articleId}`);
   }
-  const apiComment: ApiComment = await response.json();
-  return mapApiCommentToComment(apiComment);
+  const apiResponse: { message: string; comment: ApiComment } = await response.json();
+  return mapApiCommentToComment(apiResponse.comment);
 };
 
 /**
