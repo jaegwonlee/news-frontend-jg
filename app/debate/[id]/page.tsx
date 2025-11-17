@@ -83,6 +83,20 @@ export default function TopicDetailPage() {
     [token]
   );
 
+  const handleCommentCountChange = useCallback((articleId: number, newCount: number) => {
+    setTopicDetail((prevDetail) => {
+      if (!prevDetail) return null;
+      return {
+        ...prevDetail,
+        articles: prevDetail.articles.map((article) =>
+          article.id === articleId
+            ? { ...article, comment_count: newCount }
+            : article
+        ),
+      };
+    });
+  }, []);
+
   if (isLoading) {
     return <div className="text-center text-white p-10">로딩 중...</div>;
   }
@@ -112,6 +126,7 @@ export default function TopicDetailPage() {
                 variant="horizontal"
                 onLikeToggle={() => handleLikeToggle(article)}
                 onSaveToggle={() => handleSaveToggle(article)}
+                onCommentCountChange={handleCommentCountChange}
                 hoverColor="blue"
               />
             ))}
@@ -133,6 +148,7 @@ export default function TopicDetailPage() {
                 variant="horizontal"
                 onLikeToggle={() => handleLikeToggle(article)}
                 onSaveToggle={() => handleSaveToggle(article)}
+                onCommentCountChange={handleCommentCountChange}
                 hoverColor="red"
               />
             ))}

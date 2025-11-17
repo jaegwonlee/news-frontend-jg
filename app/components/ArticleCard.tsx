@@ -14,8 +14,9 @@ import { MessageSquare } from "lucide-react"; // Import comment icon
 interface ArticleCardProps {
   article: Article;
   variant?: 'default' | 'horizontal';
-  onLikeToggle?: (articleId: number) => void;
-  onSaveToggle?: (articleId: number) => void;
+  onLikeToggle?: (article: Article) => void;
+  onSaveToggle?: (article: Article) => void;
+  onCommentCountChange?: (articleId: number, newCount: number) => void;
   className?: string;
   hoverColor?: 'red' | 'blue';
 }
@@ -24,14 +25,20 @@ export default function ArticleCard({
   article, 
   variant = 'default',
   onLikeToggle, 
-  onSaveToggle, 
+  onSaveToggle,
+  onCommentCountChange,
   className,
   hoverColor = 'red',
 }: ArticleCardProps) {
   const [isCommentSectionVisible, setIsCommentSectionVisible] = useState(false);
-  const [totalCommentCount, setTotalCommentCount] = useState(article.comment_count ?? 0);
 
   const borderColorClass = hoverColor === 'red' ? 'border-red-500' : 'border-blue-500';
+
+  const handleCommentCountChange = (newCount: number) => {
+    if (onCommentCountChange) {
+      onCommentCountChange(article.id, newCount);
+    }
+  };
 
   if (variant === 'horizontal') {
     return (
@@ -67,17 +74,26 @@ export default function ArticleCard({
                   className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors"
                 >
                   <MessageSquare size={16} />
-                  <span>{totalCommentCount}</span>
+                  <span>{article.comment_count ?? 0}</span>
                 </button>
-                {onLikeToggle && (article.id && article.like_count !== undefined && article.isLiked !== undefined) &&
-                  <ArticleLikeButton articleId={article.id} initialLikes={article.like_count} initialIsLiked={article.isLiked} onLikeToggle={onLikeToggle} />}
-                {onSaveToggle && (article.id && article.isSaved !== undefined) &&
-                  <ArticleSaveButton articleId={article.id} initialIsSaved={article.isSaved} onSaveToggle={() => onSaveToggle(article.id)} />}
+                {onLikeToggle && (article.like_count !== undefined && article.isLiked !== undefined) &&
+                  <ArticleLikeButton 
+                    likes={article.like_count}
+                    isLiked={article.isLiked}
+                    onClick={() => onLikeToggle(article)} 
+                  />
+                }
+                {onSaveToggle && (article.isSaved !== undefined) &&
+                  <ArticleSaveButton 
+                    isSaved={article.isSaved}
+                    onClick={() => onSaveToggle(article)}
+                  />
+                }
               </div>
             </div>
           </div>
         </div>
-        {isCommentSectionVisible && <CommentSection articleId={article.id} onCommentCountChange={setTotalCommentCount} />}
+        {isCommentSectionVisible && <CommentSection articleId={article.id} onCommentCountChange={handleCommentCountChange} />}
       </div>
     );
   }
@@ -109,10 +125,19 @@ export default function ArticleCard({
       </Link>
       <div className="px-4 lg:px-5 pb-4 lg:pb-5 pt-2 flex justify-end items-center">
         <div className="flex gap-2">
-          {onLikeToggle && (article.id && article.like_count !== undefined && article.isLiked !== undefined) &&
-            <ArticleLikeButton articleId={article.id} initialLikes={article.like_count} initialIsLiked={article.isLiked} onLikeToggle={onLikeToggle} />}
-          {onSaveToggle && (article.id && article.isSaved !== undefined) &&
-            <ArticleSaveButton articleId={article.id} initialIsSaved={article.isSaved} onSaveToggle={() => onSaveToggle(article.id)} />}
+          {onLikeToggle && (article.like_count !== undefined && article.isLiked !== undefined) &&
+            <ArticleLikeButton 
+              likes={article.like_count}
+              isLiked={article.isLiked}
+              onClick={() => onLikeToggle(article)} 
+            />
+          }
+          {onSaveToggle && (article.isSaved !== undefined) &&
+            <ArticleSaveButton 
+              isSaved={article.isSaved}
+              onClick={() => onSaveToggle(article)}
+            />
+          }
         </div>
       </div>
     </div>
