@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useCallback } from "react";
 import { Article } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,15 +7,14 @@ import ArticleLikeButton from "./ArticleLikeButton";
 import ArticleSaveButton from "./ArticleSaveButton";
 import Favicon from "./common/Favicon";
 import ClientOnlyTime from "./common/ClientOnlyTime";
-import CommentSection from "./CommentSection"; // Import CommentSection
-import { MessageSquare } from "lucide-react"; // Import comment icon
+import { MessageSquare } from "lucide-react";
 
 interface ArticleCardProps {
   article: Article;
   variant?: 'default' | 'horizontal';
   onLikeToggle?: (article: Article) => void;
   onSaveToggle?: (article: Article) => void;
-  onCommentCountChange?: (articleId: number, newCount: number) => void;
+  onCommentIconClick?: (article: Article) => void;
   className?: string;
   hoverColor?: 'red' | 'blue';
 }
@@ -26,19 +24,18 @@ export default function ArticleCard({
   variant = 'default',
   onLikeToggle,
   onSaveToggle,
-  onCommentCountChange,
+  onCommentIconClick,
   className,
   hoverColor = 'red',
 }: ArticleCardProps) {
-  const [isCommentSectionVisible, setIsCommentSectionVisible] = useState(false);
-
   const borderColorClass = hoverColor === 'red' ? 'border-red-500' : 'border-blue-500';
 
-  const handleCommentCountChange = useCallback((newCount: number) => {
-    if (onCommentCountChange) {
-      onCommentCountChange(article.id, newCount);
+  const handleCommentClick = () => {
+    if (onCommentIconClick) {
+      onCommentIconClick(article);
     }
-  }, [onCommentCountChange, article.id]);
+  };
+
   if (variant === 'horizontal') {
     return (
       <div className={`bg-zinc-800 rounded-lg border-2 ${borderColorClass} ${className || ''}`}>
@@ -68,33 +65,32 @@ export default function ArticleCard({
             <div className="flex-grow"></div>
             <div className="flex justify-end items-center">
               <div className="flex gap-2 items-center">
-                <button 
-                  onClick={() => setIsCommentSectionVisible(!isCommentSectionVisible)}
-                  className={`flex items-center gap-1 text-xs transition-colors ${
-                    isCommentSectionVisible ? 'text-blue-600' : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  <MessageSquare size={16} />
-                  <span>{article.comment_count ?? 0}</span>
-                </button>
+                {onCommentIconClick && (
+                  <button 
+                    onClick={handleCommentClick}
+                    className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors"
+                  >
+                    <MessageSquare size={16} />
+                    <span>{article.comment_count ?? 0}</span>
+                  </button>
+                )}
                 {onLikeToggle && (article.like_count !== undefined && article.isLiked !== undefined) &&
                   <ArticleLikeButton 
                     likes={article.like_count}
                     isLiked={article.isLiked}
-                    onClick={() => onLikeToggle(article)} 
+                    onClick={() => onLikeToggle && onLikeToggle(article)} 
                   />
                 }
                 {onSaveToggle && (article.isSaved !== undefined) &&
                   <ArticleSaveButton 
                     isSaved={article.isSaved}
-                    onClick={() => onSaveToggle(article)}
+                    onClick={() => onSaveToggle && onSaveToggle(article)}
                   />
                 }
               </div>
             </div>
           </div>
         </div>
-        {isCommentSectionVisible && <CommentSection articleId={article.id} onCommentCountChange={handleCommentCountChange} />}
       </div>
     );
   }
@@ -126,26 +122,26 @@ export default function ArticleCard({
       </Link>
       <div className="px-4 lg:px-5 pb-4 lg:pb-5 pt-2 flex justify-end items-center">
         <div className="flex gap-2">
-          <button 
-            onClick={() => setIsCommentSectionVisible(!isCommentSectionVisible)}
-            className={`flex items-center gap-1 text-xs transition-colors ${
-              isCommentSectionVisible ? 'text-blue-600' : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <MessageSquare size={16} />
-            <span>{article.comment_count ?? 0}</span>
-          </button>
+          {onCommentIconClick && (
+            <button 
+              onClick={handleCommentClick}
+              className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors"
+            >
+              <MessageSquare size={16} />
+              <span>{article.comment_count ?? 0}</span>
+            </button>
+          )}
           {onLikeToggle && (article.like_count !== undefined && article.isLiked !== undefined) &&
             <ArticleLikeButton 
               likes={article.like_count}
               isLiked={article.isLiked}
-              onClick={() => onLikeToggle(article)} 
+              onClick={() => onLikeToggle && onLikeToggle(article)} 
             />
           }
           {onSaveToggle && (article.isSaved !== undefined) &&
             <ArticleSaveButton 
               isSaved={article.isSaved}
-              onClick={() => onSaveToggle(article)}
+              onClick={() => onSaveToggle && onSaveToggle(article)}
             />
           }
         </div>
