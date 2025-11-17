@@ -26,8 +26,9 @@ export default function CommentSidePanel({ isOpen, onClose, article, side }: Com
   }, [onClose]);
 
   const panelClasses = `
-    absolute inset-0 bg-zinc-900 z-20 flex flex-col
+    fixed top-0 bottom-0 bg-zinc-900 z-50 flex flex-col w-full lg:w-96
     transition-transform duration-300 ease-in-out
+    ${side === 'left' ? 'left-0' : 'right-0'}
     ${isOpen ? 'translate-x-0' : (side === 'left' ? '-translate-x-full' : 'translate-x-full')}
   `;
 
