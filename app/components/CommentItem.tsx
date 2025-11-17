@@ -61,9 +61,17 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
     }
   };
 
-  const renderChildren = () => (
-    areChildrenVisible && comment.children && comment.children.length > 0 && (
-      <div className="pt-2 pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg mt-2 space-y-2">
+  const renderChildren = () => {
+    if (!areChildrenVisible || !comment.children || comment.children.length === 0) {
+      return null;
+    }
+
+    const childrenWrapperClasses = depth === 0
+      ? "pt-2 pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg mt-2 space-y-2"
+      : "pt-2 space-y-2"; // No additional indentation for deeper replies
+
+    return (
+      <div className={childrenWrapperClasses}>
         {comment.children.map((childComment, index) => (
           <div key={childComment.id}>
             {index > 0 && <div className="border-t border-zinc-700 pt-2 mt-2" />}
@@ -71,8 +79,8 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
           </div>
         ))}
       </div>
-    )
-  );
+    );
+  };
 
   const itemClasses = `py-2`;
 
