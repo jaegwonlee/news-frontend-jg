@@ -99,7 +99,12 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
 
         {!isEditing && (
           <div className="flex items-center gap-4 mt-1">
-            <button onClick={() => setIsReplying(!isReplying)} className="text-xs text-zinc-400 hover:text-white">답글</button>
+            <button 
+              onClick={() => setIsReplying(!isReplying)} 
+              className={`text-xs text-zinc-400 hover:text-white ${comment.parent_id ? 'invisible' : ''}`}
+            >
+              답글
+            </button>
             {isAuthor && (
               <div className="flex items-center">
                 <button onClick={() => setIsEditing(true)} className="text-xs text-zinc-400 hover:text-white">수정</button>
