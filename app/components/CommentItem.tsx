@@ -85,6 +85,10 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
   const itemClasses = `py-2`;
 
   if (isDeleted) {
+    if (!comment.children || comment.children.length === 0) {
+      return null; // Completely remove from UI if deleted and has no children
+    }
+    // Otherwise, render as a deleted comment with children
     return (
       <div className={itemClasses}>
         <div className="flex items-center gap-3 text-zinc-500 italic">
