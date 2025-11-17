@@ -41,7 +41,7 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
   const fetchComments = useCallback(async () => {
     try {
       setIsLoading(true);
-      const fetchedComments = await getComments(articleId, token); // getComments now returns the tree
+      const fetchedComments = await getComments(articleId, token || undefined); // getComments now returns the tree
       setComments(fetchedComments);
     } catch (err) {
       setError('댓글을 불러오는 데 실패했습니다.');
