@@ -12,23 +12,15 @@ interface CommentSectionProps {
   onCommentCountChange: (count: number) => void;
 }
 
-// Utility to build a nested tree from a flat list of comments
-const buildTree = (comments: Comment[]): Comment[] => {
-  const commentsById: { [key: number]: Comment } = {};
-  comments.forEach(comment => {
-    commentsById[comment.id] = { ...comment, children: [] };
-  });
-
-  const tree: Comment[] = [];
-  comments.forEach(comment => {
-    if (comment.parent_id && commentsById[comment.parent_id]) {
-      commentsById[comment.parent_id].children?.push(commentsById[comment.id]);
-    } else {
-      tree.push(commentsById[comment.id]);
+// Helper function to recursively count all comments and their children
+const countTotalComments = (comments: Comment[]): number => {
+  let count = comments.length;
+  for (const comment of comments) {
+    if (comment.children) {
+      count += countTotalComments(comment.children);
     }
-  });
-
-  return tree;
+  }
+  return count;
 };
 
 export default function CommentSection({ articleId, onCommentCountChange }: CommentSectionProps) {
@@ -39,34 +31,39 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAndBuildTree = useCallback(async () => {
+  useEffect(() => {
+    if (!isLoading) {
+      const totalCount = countTotalComments(comments);
+      onCommentCountChange(totalCount);
+    }
+  }, [comments, isLoading, onCommentCountChange]);
+
+  const fetchComments = useCallback(async () => {
     try {
-      // We don't set loading to true here to prevent UI flicker on re-fetch
-      const flatComments = await getComments(articleId, token);
-      const commentTree = buildTree(flatComments);
-      setComments(commentTree);
-      onCommentCountChange(flatComments.length); // Update count based on flat list length
+      setIsLoading(true);
+      const fetchedComments = await getComments(articleId, token); // getComments now returns the tree
+      setComments(fetchedComments);
     } catch (err) {
       setError('댓글을 불러오는 데 실패했습니다.');
       console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-  }, [articleId, token, onCommentCountChange]);
+  }, [articleId, token]);
 
-  // Initial fetch
   useEffect(() => {
-    setIsLoading(true);
-    fetchAndBuildTree().finally(() => setIsLoading(false));
-  }, [fetchAndBuildTree]);
+    fetchComments();
+  }, [fetchComments]);
 
   const handleSubmitTopLevelComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !token) return;
+    if (!newComment.trim() || !token) return; // Removed !user check here
 
     setIsSubmitting(true);
     try {
       await addComment(articleId, newComment, token);
       setNewComment('');
-      await fetchAndBuildTree(); // Re-fetch to get the most accurate data
+      await fetchComments(); // Re-fetch to get the most accurate data
     } catch (err) {
       setError('댓글 작성에 실패했습니다.');
     } finally {
@@ -78,17 +75,21 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
     onUpdate: async (commentId: number, text: string) => {
       if (!text.trim() || !token) return;
       await updateComment(commentId, text, token);
-      await fetchAndBuildTree(); // Re-fetch
+      await fetchComments(); // Re-fetch
     },
     onDelete: async (commentId: number) => {
       if (!token) return;
       await deleteComment(commentId, token);
-      await fetchAndBuildTree(); // Re-fetch
+      await fetchComments(); // Re-fetch
     },
     onReply: async (parentId: number, text: string) => {
-      if (!text.trim() || !token) return;
-      await addComment(articleId, text, token, parentId);
-      await fetchAndBuildTree(); // Re-fetch
+      if (!text.trim() || !token) return; // Removed !user check here
+      try {
+        await addComment(articleId, text, token, parentId);
+        await fetchComments(); // Re-fetch
+      } catch (err) {
+        setError('답글 작성에 실패했습니다.');
+      }
     },
   };
 

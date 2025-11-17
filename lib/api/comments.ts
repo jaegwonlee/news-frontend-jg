@@ -1,5 +1,23 @@
 import { fetchWrapper } from './fetchWrapper';
-import { Comment } from '@/types';
+import { Comment, ApiComment } from '@/types';
+
+// Helper function to map ApiComment to Comment
+const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
+  const comment: Comment = {
+    id: apiComment.id,
+    author_id: apiComment.user_id || 0, // user_id is from GET, POST might not have it, default to 0 for safety
+    author_name: apiComment.nickname,
+    author_profile_image_url: apiComment.profile_image_url,
+    content: apiComment.content,
+    created_at: apiComment.created_at,
+    parent_id: apiComment.parent_comment_id,
+  };
+
+  if (apiComment.replies && apiComment.replies.length > 0) {
+    comment.children = apiComment.replies.map(reply => mapApiCommentToComment(reply));
+  }
+  return comment;
+};
 
 /**
  * 특정 기사의 댓글 목록을 가져옵니다.
@@ -15,7 +33,8 @@ export const getComments = async (articleId: number, token?: string): Promise<Co
   if (!response.ok) {
     throw new Error(`Failed to fetch comments for article ${articleId}`);
   }
-  return response.json();
+  const apiComments: ApiComment[] = await response.json();
+  return apiComments.map(mapApiCommentToComment);
 };
 
 /**
@@ -23,6 +42,7 @@ export const getComments = async (articleId: number, token?: string): Promise<Co
  * @param articleId - 댓글을 작성할 기사의 ID
  * @param content - 댓글 내용
  * @param token - 사용자 인증 토큰
+ * @param parentId - 부모 댓글 ID (대댓글인 경우)
  * @returns 생성된 댓글 Promise
  */
 export const addComment = async (articleId: number, content: string, token: string, parentId?: number): Promise<Comment> => {
@@ -32,12 +52,13 @@ export const addComment = async (articleId: number, content: string, token: stri
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ content, parent_id: parentId }),
+    body: JSON.stringify({ content, parent_comment_id: parentId }), // Use parent_comment_id
   });
   if (!response.ok) {
     throw new Error(`Failed to add comment to article ${articleId}`);
   }
-  return response.json();
+  const apiComment: ApiComment = await response.json();
+  return mapApiCommentToComment(apiComment);
 };
 
 /**
@@ -56,7 +77,7 @@ export const deleteComment = async (commentId: number, token: string): Promise<{
   if (!response.ok) {
     throw new Error(`Failed to delete comment ${commentId}`);
   }
-  return response.json();
+  return response.json(); // This API returns { message: string }, no mapping needed
 };
 
 /**
@@ -78,5 +99,6 @@ export const updateComment = async (commentId: number, content: string, token: s
   if (!response.ok) {
     throw new Error(`Failed to update comment ${commentId}`);
   }
-  return response.json();
+  const apiComment: ApiComment = await response.json();
+  return mapApiCommentToComment(apiComment);
 };

@@ -58,6 +58,7 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
     setIsSubmitting(false);
     setReplyText('');
     setIsReplying(false);
+    setAreChildrenVisible(true); // Show replies after posting a new one
   };
 
   return (
