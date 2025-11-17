@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { Article } from '@/types';
-import { getLikedArticles } from '@/lib/api';
+import { getLikedArticles, toggleArticleLike } from '@/lib/api'; // Import toggleArticleLike
 import { useRouter } from "next/navigation"; // 👈 useRouter 임포트
 
 export const useLikedArticles = () => {
@@ -58,12 +58,22 @@ export const useLikedArticles = () => {
     };
   }, [token, logout, router]);
 
-  const handleUnlike = useCallback((articleId: number) => {
-    setArticles((prevArticles) =>
-      prevArticles.filter((article) => article.id !== articleId)
-    );
-    setTotalCount(prevCount => prevCount - 1); // Optimistically decrement count
-  }, []);
+  const handleUnlike = useCallback(async (articleToUnlike: Article) => {
+    if (!token) return;
+
+    try {
+      // Call the API to actually unlike the article
+      await toggleArticleLike(token, articleToUnlike.id, true); // 'true' because we are unliking
+
+      setArticles((prevArticles) =>
+        prevArticles.filter((article) => article.id !== articleToUnlike.id)
+      );
+      setTotalCount(prevCount => prevCount - 1); // Optimistically decrement count
+    } catch (error) {
+      console.error("Failed to unlike article:", error);
+      // Optionally, revert optimistic update or show an error message
+    }
+  }, [token]);
 
   return {
     articles,
