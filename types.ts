@@ -35,6 +35,7 @@ export interface Comment {
   avatar_url?: string; // Mapped from API's avatar_url
   content: string;
   created_at: string;
+  status?: 'ACTIVE' | 'DELETED_BY_USER'; // Mapped from API's status
   parent_id?: number | null; // Mapped from API's parent_comment_id
   children?: Comment[]; // Mapped from API's replies
 }

@@ -10,6 +10,7 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
     avatar_url: apiComment.avatar_url || apiComment.profile_image_url, // Fallback to old field
     content: apiComment.content,
     created_at: apiComment.created_at,
+    status: apiComment.status as 'ACTIVE' | 'DELETED_BY_USER' | undefined,
     parent_id: apiComment.parent_comment_id,
   };
 
