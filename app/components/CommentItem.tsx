@@ -143,7 +143,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
               답글
             </button>
 
-            {comment.children && comment.children.length > 0 && (
+            {depth === 0 && comment.children && comment.children.length > 0 && (
               <button 
                 onClick={() => setAreChildrenVisible(!areChildrenVisible)}
                 className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
