@@ -40,7 +40,7 @@ interface CommentItemProps {
 export default function CommentItem({ comment, handlers, depth }: CommentItemProps) {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [areChildrenVisible, setAreChildrenVisible] = useState(false);
+  const [areChildrenVisible, setAreChildrenVisible] = useState(true);
   const [editText, setEditText] = useState(comment.content);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
