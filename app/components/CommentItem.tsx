@@ -65,7 +65,7 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
     <div className={`flex items-start gap-3 group ${comment.parent_id ? 'bg-zinc-800/50 p-3 rounded-lg' : ''}`}>
       <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-zinc-700 mt-1">
         <Image
-          src={getFullImageUrl(comment.author_profile_image_url)}
+          src={getFullImageUrl(comment.avatar_url)}
           alt={comment.author_name || 'User profile image'}
           fill
           className="object-cover"

@@ -32,7 +32,7 @@ export interface Comment {
   id: number;
   author_id?: number; // Mapped from API's user_id
   author_name: string; // Mapped from API's nickname
-  author_profile_image_url?: string; // Mapped from API's profile_image_url
+  avatar_url?: string; // Mapped from API's avatar_url
   content: string;
   created_at: string;
   parent_id?: number | null; // Mapped from API's parent_comment_id
@@ -50,6 +50,7 @@ export interface ApiComment {
   user_id?: number; // Present in GET response
   nickname: string;
   profile_image_url?: string;
+  avatar_url?: string;
   replies?: ApiComment[]; // Nested replies
 }
 

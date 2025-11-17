@@ -7,7 +7,7 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
     id: apiComment.id,
     author_id: apiComment.user_id,
     author_name: apiComment.nickname,
-    author_profile_image_url: apiComment.profile_image_url,
+    avatar_url: apiComment.avatar_url || apiComment.profile_image_url, // Fallback to old field
     content: apiComment.content,
     created_at: apiComment.created_at,
     parent_id: apiComment.parent_comment_id,
@@ -38,7 +38,14 @@ export const getComments = async (articleId: number, token?: string, sort?: stri
   if (!response.ok) {
     throw new Error(`Failed to fetch comments for article ${articleId}`);
   }
-  const apiComments: ApiComment[] = await response.json();
+  const apiResponse = await response.json();
+  const apiComments: ApiComment[] = apiResponse.comments || [];
+
+  if (!Array.isArray(apiComments)) {
+    console.error("API did not return a 'comments' array.", apiResponse);
+    return [];
+  }
+  
   return apiComments.map(mapApiCommentToComment);
 };
 
