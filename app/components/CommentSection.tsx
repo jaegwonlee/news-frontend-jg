@@ -12,57 +12,24 @@ interface CommentSectionProps {
   onCommentCountChange: (count: number) => void;
 }
 
-// Helper function to recursively count all comments and their children
-const countTotalComments = (comments: Comment[]): number => {
-  let count = comments.length;
-  for (const comment of comments) {
-    if (comment.children) {
-      count += countTotalComments(comment.children);
-    }
-  }
-  return count;
-};
-
-// Helper function to recursively update a comment in the state tree
-const updateCommentInTree = (comments: Comment[], updatedComment: Comment): Comment[] => {
-  return comments.map(comment => {
-    if (comment.id === updatedComment.id) {
-      return { ...comment, ...updatedComment };
-    }
-    if (comment.children) {
-      return { ...comment, children: updateCommentInTree(comment.children, updatedComment) };
-    }
-    return comment;
+// Utility to build a nested tree from a flat list of comments
+const buildTree = (comments: Comment[]): Comment[] => {
+  const commentsById: { [key: number]: Comment } = {};
+  comments.forEach(comment => {
+    commentsById[comment.id] = { ...comment, children: [] };
   });
-};
 
-// Helper function to recursively delete a comment from the state tree
-const deleteCommentInTree = (comments: Comment[], commentId: number): Comment[] => {
-  return comments.reduce((acc, comment) => {
-    if (comment.id === commentId) {
-      return acc; // Exclude the comment
+  const tree: Comment[] = [];
+  comments.forEach(comment => {
+    if (comment.parent_id && commentsById[comment.parent_id]) {
+      commentsById[comment.parent_id].children?.push(commentsById[comment.id]);
+    } else {
+      tree.push(commentsById[comment.id]);
     }
-    if (comment.children) {
-      comment.children = deleteCommentInTree(comment.children, commentId);
-    }
-    acc.push(comment);
-    return acc;
-  }, [] as Comment[]);
-};
-
-// Helper function to recursively add a reply to the state tree
-const addReplyInTree = (comments: Comment[], reply: Comment): Comment[] => {
-  return comments.map(comment => {
-    if (comment.id === reply.parent_id) {
-      return { ...comment, children: [reply, ...(comment.children || [])] };
-    }
-    if (comment.children) {
-      return { ...comment, children: addReplyInTree(comment.children, reply) };
-    }
-    return comment;
   });
-};
 
+  return tree;
+};
 
 export default function CommentSection({ articleId, onCommentCountChange }: CommentSectionProps) {
   const { user, token } = useAuth();
@@ -72,50 +39,34 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Only calculate and update the count if we are not in the initial loading state.
-    if (!isLoading) {
-      const totalCount = countTotalComments(comments);
-      onCommentCountChange(totalCount);
-    }
-  }, [comments, isLoading, onCommentCountChange]);
-
-  const fetchComments = useCallback(async () => {
+  const fetchAndBuildTree = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const fetchedComments = await getComments(articleId, token);
-      setComments(fetchedComments);
+      // We don't set loading to true here to prevent UI flicker on re-fetch
+      const flatComments = await getComments(articleId, token);
+      const commentTree = buildTree(flatComments);
+      setComments(commentTree);
+      onCommentCountChange(flatComments.length); // Update count based on flat list length
     } catch (err) {
       setError('댓글을 불러오는 데 실패했습니다.');
       console.error(err);
-    } finally {
-      setIsLoading(false);
     }
-  }, [articleId, token]);
+  }, [articleId, token, onCommentCountChange]);
 
+  // Initial fetch
   useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
+    setIsLoading(true);
+    fetchAndBuildTree().finally(() => setIsLoading(false));
+  }, [fetchAndBuildTree]);
 
   const handleSubmitTopLevelComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !token || !user) return;
+    if (!newComment.trim() || !token) return;
 
     setIsSubmitting(true);
     try {
-      const apiResponse = await addComment(articleId, newComment, token);
-      const newCommentObject: Comment = {
-        id: apiResponse.id,
-        content: apiResponse.content,
-        created_at: apiResponse.created_at,
-        parent_id: null,
-        author_name: user.nickname || user.name,
-        author_profile_image_url: user.profile_image_url,
-        is_author: true,
-        children: [],
-      };
-      setComments((prev) => [newCommentObject, ...prev]);
+      await addComment(articleId, newComment, token);
       setNewComment('');
+      await fetchAndBuildTree(); // Re-fetch to get the most accurate data
     } catch (err) {
       setError('댓글 작성에 실패했습니다.');
     } finally {
@@ -126,45 +77,18 @@ export default function CommentSection({ articleId, onCommentCountChange }: Comm
   const handlers = {
     onUpdate: async (commentId: number, text: string) => {
       if (!text.trim() || !token) return;
-      const originalComments = comments;
-      setComments(prev => updateCommentInTree(prev, { id: commentId, content: text } as Comment));
-      try {
-        const updatedComment = await updateComment(commentId, text, token);
-        setComments(prev => updateCommentInTree(prev, updatedComment));
-      } catch (err) {
-        setError('댓글 수정에 실패했습니다.');
-        setComments(originalComments);
-      }
+      await updateComment(commentId, text, token);
+      await fetchAndBuildTree(); // Re-fetch
     },
     onDelete: async (commentId: number) => {
       if (!token) return;
-      const originalComments = comments;
-      setComments(prev => deleteCommentInTree(prev, commentId));
-      try {
-        await deleteComment(commentId, token);
-      } catch (err) {
-        setError('댓글 삭제에 실패했습니다.');
-        setComments(originalComments);
-      }
+      await deleteComment(commentId, token);
+      await fetchAndBuildTree(); // Re-fetch
     },
     onReply: async (parentId: number, text: string) => {
-      if (!text.trim() || !token || !user) return;
-      try {
-        const apiResponse = await addComment(articleId, text, token, parentId);
-        const newReply: Comment = {
-          id: apiResponse.id,
-          content: apiResponse.content,
-          created_at: apiResponse.created_at,
-          parent_id: apiResponse.parent_id,
-          author_name: user.nickname || user.name,
-          author_profile_image_url: user.profile_image_url,
-          is_author: true,
-          children: [],
-        };
-        setComments(prev => addReplyInTree(prev, newReply));
-      } catch (err) {
-        setError('답글 작성에 실패했습니다.');
-      }
+      if (!text.trim() || !token) return;
+      await addComment(articleId, text, token, parentId);
+      await fetchAndBuildTree(); // Re-fetch
     },
   };
 

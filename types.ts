@@ -30,11 +30,11 @@ export interface Article {
  */
 export interface Comment {
   id: number;
+  author_id: number;
   author_name: string;
   author_profile_image_url?: string;
   content: string;
   created_at: string;
-  is_author: boolean;
   parent_id?: number | null;
   children?: Comment[];
 }

@@ -30,17 +30,15 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
-  const [areChildrenVisible, setAreChildrenVisible] = useState(false);
+  const [areChildrenVisible, setAreChildrenVisible] = useState(true); // Default to true
   const [editText, setEditText] = useState(comment.content);
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // If the comment is the author's, forcefully use the context user's info
-  // as the most reliable source of truth, bypassing potentially stale props.
-  const authorName = comment.is_author ? (user?.nickname || user?.name) : comment.author_name;
-  const authorImageUrl = comment.is_author ? user?.profile_image_url : comment.author_profile_image_url;
+  const isAuthor = user ? user.id === comment.author_id : false;
 
   const handleEdit = async () => {
+    if (!editText.trim()) return;
     setIsSubmitting(true);
     await handlers.onUpdate(comment.id, editText);
     setIsSubmitting(false);
@@ -48,13 +46,14 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
   };
 
   const handleDelete = async () => {
-    await handlers.onDelete(comment.id);
+    if (window.confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+      await handlers.onDelete(comment.id);
+    }
   };
 
   const handleReply = async () => {
     if (!replyText.trim()) return;
     setIsSubmitting(true);
-    setAreChildrenVisible(true); // Set visible before awaiting, to ensure it's open on re-render
     await handlers.onReply(comment.id, replyText);
     setIsSubmitting(false);
     setReplyText('');
@@ -62,17 +61,17 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
   };
 
   return (
-    <div className={`flex items-start gap-3 group ${comment.parent_id ? 'bg-zinc-800/50 p-2 rounded-lg' : ''}`}>
+    <div className={`flex items-start gap-3 group ${comment.parent_id ? 'bg-zinc-800/50 p-3 rounded-lg' : ''}`}>
       <Image
-        src={getFullImageUrl(authorImageUrl)}
-        alt={authorName || 'User profile image'}
+        src={getFullImageUrl(comment.author_profile_image_url)}
+        alt={comment.author_name || 'User profile image'}
         width={32}
         height={32}
         className="rounded-full mt-1"
       />
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm text-zinc-200">{authorName}</span>
+          <span className="font-semibold text-sm text-zinc-200">{comment.author_name}</span>
           <span className="text-xs text-zinc-500">
             {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ko })}
           </span>
@@ -87,25 +86,20 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
               rows={2}
             />
             <div className="flex justify-end gap-2 mt-2">
-              <button onClick={() => setIsEditing(false)} className="p-1 text-zinc-400 hover:text-white"><X size={16} /></button>
-              <button onClick={handleEdit} disabled={isSubmitting} className="p-1 text-green-500 hover:text-green-400 disabled:text-zinc-600">
+              <button onClick={() => setIsEditing(false)} className="p-1 text-zinc-400 hover:text-white" title="취소"><X size={16} /></button>
+              <button onClick={handleEdit} disabled={isSubmitting} className="p-1 text-green-500 hover:text-green-400 disabled:text-zinc-600" title="저장">
                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={16} />}
               </button>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-zinc-300 whitespace-pre-wrap">{comment.content}</p>
+          <p className="text-sm text-zinc-300 whitespace-pre-wrap py-1">{comment.content}</p>
         )}
 
         {!isEditing && (
           <div className="flex items-center gap-4 mt-1">
-            <button 
-              onClick={() => setIsReplying(!isReplying)}
-              className="text-xs text-zinc-400 hover:text-white"
-            >
-              답글
-            </button>
-            {comment.is_author && (
+            <button onClick={() => setIsReplying(!isReplying)} className="text-xs text-zinc-400 hover:text-white">답글</button>
+            {isAuthor && (
               <div className="flex items-center">
                 <button onClick={() => setIsEditing(true)} className="text-xs text-zinc-400 hover:text-white">수정</button>
                 <span className="text-zinc-600 mx-1">·</span>
@@ -145,7 +139,7 @@ export default function CommentItem({ comment, handlers }: CommentItemProps) {
         )}
 
         {areChildrenVisible && comment.children && comment.children.length > 0 && (
-          <div className="mt-4 space-y-4 pl-8 border-l-2 border-zinc-700">
+          <div className="mt-4 space-y-4 pl-6 border-l-2 border-zinc-700/50">
             {comment.children.map(childComment => (
               <CommentItem key={childComment.id} comment={childComment} handlers={handlers} />
             ))}
