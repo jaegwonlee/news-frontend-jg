@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react'; // Added missing import
+import { useAuth } from '@/app/context/AuthContext'; // Added missing import
 import { formatDistanceToNow, isBefore, subHours, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
