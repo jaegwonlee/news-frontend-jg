@@ -70,7 +70,9 @@ export default function ArticleCard({
               <div className="flex gap-2 items-center">
                 <button 
                   onClick={() => setIsCommentSectionVisible(!isCommentSectionVisible)}
-                  className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors"
+                  className={`flex items-center gap-1 text-xs transition-colors ${
+                    isCommentSectionVisible ? 'text-blue-400' : 'text-zinc-400 hover:text-white'
+                  }`}
                 >
                   <MessageSquare size={16} />
                   <span>{article.comment_count ?? 0}</span>
@@ -124,6 +126,15 @@ export default function ArticleCard({
       </Link>
       <div className="px-4 lg:px-5 pb-4 lg:pb-5 pt-2 flex justify-end items-center">
         <div className="flex gap-2">
+          <button 
+            onClick={() => setIsCommentSectionVisible(!isCommentSectionVisible)}
+            className={`flex items-center gap-1 text-xs transition-colors ${
+              isCommentSectionVisible ? 'text-blue-400' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <MessageSquare size={16} />
+            <span>{article.comment_count ?? 0}</span>
+          </button>
           {onLikeToggle && (article.like_count !== undefined && article.isLiked !== undefined) &&
             <ArticleLikeButton 
               likes={article.like_count}
