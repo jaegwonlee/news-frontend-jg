@@ -71,12 +71,12 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
     )
   );
 
-  const itemClasses = `${depth > 0 ? 'pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg' : 'py-2'}`;
+  const itemClasses = `py-2`;
 
   if (isDeleted) {
     return (
       <div className={itemClasses}>
-        <div className="flex items-center gap-3 text-zinc-500 italic">
+        <div className={`flex items-center gap-3 text-zinc-500 italic ${depth > 0 ? 'pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg' : ''}`}>
           <Ban size={16} className="shrink-0" />
           <div className="flex-1">
             <p className="text-sm">삭제된 댓글입니다.</p>
@@ -98,68 +98,70 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
 
   return (
     <div className={itemClasses}>
-      <div className="flex items-start gap-3 group">
-        <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-zinc-700 mt-1">
-          <Image
-            src={getFullImageUrl(comment.avatar_url)}
-            alt={comment.author_name || 'User profile image'}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm text-zinc-200">{comment.author_name}</span>
-            <span className="text-xs text-zinc-500">
-              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ko })}
-            </span>
+      <div className={`${depth > 0 ? 'pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg' : ''}`}>
+        <div className="flex items-start gap-3 group">
+          <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-zinc-700 mt-1">
+            <Image
+              src={getFullImageUrl(comment.avatar_url)}
+              alt={comment.author_name || 'User profile image'}
+              fill
+              className="object-cover"
+              unoptimized
+            />
           </div>
-
-          {isEditing ? (
-            <div className="mt-2">
-              <textarea
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                className="w-full p-2 bg-zinc-700 border border-zinc-600 rounded-md text-sm text-white"
-                rows={2}
-              />
-              <div className="flex justify-end gap-2 mt-2">
-                <button onClick={() => setIsEditing(false)} className="p-1 text-zinc-400 hover:text-white" title="취소"><X size={16} /></button>
-                <button onClick={handleEdit} disabled={isSubmitting} className="p-1 text-green-500 hover:text-green-400 disabled:text-zinc-600" title="저장">
-                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={16} />}
-                </button>
-              </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-sm text-zinc-200">{comment.author_name}</span>
+              <span className="text-xs text-zinc-500">
+                {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ko })}
+              </span>
             </div>
-          ) : (
-            <p className="text-sm text-zinc-300 whitespace-pre-wrap py-1">{highlightMentions(comment.content)}</p>
-          )}
 
-          <div className="flex items-center gap-4 mt-1">
-            <button 
-              onClick={() => handlers.onSetReplyTarget({ id: comment.id, nickname: comment.author_name })}
-              className="text-xs text-zinc-400 hover:text-white"
-            >
-              답글
-            </button>
-
-            {depth === 0 && comment.children && comment.children.length > 0 && (
-              <button 
-                onClick={() => setAreChildrenVisible(!areChildrenVisible)}
-                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
-              >
-                <MessageSquare size={14} />
-                <span>{comment.children.length}</span>
-              </button>
-            )}
-
-            {isAuthor && (
-              <div className="flex items-center">
-                <button onClick={() => setIsEditing(true)} className="text-xs text-zinc-400 hover:text-white">수정</button>
-                <span className="text-zinc-600 mx-1">·</span>
-                <button onClick={handleDelete} className="text-xs text-zinc-400 hover:text-red-500">삭제</button>
+            {isEditing ? (
+              <div className="mt-2">
+                <textarea
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  className="w-full p-2 bg-zinc-700 border border-zinc-600 rounded-md text-sm text-white"
+                  rows={2}
+                />
+                <div className="flex justify-end gap-2 mt-2">
+                  <button onClick={() => setIsEditing(false)} className="p-1 text-zinc-400 hover:text-white" title="취소"><X size={16} /></button>
+                  <button onClick={handleEdit} disabled={isSubmitting} className="p-1 text-green-500 hover:text-green-400 disabled:text-zinc-600" title="저장">
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={16} />}
+                  </button>
+                </div>
               </div>
+            ) : (
+              <p className="text-sm text-zinc-300 whitespace-pre-wrap py-1">{highlightMentions(comment.content)}</p>
             )}
+
+            <div className="flex items-center gap-4 mt-1">
+              <button 
+                onClick={() => handlers.onSetReplyTarget({ id: comment.id, nickname: comment.author_name })}
+                className="text-xs text-zinc-400 hover:text-white"
+              >
+                답글
+              </button>
+
+              {depth === 0 && comment.children && comment.children.length > 0 && (
+                <button 
+                  onClick={() => setAreChildrenVisible(!areChildrenVisible)}
+                  className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
+                >
+                  <MessageSquare size={14} />
+                  <span>{comment.children.length}</span>
+                </button>
+              )}
+
+              {isAuthor && (
+                <div className="flex items-center">
+                  <button onClick={() => setIsEditing(true)} className="text-xs text-zinc-400 hover:text-white">수정</button>
+                  <span className="text-zinc-600 mx-1">·</span>
+                  <button onClick={handleDelete} className="text-xs text-zinc-400 hover:text-red-500">삭제</button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
