@@ -10,9 +10,10 @@ interface CommentSidePanelProps {
   onClose: () => void;
   article: Article | null;
   side: 'left' | 'right';
+  onCommentCountUpdate: (articleId: number, newCount: number) => void; // New prop
 }
 
-export default function CommentSidePanel({ isOpen, onClose, article, side }: CommentSidePanelProps) {
+export default function CommentSidePanel({ isOpen, onClose, article, side, onCommentCountUpdate }: CommentSidePanelProps) {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -46,7 +47,7 @@ export default function CommentSidePanel({ isOpen, onClose, article, side }: Com
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        <CommentSection articleId={article.id} />
+        <CommentSection articleId={article.id} onCommentCountUpdate={onCommentCountUpdate} />
       </div>
     </div>
   );

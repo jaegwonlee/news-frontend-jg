@@ -118,6 +118,18 @@ export default function TopicDetailPage() {
     }
   };
 
+  const handleCommentCountUpdate = useCallback((articleId: number, newCount: number) => {
+    setTopicDetail(prevDetail => {
+      if (!prevDetail) return null;
+      return {
+        ...prevDetail,
+        articles: prevDetail.articles.map(article =>
+          article.id === articleId ? { ...article, comment_count: newCount } : article
+        )
+      };
+    });
+  }, []); // No dependencies needed as setTopicDetail is stable
+
   if (isLoading) {
     return <div className="text-center text-white p-10">로딩 중...</div>;
   }
@@ -157,6 +169,7 @@ export default function TopicDetailPage() {
             onClose={() => handlePanelClose('left')}
             article={leftPanelArticle}
             side="left"
+            onCommentCountUpdate={handleCommentCountUpdate}
           />
         </aside>
         <main className="lg:col-span-6">
@@ -185,6 +198,7 @@ export default function TopicDetailPage() {
             onClose={() => handlePanelClose('right')}
             article={rightPanelArticle}
             side="right"
+            onCommentCountUpdate={handleCommentCountUpdate}
           />
         </aside>
       </div>

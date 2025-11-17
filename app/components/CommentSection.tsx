@@ -14,9 +14,10 @@ interface ReplyTarget {
 
 interface CommentSectionProps {
   articleId: number;
+  onCommentCountUpdate: (articleId: number, newCount: number) => void; // New prop
 }
 
-export default function CommentSection({ articleId }: CommentSectionProps) {
+export default function CommentSection({ articleId, onCommentCountUpdate }: CommentSectionProps) {
   const { user, token } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -67,10 +68,15 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       setNewComment('');
       setReplyTarget(null);
 
+      // Update local comment count and notify parent
+      const newTotalCount = totalCount + 1;
+      setTotalCount(newTotalCount);
+      onCommentCountUpdate(articleId, newTotalCount);
+
       if (sortBy !== 'latest') {
         setSortBy('latest');
       } else {
-        await fetchComments();
+        await fetchComments(); // Re-fetch comments to show the new one
       }
     } catch (err) {
       setError('댓글 작성에 실패했습니다.');
@@ -88,7 +94,13 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     onDelete: async (commentId: number) => {
       if (!token) return;
       await deleteComment(commentId, token);
-      await fetchComments();
+      
+      // Update local comment count and notify parent
+      const newTotalCount = totalCount - 1;
+      setTotalCount(newTotalCount);
+      onCommentCountUpdate(articleId, newTotalCount);
+
+      await fetchComments(); // Re-fetch comments to update the list
     },
     onSetReplyTarget: handleSetReplyTarget,
   };
