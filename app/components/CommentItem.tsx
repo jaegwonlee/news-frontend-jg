@@ -15,6 +15,16 @@ const getFullImageUrl = (url?: string): string => {
   return `${BACKEND_BASE_URL}${url}`;
 };
 
+const highlightMentions = (text: string) => {
+  const parts = text.split(/(@[가-힣a-zA-Z0-9_]+)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('@')) {
+      return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
+    }
+    return part;
+  });
+};
+
 interface CommentHandlers {
   onUpdate: (commentId: number, text: string) => Promise<void>;
   onDelete: (commentId: number) => Promise<void>;
@@ -122,7 +132,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
               </div>
             </div>
           ) : (
-            <p className="text-sm text-zinc-300 whitespace-pre-wrap py-1">{comment.content}</p>
+            <p className="text-sm text-zinc-300 whitespace-pre-wrap py-1">{highlightMentions(comment.content)}</p>
           )}
 
           <div className="flex items-center gap-4 mt-1">
