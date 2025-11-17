@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Article } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,10 +21,10 @@ interface ArticleCardProps {
   hoverColor?: 'red' | 'blue';
 }
 
-export default function ArticleCard({ 
-  article, 
+export default function ArticleCard({
+  article,
   variant = 'default',
-  onLikeToggle, 
+  onLikeToggle,
   onSaveToggle,
   onCommentCountChange,
   className,
@@ -34,12 +34,11 @@ export default function ArticleCard({
 
   const borderColorClass = hoverColor === 'red' ? 'border-red-500' : 'border-blue-500';
 
-  const handleCommentCountChange = (newCount: number) => {
+  const handleCommentCountChange = useCallback((newCount: number) => {
     if (onCommentCountChange) {
       onCommentCountChange(article.id, newCount);
     }
-  };
-
+  }, [onCommentCountChange, article.id]);
   if (variant === 'horizontal') {
     return (
       <div className={`bg-zinc-800 rounded-lg border-2 ${borderColorClass} ${className || ''}`}>
