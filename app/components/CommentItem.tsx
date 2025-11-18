@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react'; // Added missing import
-import { useAuth } from '@/app/context/AuthContext'; // Added missing import
-import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban } from 'lucide-react'; // Added MessageSquare
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useAuth } from '@/app/context/AuthContext';
+import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban, Flag } from 'lucide-react';
 import Image from 'next/image';
 import { formatDistanceToNow, isBefore, subHours, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import ReportModal from '@/app/components/common/ReportModal';
+import ToastNotification, { ToastType } from '@/app/components/common/ToastNotification';
 
 const getFullImageUrl = (url?: string): string => {
   if (!url) return '/user-placeholder.svg';
@@ -42,6 +45,9 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
   const [areChildrenVisible, setAreChildrenVisible] = useState(true);
   const [editText, setEditText] = useState(comment.content);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [isReported, setIsReported] = useState(false); // To disable button after reporting
 
   const isAuthor = user ? user.id === comment.author_id : false;
   const isDeleted = comment.status === 'DELETED_BY_USER';
@@ -67,6 +73,14 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
     if (window.confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
       await handlers.onDelete(comment.id);
     }
+  };
+
+  const handleReportSuccess = (message: string, type: ToastType) => {
+    setToast({ message, type });
+    if (type === 'success' || message.includes('이미 신고')) { // Consider "already reported" as a success for disabling button
+      setIsReported(true);
+    }
+    setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
   };
 
   const renderChildren = () => {
@@ -183,11 +197,48 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
                 <button onClick={handleDelete} className="text-xs text-zinc-400 hover:text-red-500">삭제</button>
               </div>
             )}
+            {!isAuthor && ( // Only show report button if not author
+              <>
+                <span className="text-zinc-600 mx-1">·</span>
+                <button
+                  onClick={() => setIsReportModalOpen(true)}
+                  className="text-xs text-zinc-400 hover:text-yellow-500 disabled:text-zinc-600 disabled:cursor-not-allowed flex items-center gap-1"
+                  title="댓글 신고"
+                  disabled={isReported}
+                >
+                  <Flag size={14} />
+                  {isReported ? '신고됨' : '신고'}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
       
       {renderChildren()}
+
+      {isReportModalOpen && (
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          reportType="comment"
+          targetId={comment.id}
+          onReportSuccess={handleReportSuccess}
+        />
+      )}
+
+      {toast && createPortal(
+        <div className="fixed bottom-4 right-4 z-[9999]">
+          <ToastNotification
+            id="comment-report-toast"
+            message={toast.message}
+            type={toast.type}
+            onDismiss={() => setToast(null)}
+            duration={3000}
+          />
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

@@ -248,16 +248,18 @@ export async function getPresignedUrlForChat(token: string, fileName: string, fi
 /**
  * Reports a chat message.
  * @param messageId The ID of the message to report.
- * @param message The content of the message being reported.
  * @param reason The reason for the report.
  * @param token The user's authentication token.
+ * @returns 응답 메시지 Promise
  */
-export async function reportChatMessage(messageId: number, token: string): Promise<{ message: string }> {
+export async function reportChatMessage(messageId: number, reason: string, token: string): Promise<{ message: string }> {
   const response = await fetchWrapper(`/api/chat/${messageId}/report`, {
     method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    body: JSON.stringify({ reason }), // Add reason to the body
   });
 
   if (!response.ok) {

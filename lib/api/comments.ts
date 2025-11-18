@@ -114,3 +114,29 @@ export const updateComment = async (commentId: number, content: string, token: s
   const apiComment: ApiComment = await response.json();
   return mapApiCommentToComment(apiComment);
 };
+
+/**
+ * 특정 댓글을 신고합니다.
+ * @param commentId - 신고할 댓글의 ID
+ * @param reason - 신고 사유
+ * @param token - 사용자 인증 토큰
+ * @returns 응답 메시지 Promise
+ */
+export const reportComment = async (commentId: number, reason: string, token: string): Promise<{ message: string }> => {
+  const response = await fetchWrapper(`/api/comments/${commentId}/report`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ reason }),
+  });
+  // The API returns 200 OK for both success and 409 Conflict (already reported)
+  // So we just check if response is ok, and parse the message.
+  if (!response.ok) {
+    // If the backend sends a non-200 status for other errors, we can catch it here.
+    const errorData = await response.json();
+    throw new Error(errorData.message || `Failed to report comment ${commentId}`);
+  }
+  return response.json();
+};

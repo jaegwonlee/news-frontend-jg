@@ -2,17 +2,18 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Send, Loader2, AlertTriangle, MessageSquareText, Trash2, Siren, Users, Search, MoreVertical, X, ChevronUp, ChevronDown, Paperclip, Download } from 'lucide-react';
+import { Send, Loader2, AlertTriangle, MessageSquareText, Trash2, Flag, Users, Search, MoreVertical, X, ChevronUp, ChevronDown, Paperclip, Download } from 'lucide-react';
 import { useSocket } from '@/app/context/SocketContext';
 import { useAuth } from '@/app/context/AuthContext';
 import Image from 'next/image';
-import { getChatHistory, ApiChatMessage, sendChatMessage, deleteChatMessage, reportChatMessage, getPresignedUrlForChat } from '@/lib/api/topics';
+import { getChatHistory, ApiChatMessage, sendChatMessage, deleteChatMessage, getPresignedUrlForChat } from '@/lib/api/topics';
 import ConfirmationPopover from './common/ConfirmationPopover';
 import { BACKEND_BASE_URL } from '@/lib/constants';
 import { format } from 'date-fns';
 import { Topic, Article } from '@/types';
 import ChatArticleCard from './ChatArticleCard';
 import ToastNotification, { ToastType } from './common/ToastNotification';
+import ReportModal from '@/app/components/common/ReportModal';
 
 type Message = {
   id: number;
@@ -20,6 +21,7 @@ type Message = {
   message: string;
   profile_image_url?: string;
   created_at: string;
+  isHidden?: boolean; // Added for hiding messages
 };
 
 type SearchResult = {
@@ -62,7 +64,7 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
   const [isLoadingHistory, setIsLoadingHistory] = useState(!!topic?.id);
   const [isSending, setIsSending] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [dialog, setDialog] = useState<{ type: 'delete' | 'report'; messageId: number; } | null>(null);
+  const [dialog, setDialog] = useState<{ type: 'delete'; messageId: number; } | null>(null); // Only for delete now
   
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,6 +74,10 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
   const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
+
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportTargetMessageId, setReportTargetMessageId] = useState<number | null>(null);
+  const [reportedMessageIds, setReportedMessageIds] = useState<Set<number>>(new Set()); // To disable button after reporting
 
   const room = topic?.id ? `topic-${topic.id}` : 'mainpage';
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -348,9 +354,20 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
         setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
       };
       socket.on('message_deleted', deleteListener);
+
+      const messageHiddenListener = (data: { messageId: number }) => {
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === data.messageId ? { ...msg, isHidden: true } : msg
+          )
+        );
+      };
+      socket.on('message_hidden', messageHiddenListener);
+
       return () => {
         socket.off('receive_message', messageListener);
         socket.off('message_deleted', deleteListener);
+        socket.off('message_hidden', messageHiddenListener);
       };
     }
   }, [socket, room]);
@@ -377,8 +394,14 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     }
   };
 
-  const openConfirmation = (e: React.MouseEvent<HTMLButtonElement>, type: 'delete' | 'report', messageId: number) => {
-    setDialog({ type, messageId });
+  const openConfirmation = (e: React.MouseEvent<HTMLButtonElement>, messageId: number) => {
+    setDialog({ type: 'delete', messageId }); // Only for delete now
+  };
+
+  const openReportModal = (e: React.MouseEvent<HTMLButtonElement>, messageId: number) => {
+    e.stopPropagation(); // Prevent triggering other click handlers
+    setReportTargetMessageId(messageId);
+    setIsReportModalOpen(true);
   };
 
   const showToast = (messageId: number, message: string, type: ToastType) => {
@@ -445,21 +468,32 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     }
   };
 
+  const handleReportSuccess = (message: string, type: ToastType, reportedId: number) => {
+    setToast(prev => ({ // Use functional update for toast
+      ...prev,
+      message,
+      type,
+      top: 50, // Example position, adjust as needed
+      left: chatContainerRef.current?.getBoundingClientRect().right - 350 || window.innerWidth - 350, // Example position
+      alignment: 'right'
+    }));
+    if (type === 'success' || message.includes('이미 신고')) {
+      setReportedMessageIds(prev => new Set(prev).add(reportedId));
+    }
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const confirmAction = async () => {
     if (!dialog || !token) return;
     const { type, messageId } = dialog;
     setDialog(null);
     try {
-      if (type === 'delete') {
+      if (type === 'delete') { // Only delete logic remains
         await deleteChatMessage(messageId, token);
         setMessages((prev) => prev.filter((m) => m.id !== messageId));
-      } else if (type === 'report') {
-        const response = await reportChatMessage(messageId, token);
-        const toastType: ToastType = response.message.includes('이미') ? 'info' : 'success';
-        showToast(messageId, response.message, toastType);
       }
     } catch (error) {
-      const errorMessage = (error as Error).message || `${type === 'delete' ? '삭제' : '신고'}에 실패했습니다.`;
+      const errorMessage = (error as Error).message || `삭제에 실패했습니다.`;
       showToast(messageId, errorMessage, 'error');
     }
   };
@@ -504,7 +538,7 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
         </div>
       )}
     
-      {dialog && <ConfirmationPopover title={dialog.type === 'delete' ? '메시지 삭제' : '메시지 신고'} message={dialog.type === 'delete' ? '이 메시지를 삭제하시겠습니까?' : '이 메시지를 신고하시겠습니까?'} confirmText={dialog.type === 'delete' ? '삭제' : '신고'} cancelText="취소" onConfirm={confirmAction} onCancel={cancelAction} />}
+      {dialog && <ConfirmationPopover title={'메시지 삭제'} message={'이 메시지를 삭제하시겠습니까?'} confirmText={'삭제'} cancelText="취소" onConfirm={confirmAction} onCancel={cancelAction} />}
       
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4 bg-transparent">
         {isLoadingHistory ? (
@@ -521,6 +555,8 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
             {messages.map((msg) => {
               const isMyMessage = user ? msg.author === (user.nickname || user.name) : false;
               const activeResult = searchResults[currentResultIndex];
+              const isMessageReported = reportedMessageIds.has(msg.id);
+
               return (
                 <div key={msg.id} ref={(el) => { if (el) messageRefs.current.set(msg.id, el); else messageRefs.current.delete(msg.id); }} data-message-id={msg.id}>
                   {isMyMessage ? (
@@ -528,11 +564,17 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
                       <div className="flex flex-col gap-1 items-end">
                         <div className="flex gap-1 items-end flex-row-reverse">
                           <div className="px-3 py-2 rounded-2xl max-w-xs lg:max-w-md wrap-break-word bg-blue-600 text-white">
-                            <div className="text-sm">{renderMessageContent(msg, activeResult)}</div>
+                            <div className="text-sm">
+                              {msg.isHidden ? (
+                                <span className="italic text-zinc-400">가려진 메시지입니다.</span>
+                              ) : (
+                                renderMessageContent(msg, activeResult)
+                              )}
+                            </div>
                           </div>
                           <span className="text-[10px] text-zinc-500 whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
                           {msg.message !== "메시지가 삭제되었습니다." && (
-                            <div className="flex items-center self-end shrink-0"><button onClick={(e) => openConfirmation(e, 'delete', msg.id)} className="text-zinc-400 hover:text-red-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 삭제"><Trash2 className="w-4 h-4" /></button></div>
+                            <div className="flex items-center self-end shrink-0"><button onClick={(e) => openConfirmation(e, msg.id)} className="text-zinc-400 hover:text-red-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 삭제"><Trash2 className="w-4 h-4" /></button></div>
                           )}
                         </div>
                       </div>
@@ -544,11 +586,26 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
                         <span className="text-sm text-zinc-400 font-medium">{msg.author}</span>
                         <div className="flex gap-1 items-end">
                           <div className="px-3 py-2 rounded-2xl max-w-xs lg:max-w-md wrap-break-word bg-zinc-700 text-white">
-                            <div className="text-sm">{renderMessageContent(msg, activeResult)}</div>
+                            <div className="text-sm">
+                              {msg.isHidden ? (
+                                <span className="italic text-zinc-400">가려진 메시지입니다.</span>
+                              ) : (
+                                renderMessageContent(msg, activeResult)
+                              )}
+                            </div>
                           </div>
                           <span className="text-[10px] text-zinc-500 whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
                           {msg.message !== "메시지가 삭제되었습니다." && (
-                            <div className="flex items-center self-end shrink-0"><button onClick={(e) => openConfirmation(e, 'report', msg.id)} className="text-zinc-500 hover:text-yellow-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 신고"><Siren className="w-4 h-4" /></button></div>
+                            <div className="flex items-center self-end shrink-0">
+                              <button
+                                onClick={(e) => openReportModal(e, msg.id)}
+                                className="text-zinc-500 hover:text-yellow-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="메시지 신고"
+                                disabled={isMessageReported}
+                              >
+                                <Flag className="w-4 h-4" />
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -579,6 +636,16 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
           />
         </div>,
         document.body
+      )}
+
+      {isReportModalOpen && reportTargetMessageId && (
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => { setIsReportModalOpen(false); setReportTargetMessageId(null); }}
+          reportType="chat"
+          targetId={reportTargetMessageId}
+          onReportSuccess={(message, type, reportedId) => handleReportSuccess(message, type, reportedId)}
+        />
       )}
 
       <div className="shrink-0 px-4 py-4 bg-zinc-900/50 backdrop-blur-sm">
