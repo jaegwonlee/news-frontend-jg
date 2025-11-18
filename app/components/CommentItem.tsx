@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/app/context/AuthContext';
-import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban, Flag } from 'lucide-react';
+import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban, Flag, ThumbsUp, ThumbsDown } from 'lucide-react';
 import Image from 'next/image';
 import { formatDistanceToNow, isBefore, subHours, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import ReportModal from '@/app/components/common/ReportModal';
 import ToastNotification, { ToastType } from '@/app/components/common/ToastNotification';
+import { reactToComment } from '@/lib/api/comments';
 
 const getFullImageUrl = (url?: string): string => {
   if (!url) return '/user-placeholder.svg';
@@ -40,7 +41,7 @@ interface CommentItemProps {
 }
 
 export default function CommentItem({ comment, handlers, depth }: CommentItemProps) {
-  const { user } = useAuth();
+  const { user, token } = useAuth(); // Destructure token
   const [isEditing, setIsEditing] = useState(false);
   const [areChildrenVisible, setAreChildrenVisible] = useState(true);
   const [editText, setEditText] = useState(comment.content);
@@ -49,8 +50,13 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [isReported, setIsReported] = useState(false); // To disable button after reporting
 
+  const [likeCount, setLikeCount] = useState(comment.like_count || 0);
+  const [dislikeCount, setDislikeCount] = useState(comment.dislike_count || 0);
+  const [currentUserReaction, setCurrentUserReaction] = useState<'LIKE' | 'DISLIKE' | null>(comment.currentUserReaction || null);
+
   const isAuthor = user ? user.id === comment.author_id : false;
   const isDeleted = comment.status === 'DELETED_BY_USER';
+  const isHidden = comment.status === 'HIDDEN'; // Added for hidden status
 
   const commentDate = new Date(comment.created_at);
   const now = new Date();
@@ -75,12 +81,28 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
     }
   };
 
-  const handleReportSuccess = (message: string, type: ToastType) => {
+  const handleReportSuccess = (message: string, type: ToastType, reportedId: number) => { // Added reportedId
     setToast({ message, type });
-    if (type === 'success' || message.includes('이미 신고')) { // Consider "already reported" as a success for disabling button
+    if (type === 'success' || message.includes('이미 신고')) {
       setIsReported(true);
     }
     setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
+  };
+
+  const handleReaction = async (reactionType: 'LIKE' | 'DISLIKE') => {
+    if (!user || !user.id || !token) { // Ensure user and token exist
+      alert('로그인 후 이용 가능합니다.');
+      return;
+    }
+    try {
+      const response = await reactToComment(comment.id, reactionType, token);
+      setLikeCount(response.like_count);
+      setDislikeCount(response.dislike_count);
+      setCurrentUserReaction(response.currentUserReaction);
+    } catch (error) {
+      console.error('Failed to set reaction:', error);
+      // Optionally show a toast notification for error
+    }
   };
 
   const renderChildren = () => {
@@ -106,17 +128,17 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
 
   const itemClasses = `py-2`;
 
-  if (isDeleted) {
+  if (isDeleted || isHidden) { // Check for HIDDEN status as well
     if (!comment.children || comment.children.length === 0) {
-      return null; // Completely remove from UI if deleted and has no children
+      return null; // Completely remove from UI if deleted/hidden and has no children
     }
-    // Otherwise, render as a deleted comment with children
+    // Otherwise, render as a deleted/hidden comment with children
     return (
       <div className={itemClasses}>
         <div className="flex items-center gap-3 text-zinc-500 italic">
           <Ban size={16} className="shrink-0" />
           <div className="flex-1">
-            <p className="text-sm">삭제된 댓글입니다.</p>
+            <p className="text-sm">{isDeleted ? '삭제된 댓글입니다.' : '가려진 댓글입니다.'}</p>
             {comment.children && comment.children.length > 0 && (
               <button 
                 onClick={() => setAreChildrenVisible(!areChildrenVisible)}
@@ -180,6 +202,26 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
               답글
             </button>
 
+            {/* Like Button */}
+            <button
+              onClick={() => handleReaction('LIKE')}
+              className={`flex items-center gap-1 text-xs ${currentUserReaction === 'LIKE' ? 'text-blue-500' : 'text-zinc-400'} hover:text-blue-400`}
+              title="좋아요"
+            >
+              <ThumbsUp size={14} fill={currentUserReaction === 'LIKE' ? 'currentColor' : 'none'} />
+              <span>{likeCount}</span>
+            </button>
+
+            {/* Dislike Button */}
+            <button
+              onClick={() => handleReaction('DISLIKE')}
+              className={`flex items-center gap-1 text-xs ${currentUserReaction === 'DISLIKE' ? 'text-red-500' : 'text-zinc-400'} hover:text-red-400`}
+              title="싫어요"
+            >
+              <ThumbsDown size={14} fill={currentUserReaction === 'DISLIKE' ? 'currentColor' : 'none'} />
+              <span>{dislikeCount}</span>
+            </button>
+
             {depth === 0 && comment.children && comment.children.length > 0 && (
               <button 
                 onClick={() => setAreChildrenVisible(!areChildrenVisible)}
@@ -223,7 +265,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
           onClose={() => setIsReportModalOpen(false)}
           reportType="comment"
           targetId={comment.id}
-          onReportSuccess={handleReportSuccess}
+          onReportSuccess={(message, type, reportedId) => handleReportSuccess(message, type, reportedId)} // Pass reportedId
         />
       )}
 

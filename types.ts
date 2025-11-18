@@ -35,9 +35,12 @@ export interface Comment {
   avatar_url?: string; // Mapped from API's avatar_url
   content: string;
   created_at: string;
-  status?: 'ACTIVE' | 'DELETED_BY_USER'; // Mapped from API's status
+  status?: 'ACTIVE' | 'HIDDEN' | 'DELETED_BY_USER' | 'DELETED_BY_ADMIN'; // Updated based on new status policy
   parent_id?: number | null; // Mapped from API's parent_comment_id
   children?: Comment[]; // Mapped from API's replies
+  like_count?: number; // Added for reactions
+  dislike_count?: number; // Added for reactions
+  currentUserReaction?: 'LIKE' | 'DISLIKE' | null; // Added for reactions
 }
 
 // Interface for raw API comment response, including nested replies

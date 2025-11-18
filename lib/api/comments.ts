@@ -140,3 +140,32 @@ export const reportComment = async (commentId: number, reason: string, token: st
   }
   return response.json();
 };
+
+/**
+ * 특정 댓글에 반응(좋아요/싫어요)을 추가/변경/삭제합니다.
+ * @param commentId - 반응할 댓글의 ID
+ * @param reactionType - 'LIKE' 또는 'DISLIKE'
+ * @param token - 사용자 인증 토큰
+ * @returns 업데이트된 좋아요/싫어요 수 및 현재 사용자 반응 Promise
+ */
+export const reactToComment = async (
+  commentId: number,
+  reactionType: 'LIKE' | 'DISLIKE',
+  token: string
+): Promise<{ like_count: number; dislike_count: number; currentUserReaction: 'LIKE' | 'DISLIKE' | null }> => {
+  const response = await fetchWrapper(`/api/comments/${commentId}/react`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ reaction: reactionType }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || `Failed to react to comment ${commentId}`);
+  }
+
+  return response.json();
+};
