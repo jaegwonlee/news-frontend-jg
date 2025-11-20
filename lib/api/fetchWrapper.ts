@@ -44,48 +44,44 @@ const SESSION_EXPIRED_EVENT = 'sessionExpired';
  * });
  */
 export async function fetchWrapper(url: string, options: RequestInit & { skipAuthCheckFor401?: boolean } = {}): Promise<Response> {
-  // 1. 기본 헤더 설정: 모든 요청에 기본적으로 포함될 헤더를 정의합니다.
+  // 1. 기본 헤더 설정
   const defaultHeaders: HeadersInit = {
-    'Accept': 'application/json',       // 서버로부터 JSON 형식의 응답을 기대함
-    'Content-Type': 'application/json', // 서버로 보내는 데이터 형식을 JSON으로 지정
-    ...options.headers,                 // 호출 시점에 전달된 커스텀 헤더를 덮어쓰거나 추가
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    ...options.headers,
   };
 
-  // 2. 요청 URL 조합: 상대 경로와 절대 경로를 모두 처리합니다.
-  // URL이 'http'로 시작하면 절대 경로로 간주하고, 그렇지 않으면 BACKEND_BASE_URL을 앞에 붙여 전체 URL을 생성합니다.
+  // 2. 요청 URL 조합
   const fullUrl = url.startsWith('http') ? url : `${BACKEND_BASE_URL}${url}`;
 
-  // 3. fetch 요청 실행 및 예외 처리
+  // 3. 캐시 옵션 설정: GET 요청에 대해 캐시를 사용하지 않도록 설정 (단, 이미 캐시 옵션이 명시된 경우는 제외)
+  const isGetRequest = !options.method || options.method.toUpperCase() === 'GET';
+  const cacheOption: RequestInit = (isGetRequest && !options.cache && !options.next) ? { cache: 'no-store' } : {};
+
+  // 4. fetch 요청 실행 및 예외 처리
   try {
     const response = await fetch(fullUrl, {
       ...options,
       headers: defaultHeaders,
+      ...cacheOption, // 캐시 옵션 적용
     });
 
-    // 4. 401 Unauthorized 에러(인증 실패/세션 만료) 중앙 처리
+    // 5. 401 Unauthorized 에러 처리
     if (response.status === 401) {
-      // `skipAuthCheckFor401` 옵션이 true이면, 세션 만료 처리를 건너뛰고 응답을 그대로 반환합니다.
-      // 이는 로그인 API처럼 401이 '잘못된 자격 증명'을 의미하여 특별한 처리가 필요한 경우에 사용됩니다.
       if (options.skipAuthCheckFor401) {
         return response;
       }
-
-      // 세션 만료 커스텀 이벤트를 발생시켜 AuthContext가 전역적으로 로그아웃을 처리하도록 합니다.
       console.log("Fetch wrapper: 401 Unauthorized. Dispatching sessionExpired event.");
       window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
-      
-      // 에러를 throw하여 개별 API 호출의 .then() 또는 .catch() 블록에서 추가적인 로직이 실행되는 것을 방지합니다.
-      // 이 에러는 API를 호출한 최상위 컴포넌트의 try-catch 블록에서 잡을 수 있습니다.
       throw new Error('Session expired');
     }
 
-    // 5. 성공적인 응답 반환
+    // 6. 성공적인 응답 반환
     return response;
   } catch (error) {
-    // 네트워크 문제나 위에서 throw한 에러 등 모든 종류의 에러를 콘솔에 기록합니다.
     console.error("FetchWrapper Error:", error);
-    console.error("Failed to fetch:", { fullUrl, options }); // 디버깅을 위해 요청 정보도 함께 출력
-    throw error; // 에러를 다시 throw하여, 이 함수를 호출한 곳에서 에러를 인지하고 처리할 수 있도록 합니다.
+    console.error("Failed to fetch:", { fullUrl, options });
+    throw error;
   }
 }
 

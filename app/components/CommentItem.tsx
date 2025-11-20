@@ -1,15 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/app/context/AuthContext';
-import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban, Flag, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban, Flag, ThumbsUp, ThumbsDown, MoreVertical } from 'lucide-react';
 import Image from 'next/image';
 import { formatDistanceToNow, isBefore, subHours, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import ReportModal from '@/app/components/common/ReportModal';
 import ToastNotification, { ToastType } from '@/app/components/common/ToastNotification';
 import { reactToComment } from '@/lib/api/comments';
+import { Comment } from '@/types';
 
 const getFullImageUrl = (url?: string): string => {
   if (!url) return '/user-placeholder.svg';
@@ -32,6 +33,7 @@ interface CommentHandlers {
   onUpdate: (commentId: number, text: string) => Promise<void>;
   onDelete: (commentId: number) => Promise<void>;
   onSetReplyTarget: (target: { id: number; nickname: string } | null) => void;
+  onCommentReaction: (commentId: number, updatedReaction: any) => void;
 }
 
 interface CommentItemProps {
@@ -41,22 +43,36 @@ interface CommentItemProps {
 }
 
 export default function CommentItem({ comment, handlers, depth }: CommentItemProps) {
-  const { user, token } = useAuth(); // Destructure token
+  const { user, token } = useAuth(); 
   const [isEditing, setIsEditing] = useState(false);
   const [areChildrenVisible, setAreChildrenVisible] = useState(true);
   const [editText, setEditText] = useState(comment.content);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
-  const [isReported, setIsReported] = useState(false); // To disable button after reporting
+  const [isReported, setIsReported] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const [likeCount, setLikeCount] = useState(comment.like_count || 0);
-  const [dislikeCount, setDislikeCount] = useState(comment.dislike_count || 0);
-  const [currentUserReaction, setCurrentUserReaction] = useState<'LIKE' | 'DISLIKE' | null>(comment.currentUserReaction || null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    setIsReported(false); // Reset reported state when comment data changes
+  }, [comment]);
 
   const isAuthor = user ? user.id === comment.author_id : false;
   const isDeleted = comment.status === 'DELETED_BY_USER';
-  const isHidden = comment.status === 'HIDDEN'; // Added for hidden status
+  const isHidden = comment.status === 'HIDDEN';
 
   const commentDate = new Date(comment.created_at);
   const now = new Date();
@@ -81,30 +97,32 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
     }
   };
 
-  const handleReportSuccess = (message: string, type: ToastType, reportedId: number) => { // Added reportedId
+  const handleReportSuccess = (message: string, type: ToastType, reportedId: number) => {
     setToast({ message, type });
     if (type === 'success' || message.includes('이미 신고')) {
       setIsReported(true);
     }
-    setTimeout(() => setToast(null), 3000); // Hide toast after 3 seconds
+    setTimeout(() => setToast(null), 3000);
   };
 
-  const handleReaction = async (reactionType: 'LIKE' | 'DISLIKE') => {
-    if (!user || !user.id || !token) { // Ensure user and token exist
-      alert('로그인 후 이용 가능합니다.');
+  const handleReaction = async (newReactionType: 'LIKE' | 'DISLIKE') => {
+    if (!token || !user) {
+      alert("로그인 후 반응을 남길 수 있습니다.");
       return;
     }
+    
+    const reactionToSend = comment.currentUserReaction === newReactionType ? 'NONE' : newReactionType;
+
     try {
-      const response = await reactToComment(comment.id, reactionType, token);
-      setLikeCount(response.like_count);
-      setDislikeCount(response.dislike_count);
-      setCurrentUserReaction(response.currentUserReaction);
+      const response = await reactToComment(comment.id, reactionToSend, token);
+      console.log('API Response from reactToComment:', response); // DEBUG
+      handlers.onCommentReaction(comment.id, response);
     } catch (error) {
-      console.error('Failed to set reaction:', error);
-      // Optionally show a toast notification for error
+      console.error("Failed to react to comment:", error);
+      setToast({ message: "반응 업데이트에 실패했습니다.", type: 'error' });
     }
   };
-
+  
   const renderChildren = () => {
     if (!areChildrenVisible || !comment.children || comment.children.length === 0) {
       return null;
@@ -112,7 +130,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
 
     const childrenWrapperClasses = depth === 0
       ? "pt-2 pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg mt-2 space-y-2"
-      : "pt-2 space-y-2"; // No additional indentation for deeper replies
+      : "pt-2 space-y-2";
 
     return (
       <div className={childrenWrapperClasses}>
@@ -128,11 +146,10 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
 
   const itemClasses = `py-2`;
 
-  if (isDeleted || isHidden) { // Check for HIDDEN status as well
+  if (isDeleted || isHidden) {
     if (!comment.children || comment.children.length === 0) {
-      return null; // Completely remove from UI if deleted/hidden and has no children
+      return null;
     }
-    // Otherwise, render as a deleted/hidden comment with children
     return (
       <div className={itemClasses}>
         <div className="flex items-center gap-3 text-zinc-500 italic">
@@ -202,26 +219,6 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
               답글
             </button>
 
-            {/* Like Button */}
-            <button
-              onClick={() => handleReaction('LIKE')}
-              className={`flex items-center gap-1 text-xs ${currentUserReaction === 'LIKE' ? 'text-blue-500' : 'text-zinc-400'} hover:text-blue-400`}
-              title="좋아요"
-            >
-              <ThumbsUp size={14} fill={currentUserReaction === 'LIKE' ? 'currentColor' : 'none'} />
-              <span>{likeCount}</span>
-            </button>
-
-            {/* Dislike Button */}
-            <button
-              onClick={() => handleReaction('DISLIKE')}
-              className={`flex items-center gap-1 text-xs ${currentUserReaction === 'DISLIKE' ? 'text-red-500' : 'text-zinc-400'} hover:text-red-400`}
-              title="싫어요"
-            >
-              <ThumbsDown size={14} fill={currentUserReaction === 'DISLIKE' ? 'currentColor' : 'none'} />
-              <span>{dislikeCount}</span>
-            </button>
-
             {depth === 0 && comment.children && comment.children.length > 0 && (
               <button 
                 onClick={() => setAreChildrenVisible(!areChildrenVisible)}
@@ -232,14 +229,62 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
               </button>
             )}
 
+            {/* 👈 좋아요 버튼 */}
+            <button
+              onClick={() => handleReaction('LIKE')}
+              disabled={!user || isSubmitting}
+              className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                ${comment.currentUserReaction === 'LIKE' ? 'text-red-500 hover:text-red-600' : 'text-zinc-400 hover:text-white'}`}
+              title="좋아요"
+            >
+              <ThumbsUp size={14} className={comment.currentUserReaction === 'LIKE' ? "fill-current" : ""} />
+              <span>{comment.like_count}</span>
+            </button>
+            
+            {/* 👈 싫어요 버튼 */}
+            <button
+              onClick={() => handleReaction('DISLIKE')}
+              disabled={!user || isSubmitting}
+              className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                ${comment.currentUserReaction === 'DISLIKE' ? 'text-blue-500 hover:text-blue-600' : 'text-zinc-400 hover:text-white'}`}
+              title="싫어요"
+            >
+              <ThumbsDown size={14} className={comment.currentUserReaction === 'DISLIKE' ? "fill-current" : ""} />
+              <span>{comment.dislike_count}</span>
+            </button>
+            
             {isAuthor && (
-              <div className="flex items-center">
-                <button onClick={() => setIsEditing(true)} className="text-xs text-zinc-400 hover:text-white">수정</button>
-                <span className="text-zinc-600 mx-1">·</span>
-                <button onClick={handleDelete} className="text-xs text-zinc-400 hover:text-red-500">삭제</button>
+              <div className="relative" ref={menuRef}>
+                <button onClick={() => setIsMenuOpen(prev => !prev)} className="p-1 text-zinc-400 hover:text-white">
+                  <MoreVertical size={16} />
+                </button>
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-28 bg-zinc-800 border border-zinc-700 rounded-md shadow-lg z-10">
+                    <button
+                      onClick={() => {
+                        setIsEditing(true);
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-700"
+                    >
+                      <Pencil size={14} />
+                      <span>수정</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDelete();
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-zinc-700"
+                    >
+                      <Trash2 size={14} />
+                      <span>삭제</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
-            {!isAuthor && ( // Only show report button if not author
+            {!isAuthor && (
               <>
                 <span className="text-zinc-600 mx-1">·</span>
                 <button
@@ -265,7 +310,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
           onClose={() => setIsReportModalOpen(false)}
           reportType="comment"
           targetId={comment.id}
-          onReportSuccess={(message, type, reportedId) => handleReportSuccess(message, type, reportedId)} // Pass reportedId
+          onReportSuccess={(message, type, reportedId) => handleReportSuccess(message, type, reportedId)}
         />
       )}
 

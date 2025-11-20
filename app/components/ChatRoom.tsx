@@ -474,7 +474,7 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
       message,
       type,
       top: 50, // Example position, adjust as needed
-      left: chatContainerRef.current?.getBoundingClientRect().right - 350 || window.innerWidth - 350, // Example position
+      left: chatContainerRef.current?.getBoundingClientRect()?.right - 350 || window.innerWidth - 350, // Example position
       alignment: 'right'
     }));
     if (type === 'success' || message.includes('이미 신고')) {

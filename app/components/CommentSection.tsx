@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
-import { getComments, addComment, deleteComment, updateComment } from '@/lib/api/comments';
+import { addComment, deleteComment, updateComment, getComments } from '@/lib/api/comments';
 import { Comment } from '@/types';
 import { Send, Loader2, MessageSquare, X } from 'lucide-react';
 import CommentItem from './CommentItem';
@@ -14,38 +14,41 @@ interface ReplyTarget {
 
 interface CommentSectionProps {
   articleId: number;
-  onCommentCountUpdate: (articleId: number, newCount: number) => void; // New prop
+  article: any; // Add article to props
+  onCommentCountUpdate: (articleId: number, newCount: number) => void;
+  comments: Comment[];
+  isLoading: boolean;
+  refetchComments: (article: any) => void; // Add refetch to props
+  onCommentReaction: (commentId: number, updatedReaction: any) => void;
 }
 
-export default function CommentSection({ articleId, onCommentCountUpdate }: CommentSectionProps) {
+export default function CommentSection({
+  articleId,
+  article,
+  onCommentCountUpdate,
+  comments,
+  isLoading,
+  refetchComments,
+  onCommentReaction,
+}: CommentSectionProps) {
   const { user, token } = useAuth();
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [newComment, setNewComment] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('latest');
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const fetchComments = useCallback(async () => {
-    try {
-      const { comments: fetchedComments, totalCount: fetchedTotalCount } = await getComments(articleId, token || undefined, sortBy);
-      setComments(fetchedComments);
-      setTotalCount(fetchedTotalCount);
-    } catch (err) {
-      setError('댓글을 불러오는 데 실패했습니다.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+  // Sorting is now done on the props
+  const sortedComments = useMemo(() => {
+    let sorted = [...comments];
+    if (sortBy === 'oldest') {
+      sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    } else { // 'latest'
+      sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
-  }, [articleId, token, sortBy]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    fetchComments();
-  }, [fetchComments]);
+    return sorted;
+  }, [comments, sortBy]);
 
   const handleSetReplyTarget = useCallback((target: ReplyTarget | null) => {
     setReplyTarget(target);
@@ -59,25 +62,14 @@ export default function CommentSection({ articleId, onCommentCountUpdate }: Comm
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !token) return;
+    if (!newComment.trim() || !token || !article) return;
 
     setIsSubmitting(true);
     try {
       await addComment(articleId, newComment, token, replyTarget?.id);
-      
       setNewComment('');
       setReplyTarget(null);
-
-      // Update local comment count and notify parent
-      const newTotalCount = totalCount + 1;
-      setTotalCount(newTotalCount);
-      onCommentCountUpdate(articleId, newTotalCount);
-
-      if (sortBy !== 'latest') {
-        setSortBy('latest');
-      } else {
-        await fetchComments(); // Re-fetch comments to show the new one
-      }
+      refetchComments(article); // Refetch comments
     } catch (err) {
       setError('댓글 작성에 실패했습니다.');
     } finally {
@@ -87,21 +79,16 @@ export default function CommentSection({ articleId, onCommentCountUpdate }: Comm
 
   const handlers = {
     onUpdate: async (commentId: number, text: string) => {
-      if (!text.trim() || !token) return;
+      if (!text.trim() || !token || !article) return;
       await updateComment(commentId, text, token);
-      await fetchComments();
+      refetchComments(article); // Refetch comments
     },
     onDelete: async (commentId: number) => {
-      if (!token) return;
+      if (!token || !article) return;
       await deleteComment(commentId, token);
-      
-      // Update local comment count and notify parent
-      const newTotalCount = totalCount - 1;
-      setTotalCount(newTotalCount);
-      onCommentCountUpdate(articleId, newTotalCount);
-
-      await fetchComments(); // Re-fetch comments to update the list
+      refetchComments(article); // Refetch comments
     },
+    onCommentReaction, // Pass down the handler
     onSetReplyTarget: handleSetReplyTarget,
   };
 
@@ -121,22 +108,21 @@ export default function CommentSection({ articleId, onCommentCountUpdate }: Comm
   return (
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center mb-4 shrink-0">
-        <div className="text-sm text-white">총 <span className="font-bold text-blue-400">{totalCount}</span>개</div>
+        <div className="text-sm text-white">총 <span className="font-bold text-blue-400">{comments.length}</span>개</div>
         <div className="flex items-center gap-2">
           <SortTab value="latest" label="최신순" />
           <SortTab value="oldest" label="과거순" />
-          <SortTab value="popular" label="공감순" />
         </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         {isLoading ? (
           <div className="flex justify-center items-center h-full"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>
-        ) : comments.length === 0 ? (
+        ) : sortedComments.length === 0 ? (
           <div className="flex flex-col justify-center items-center h-full text-zinc-500"><MessageSquare size={32} className="mb-2" /><p>아직 댓글이 없습니다.</p></div>
         ) : (
           <div className="space-y-4">
-            {comments.map((comment) => (
+            {sortedComments.map((comment) => (
               <CommentItem key={comment.id} comment={comment} handlers={handlers} depth={0} />
             ))}
           </div>

@@ -38,9 +38,9 @@ export interface Comment {
   status?: 'ACTIVE' | 'HIDDEN' | 'DELETED_BY_USER' | 'DELETED_BY_ADMIN'; // Updated based on new status policy
   parent_id?: number | null; // Mapped from API's parent_comment_id
   children?: Comment[]; // Mapped from API's replies
-  like_count?: number; // Added for reactions
-  dislike_count?: number; // Added for reactions
-  currentUserReaction?: 'LIKE' | 'DISLIKE' | null; // Added for reactions
+  like_count?: number;
+  dislike_count?: number;
+  currentUserReaction?: 'LIKE' | 'DISLIKE' | null;
 }
 
 // Interface for raw API comment response, including nested replies
@@ -56,6 +56,9 @@ export interface ApiComment {
   profile_image_url?: string;
   avatar_url?: string;
   replies?: ApiComment[]; // Nested replies
+  like_count?: number;
+  dislike_count?: number;
+  current_user_reaction?: 'LIKE' | 'DISLIKE' | null;
 }
 
 /**

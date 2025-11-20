@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
@@ -6,8 +6,8 @@ import ArticleCard from "@/app/components/ArticleCard";
 import ChatRoom from "@/app/components/ChatRoom";
 import TopicViewCounter from "@/app/components/TopicViewCounter";
 import { getTopicDetail, toggleArticleLike, toggleArticleSave } from "@/lib/api";
-import { getComments } from "@/lib/api/comments"; // Import getComments
-import { TopicDetail, Article } from "@/types";
+import { getComments } from "@/lib/api/comments";
+import { TopicDetail, Article, Comment } from "@/types";
 import { useAuth } from "@/app/context/AuthContext";
 import RelatedTopicsCarousel from "@/app/components/RelatedTopicsCarousel";
 import CommentSidePanel from "@/app/components/CommentSidePanel";
@@ -20,8 +20,13 @@ export default function TopicDetailPage() {
   const [topicDetail, setTopicDetail] = useState<TopicDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
   const [leftPanelArticle, setLeftPanelArticle] = useState<Article | null>(null);
   const [rightPanelArticle, setRightPanelArticle] = useState<Article | null>(null);
+
+  const [leftComments, setLeftComments] = useState<Comment[]>([]);
+  const [rightComments, setRightComments] = useState<Comment[]>([]);
+  const [isCommentsLoading, setIsCommentsLoading] = useState(false);
 
   useEffect(() => {
     if (id && !isNaN(parseInt(id, 10))) {
@@ -30,7 +35,6 @@ export default function TopicDetailPage() {
           setIsLoading(true);
           const data = await getTopicDetail(id, token || undefined);
           
-          // Fetch comment counts for each article
           if (data.articles && data.articles.length > 0) {
             const commentCountPromises = data.articles.map(async (article) => {
               try {
@@ -38,7 +42,7 @@ export default function TopicDetailPage() {
                 return { ...article, comment_count: totalCount };
               } catch (commentError) {
                 console.error(`Failed to fetch comment count for article ${article.id}:`, commentError);
-                return { ...article, comment_count: 0 }; // Default to 0 on error
+                return { ...article, comment_count: 0 };
               }
             });
             const articlesWithCommentCounts = await Promise.all(commentCountPromises);
@@ -55,66 +59,78 @@ export default function TopicDetailPage() {
       };
       fetchData();
     }
-  }, [id, token, getComments]); // Add getComments to dependency array
+  }, [id, token]);
 
-  const handleLikeToggle = useCallback(
-    async (articleToToggle: Article) => {
-      if (!token) return;
-      try {
-        const response = await toggleArticleLike(token, articleToToggle.id, articleToToggle.isLiked || false);
-        setTopicDetail((prevDetail) => {
-          if (!prevDetail) return null;
-          return {
-            ...prevDetail,
-            articles: prevDetail.articles.map((article) =>
-              article.id === articleToToggle.id
-                ? { ...article, isLiked: response.data.isLiked, like_count: response.data.likes }
-                : article
-            ),
-          };
-        });
-      } catch (error) {
-        console.error("Failed to toggle like:", error);
-      }
-    },
-    [token]
-  );
+  const handleLikeToggle = async (articleToToggle: Article) => {
+    if (!token) return;
+    try {
+      const response = await toggleArticleLike(token, articleToToggle.id, articleToToggle.isLiked || false);
+      setTopicDetail((prevDetail) => {
+        if (!prevDetail) return null;
+        return {
+          ...prevDetail,
+          articles: prevDetail.articles.map((article) =>
+            article.id === articleToToggle.id
+              ? { ...article, isLiked: response.data.isLiked, like_count: response.data.likes }
+              : article
+          ),
+        };
+      });
+    } catch (error) {
+      console.error("Failed to toggle like:", error);
+    }
+  };
 
-  const handleSaveToggle = useCallback(
-    async (articleToToggle: Article) => {
-      if (!token) return;
-      const newIsSaved = !articleToToggle.isSaved;
-      try {
-        await toggleArticleSave(token, articleToToggle.id, articleToToggle.isSaved || false);
-        setTopicDetail((prevDetail) => {
-          if (!prevDetail) return null;
-          return {
-            ...prevDetail,
-            articles: prevDetail.articles.map((article) =>
-              article.id === articleToToggle.id ? { ...article, isSaved: newIsSaved } : article
-            ),
-          };
-        });
-      } catch (error) {
-        console.error("Failed to toggle save:", error);
-      }
-    },
-    [token]
-  );
+  const handleSaveToggle = async (articleToToggle: Article) => {
+    if (!token) return;
+    const newIsSaved = !articleToToggle.isSaved;
+    try {
+      await toggleArticleSave(token, articleToToggle.id, articleToToggle.isSaved || false);
+      setTopicDetail((prevDetail) => {
+        if (!prevDetail) return null;
+        return {
+          ...prevDetail,
+          articles: prevDetail.articles.map((article) =>
+            article.id === articleToToggle.id ? { ...article, isSaved: newIsSaved } : article
+          ),
+        };
+      });
+    } catch (error) {
+      console.error("Failed to toggle save:", error);
+    }
+  };
 
-  const handleCommentIconClick = (article: Article) => {
+  const handleCommentIconClick = async (article: Article) => {
+    setIsCommentsLoading(true);
+    let comments: Comment[] = [];
+    try {
+      const { comments: fetchedComments } = await getComments(article.id, token || undefined);
+      comments = fetchedComments;
+    } catch (err) {
+      console.error(`Failed to fetch comments for article ${article.id}:`, err);
+    }
+
     if (article.side === 'LEFT') {
       setLeftPanelArticle(article);
+      setLeftComments(comments);
+      setRightPanelArticle(null);
+      setRightComments([]);
     } else if (article.side === 'RIGHT') {
       setRightPanelArticle(article);
+      setRightComments(comments);
+      setLeftPanelArticle(null);
+      setLeftComments([]);
     }
+    setIsCommentsLoading(false);
   };
 
   const handlePanelClose = (side: 'left' | 'right') => {
     if (side === 'left') {
       setLeftPanelArticle(null);
+      setLeftComments([]);
     } else if (side === 'right') {
       setRightPanelArticle(null);
+      setRightComments([]);
     }
   };
 
@@ -128,7 +144,45 @@ export default function TopicDetailPage() {
         )
       };
     });
-  }, []); // No dependencies needed as setTopicDetail is stable
+  }, []);
+
+  const refetchComments = useCallback((article: Article) => {
+    handleCommentIconClick(article);
+  }, [handleCommentIconClick]);
+
+  const handleCommentReaction = (
+    commentId: number,
+    updatedReaction: {
+      like_count: number;
+      dislike_count: number;
+      currentUserReaction: 'LIKE' | 'DISLIKE' | null;
+    }
+  ) => {
+    console.log('handleCommentReaction called with:', { commentId, updatedReaction }); // DEBUG
+    const updateComments = (comments: Comment[]): Comment[] => {
+      return comments.map(comment => {
+        if (comment.id === commentId) {
+          return { ...comment, ...updatedReaction };
+        }
+        if (comment.children) {
+          return { ...comment, children: updateComments(comment.children) };
+        }
+        return comment;
+      });
+    };
+
+    setLeftComments(prevComments => updateComments(prevComments));
+    setRightComments(prevComments => updateComments(prevComments));
+  };
+
+  // DEBUG: Log state changes
+  useEffect(() => {
+    console.log('leftComments updated:', leftComments);
+  }, [leftComments]);
+
+  useEffect(() => {
+    console.log('rightComments updated:', rightComments);
+  }, [rightComments]);
 
   if (isLoading) {
     return <div className="text-center text-white p-10">로딩 중...</div>;
@@ -168,8 +222,12 @@ export default function TopicDetailPage() {
             isOpen={!!leftPanelArticle}
             onClose={() => handlePanelClose('left')}
             article={leftPanelArticle}
-            side="left"
+            comments={leftComments}
+            isCommentsLoading={isCommentsLoading}
             onCommentCountUpdate={handleCommentCountUpdate}
+            refetchComments={refetchComments}
+            onCommentReaction={handleCommentReaction}
+            side="left"
           />
         </aside>
         <main className="lg:col-span-6">
@@ -197,8 +255,12 @@ export default function TopicDetailPage() {
             isOpen={!!rightPanelArticle}
             onClose={() => handlePanelClose('right')}
             article={rightPanelArticle}
-            side="right"
+            comments={rightComments}
+            isCommentsLoading={isCommentsLoading}
             onCommentCountUpdate={handleCommentCountUpdate}
+            refetchComments={refetchComments}
+            onCommentReaction={handleCommentReaction}
+            side="right"
           />
         </aside>
       </div>

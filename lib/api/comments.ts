@@ -12,6 +12,9 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
     created_at: apiComment.created_at,
     status: apiComment.status as 'ACTIVE' | 'DELETED_BY_USER' | undefined,
     parent_id: apiComment.parent_comment_id,
+    like_count: apiComment.like_count,
+    dislike_count: apiComment.dislike_count,
+    currentUserReaction: apiComment.current_user_reaction,
   };
 
   if (apiComment.replies && apiComment.replies.length > 0) {
@@ -26,11 +29,8 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
  * @param token - 사용자 인증 토큰 (선택 사항)
  * @returns 댓글 목록 Promise
  */
-export const getComments = async (articleId: number, token?: string, sort?: string): Promise<{ comments: Comment[], totalCount: number }> => {
-  let url = `/api/articles/${articleId}/comments`;
-  if (sort) {
-    url += `?sort=${sort}`;
-  }
+export const getComments = async (articleId: number, token?: string): Promise<{ comments: Comment[], totalCount: number }> => {
+  const url = `/api/articles/${articleId}/comments`;
   
   const response = await fetchWrapper(url, {
     method: 'GET',
@@ -142,30 +142,49 @@ export const reportComment = async (commentId: number, reason: string, token: st
 };
 
 /**
- * 특정 댓글에 반응(좋아요/싫어요)을 추가/변경/삭제합니다.
- * @param commentId - 반응할 댓글의 ID
- * @param reactionType - 'LIKE' 또는 'DISLIKE'
- * @param token - 사용자 인증 토큰
- * @returns 업데이트된 좋아요/싫어요 수 및 현재 사용자 반응 Promise
+ * @function reactToComment
+ * @description 사용자가 특정 댓글에 '좋아요' 또는 '싫어요' 반응을 추가/변경/삭제합니다.
+ * 백엔드 API: POST /api/comments/{commentId}/react
+ * @param {number} commentId - 반응을 적용할 댓글의 ID.
+ * @param {'LIKE' | 'DISLIKE' | 'NONE'} reactionType - 적용할 반응의 유형. 'NONE'은 취소를 의미합니다.
+ * @param {string} token - 사용자 인증 토큰.
+ * @returns {Promise<{ like_count: number; dislike_count: number; currentUserReaction: 'LIKE' | 'DISLIKE' | null }>} - 업데이트된 댓글의 통계 및 사용자 반응 상태.
+ * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  */
 export const reactToComment = async (
   commentId: number,
-  reactionType: 'LIKE' | 'DISLIKE',
+  reactionType: 'LIKE' | 'DISLIKE' | 'NONE',
   token: string
 ): Promise<{ like_count: number; dislike_count: number; currentUserReaction: 'LIKE' | 'DISLIKE' | null }> => {
-  const response = await fetchWrapper(`/api/comments/${commentId}/react`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify({ reaction: reactionType }),
-  });
+  
+  let response;
+  const url = `/api/comments/${commentId}/react`;
+
+  if (reactionType === 'NONE') {
+    // 반응 취소 시 DELETE 요청
+    response = await fetchWrapper(url, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  } else {
+    // 반응 추가 또는 변경 시 POST 요청
+    response = await fetchWrapper(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ reaction: reactionType }), // API 명세에 따라 'reaction' 필드 사용
+    });
+  }
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || `Failed to react to comment ${commentId}`);
+    throw new Error(errorData.message || '댓글 반응 업데이트에 실패했습니다.');
   }
 
-  return response.json();
+  const data: { like_count: number; dislike_count: number; currentUserReaction: 'LIKE' | 'DISLIKE' | null } = await response.json();
+  return data;
 };
