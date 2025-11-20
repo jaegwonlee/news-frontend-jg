@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { addComment, deleteComment, updateComment, getComments } from '@/lib/api/comments';
-import { Comment } from '@/types';
+import { Comment, CommentReactionUpdate, Article } from '@/types';
 import { Send, Loader2, MessageSquare, X } from 'lucide-react';
 import CommentItem from './CommentItem';
 
@@ -14,12 +14,12 @@ interface ReplyTarget {
 
 interface CommentSectionProps {
   articleId: number;
-  article: any; // Add article to props
+  article: Article; // Add article to props
   onCommentCountUpdate: (articleId: number, newCount: number) => void;
   comments: Comment[];
   isLoading: boolean;
-  refetchComments: (article: any) => void; // Add refetch to props
-  onCommentReaction: (commentId: number, updatedReaction: any) => void;
+  refetchComments: (article: Article) => void; // Add refetch to props
+  onCommentReaction: (commentId: number, updatedReaction: CommentReactionUpdate) => void;
 }
 
 export default function CommentSection({

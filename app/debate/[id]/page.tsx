@@ -7,7 +7,7 @@ import ChatRoom from "@/app/components/ChatRoom";
 import TopicViewCounter from "@/app/components/TopicViewCounter";
 import { getTopicDetail, toggleArticleLike, toggleArticleSave } from "@/lib/api";
 import { getComments } from "@/lib/api/comments";
-import { TopicDetail, Article, Comment } from "@/types";
+import { TopicDetail, Article, Comment, CommentReactionUpdate } from "@/types";
 import { useAuth } from "@/app/context/AuthContext";
 import RelatedTopicsCarousel from "@/app/components/RelatedTopicsCarousel";
 import CommentSidePanel from "@/app/components/CommentSidePanel";
@@ -24,8 +24,7 @@ export default function TopicDetailPage() {
   const [leftPanelArticle, setLeftPanelArticle] = useState<Article | null>(null);
   const [rightPanelArticle, setRightPanelArticle] = useState<Article | null>(null);
 
-  const [leftComments, setLeftComments] = useState<Comment[]>([]);
-  const [rightComments, setRightComments] = useState<Comment[]>([]);
+  const [commentsByArticle, setCommentsByArticle] = useState<Record<number, Comment[]>>({});
   const [isCommentsLoading, setIsCommentsLoading] = useState(false);
 
   useEffect(() => {
@@ -101,36 +100,34 @@ export default function TopicDetailPage() {
   };
 
   const handleCommentIconClick = async (article: Article) => {
-    setIsCommentsLoading(true);
-    let comments: Comment[] = [];
-    try {
-      const { comments: fetchedComments } = await getComments(article.id, token || undefined);
-      comments = fetchedComments;
-    } catch (err) {
-      console.error(`Failed to fetch comments for article ${article.id}:`, err);
-    }
-
     if (article.side === 'LEFT') {
       setLeftPanelArticle(article);
-      setLeftComments(comments);
       setRightPanelArticle(null);
-      setRightComments([]);
     } else if (article.side === 'RIGHT') {
       setRightPanelArticle(article);
-      setRightComments(comments);
       setLeftPanelArticle(null);
-      setLeftComments([]);
     }
-    setIsCommentsLoading(false);
+
+    if (commentsByArticle[article.id]) {
+      return;
+    }
+
+    setIsCommentsLoading(true);
+    try {
+      const { comments: fetchedComments } = await getComments(article.id, token || undefined);
+      setCommentsByArticle(prev => ({ ...prev, [article.id]: fetchedComments }));
+    } catch (err) {
+      console.error(`Failed to fetch comments for article ${article.id}:`, err);
+    } finally {
+      setIsCommentsLoading(false);
+    }
   };
 
   const handlePanelClose = (side: 'left' | 'right') => {
     if (side === 'left') {
       setLeftPanelArticle(null);
-      setLeftComments([]);
     } else if (side === 'right') {
       setRightPanelArticle(null);
-      setRightComments([]);
     }
   };
 
@@ -146,19 +143,26 @@ export default function TopicDetailPage() {
     });
   }, []);
 
-  const refetchComments = useCallback((article: Article) => {
-    handleCommentIconClick(article);
-  }, [handleCommentIconClick]);
+  const refetchComments = useCallback(async (article: Article) => {
+    setIsCommentsLoading(true);
+    try {
+      const { comments: fetchedComments, totalCount } = await getComments(article.id, token || undefined);
+      setCommentsByArticle(prev => ({ ...prev, [article.id]: fetchedComments }));
+      handleCommentCountUpdate(article.id, totalCount);
+    } catch (err) {
+      console.error(`Failed to refetch comments for article ${article.id}:`, err);
+    } finally {
+      setIsCommentsLoading(false);
+    }
+  }, [token, handleCommentCountUpdate]);
 
   const handleCommentReaction = (
     commentId: number,
-    updatedReaction: {
-      like_count: number;
-      dislike_count: number;
-      currentUserReaction: 'LIKE' | 'DISLIKE' | null;
-    }
+    updatedReaction: CommentReactionUpdate
   ) => {
-    console.log('handleCommentReaction called with:', { commentId, updatedReaction }); // DEBUG
+    const activeArticleId = leftPanelArticle?.id || rightPanelArticle?.id;
+    if (!activeArticleId) return;
+
     const updateComments = (comments: Comment[]): Comment[] => {
       return comments.map(comment => {
         if (comment.id === commentId) {
@@ -171,18 +175,11 @@ export default function TopicDetailPage() {
       });
     };
 
-    setLeftComments(prevComments => updateComments(prevComments));
-    setRightComments(prevComments => updateComments(prevComments));
+    setCommentsByArticle(prev => {
+      const newCommentsForArticle = updateComments(prev[activeArticleId] || []);
+      return { ...prev, [activeArticleId]: newCommentsForArticle };
+    });
   };
-
-  // DEBUG: Log state changes
-  useEffect(() => {
-    console.log('leftComments updated:', leftComments);
-  }, [leftComments]);
-
-  useEffect(() => {
-    console.log('rightComments updated:', rightComments);
-  }, [rightComments]);
 
   if (isLoading) {
     return <div className="text-center text-white p-10">로딩 중...</div>;
@@ -199,6 +196,9 @@ export default function TopicDetailPage() {
   const { topic, articles } = topicDetail;
   const leftArticles = articles.filter((article) => article.side === "LEFT");
   const rightArticles = articles.filter((article) => article.side === "RIGHT");
+
+  const leftComments = leftPanelArticle ? commentsByArticle[leftPanelArticle.id] || [] : [];
+  const rightComments = rightPanelArticle ? commentsByArticle[rightPanelArticle.id] || [] : [];
 
   return (
     <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-0">

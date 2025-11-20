@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/app/context/AuthContext';
-import { Send, Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban, Flag, ThumbsUp, ThumbsDown, MoreVertical } from 'lucide-react';
+import { Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban, Flag, ThumbsUp, ThumbsDown, MoreVertical } from 'lucide-react';
 import Image from 'next/image';
 import { formatDistanceToNow, isBefore, subHours, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import ReportModal from '@/app/components/common/ReportModal';
 import ToastNotification, { ToastType } from '@/app/components/common/ToastNotification';
 import { reactToComment } from '@/lib/api/comments';
-import { Comment } from '@/types';
+import { Comment, CommentReactionUpdate } from '@/types';
 
 const getFullImageUrl = (url?: string): string => {
   if (!url) return '/user-placeholder.svg';
@@ -33,7 +33,7 @@ interface CommentHandlers {
   onUpdate: (commentId: number, text: string) => Promise<void>;
   onDelete: (commentId: number) => Promise<void>;
   onSetReplyTarget: (target: { id: number; nickname: string } | null) => void;
-  onCommentReaction: (commentId: number, updatedReaction: any) => void;
+  onCommentReaction: (commentId: number, updatedReaction: CommentReactionUpdate) => void;
 }
 
 interface CommentItemProps {
@@ -66,10 +66,6 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
     };
   }, []);
 
-  useEffect(() => {
-    setIsReported(false); // Reset reported state when comment data changes
-  }, [comment]);
-
   const isAuthor = user ? user.id === comment.author_id : false;
   const isDeleted = comment.status === 'DELETED_BY_USER';
   const isHidden = comment.status === 'HIDDEN';
@@ -97,7 +93,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
     }
   };
 
-  const handleReportSuccess = (message: string, type: ToastType, reportedId: number) => {
+  const handleReportSuccess = (message: string, type: ToastType) => {
     setToast({ message, type });
     if (type === 'success' || message.includes('이미 신고')) {
       setIsReported(true);
@@ -310,12 +306,12 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
           onClose={() => setIsReportModalOpen(false)}
           reportType="comment"
           targetId={comment.id}
-          onReportSuccess={(message, type, reportedId) => handleReportSuccess(message, type, reportedId)}
+          onReportSuccess={(message, type) => handleReportSuccess(message, type)}
         />
       )}
 
       {toast && createPortal(
-        <div className="fixed bottom-4 right-4 z-[9999]">
+        <div className="fixed bottom-4 right-4 z-9999">
           <ToastNotification
             id="comment-report-toast"
             message={toast.message}

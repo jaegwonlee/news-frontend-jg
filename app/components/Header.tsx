@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Bell, HelpCircle } from 'lucide-react';
 import SearchBar from './header/SearchBar';
 import AuthStatus from './header/AuthStatus';
 import { usePathname } from 'next/navigation'; // Import usePathname
@@ -42,8 +43,14 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Right Section: Search and Auth */}
+          {/* Right Section: Icons and Auth */}
           <div className="flex-1 flex justify-end items-center gap-4 pr-4">
+            <Link href="/inquiry" className="p-1 rounded-full hover:bg-zinc-700 transition-colors">
+                <HelpCircle className="w-5 h-5 text-zinc-400 cursor-pointer hover:text-white" />
+            </Link>
+            <Link href="/notifications" className="p-1 rounded-full hover:bg-zinc-700 transition-colors">
+                <Bell className="w-5 h-5 text-zinc-400 cursor-pointer hover:text-white" />
+            </Link>
             <SearchBar />
             <AuthStatus />
           </div>

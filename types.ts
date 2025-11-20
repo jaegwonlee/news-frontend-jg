@@ -166,3 +166,13 @@ export interface ToggleSaveResponse {
   success: boolean;
   // 기타 필요한 필드 추가 가능
 }
+
+/**
+ * @interface CommentReactionUpdate
+ * @description 댓글 반응(좋아요/싫어요) API 응답 데이터 구조
+ */
+export interface CommentReactionUpdate {
+  like_count: number;
+  dislike_count: number;
+  currentUserReaction: 'LIKE' | 'DISLIKE' | null;
+}

@@ -29,23 +29,12 @@ export default async function Home() {
 
   const mainTopic = topicDetail ? topicDetail.topic : undefined;
 
-  // Calculate latestNews on the server
-  const allArticles = [...politicsNews, ...economyNews, ...socialNews, ...cultureNews];
-  const uniqueArticlesMap = new Map<number, Article>();
-  allArticles.forEach((article) => {
-    uniqueArticlesMap.set(article.id, article);
-  });
-  const latestNews = Array.from(uniqueArticlesMap.values())
-    .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
-    .slice(0, 10);
-
   return (
-    <div className="w-full max-w-[1920px] mx-auto px-[67px] md:px-[101px] lg:px-[134px] pt-2 md:pt-3 lg:pt-4">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-3 lg:pt-4">
       <main className="flex flex-col gap-6 lg:gap-8">
         {/* Render the client component with data as props */}
         <MainGrid 
           mainTopic={mainTopic} 
-          latestNews={latestNews}
           isLoading={false} // Data is pre-fetched, so isLoading is false
         />
 
