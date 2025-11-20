@@ -469,14 +469,13 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
   };
 
   const handleReportSuccess = (message: string, type: ToastType, reportedId: number) => {
-    setToast(prev => ({ // Use functional update for toast
-      ...prev,
+    setToast({
       message,
       type,
       top: 50, // Example position, adjust as needed
-      left: chatContainerRef.current?.getBoundingClientRect()?.right - 350 || window.innerWidth - 350, // Example position
+      left: (chatContainerRef.current?.getBoundingClientRect()?.right ?? window.innerWidth) - 350,
       alignment: 'right'
-    }));
+    });
     if (type === 'success' || message.includes('이미 신고')) {
       setReportedMessageIds(prev => new Set(prev).add(reportedId));
     }
