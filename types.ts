@@ -59,6 +59,7 @@ export interface ApiComment {
   like_count?: number;
   dislike_count?: number;
   current_user_reaction?: 'LIKE' | 'DISLIKE' | null;
+  currentUserReaction?: 'LIKE' | 'DISLIKE' | null; // Added to support potential camelCase response from API
 }
 
 /**
