@@ -3,19 +3,27 @@ import { Comment, ApiComment } from '@/types';
 
 // Helper function to map ApiComment to Comment
 const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
+  // API 응답에서 camelCase(currentUserReaction)와 snake_case(current_user_reaction)를 모두 확인합니다。
+  const rawReaction = apiComment.currentUserReaction !== undefined
+    ? apiComment.currentUserReaction
+    : apiComment.current_user_reaction;
+    
+  const reaction = rawReaction === 'Unknown Type: null' ? null : rawReaction;
+
   const comment: Comment = {
     id: apiComment.id,
     author_id: apiComment.user_id,
     author_name: apiComment.nickname,
-    avatar_url: apiComment.avatar_url || apiComment.profile_image_url, // Fallback to old field
+    avatar_url: apiComment.avatar_url || apiComment.profile_image_url,
     content: apiComment.content,
     created_at: apiComment.created_at,
     status: apiComment.status as 'ACTIVE' | 'DELETED_BY_USER' | undefined,
     parent_id: apiComment.parent_comment_id,
     like_count: apiComment.like_count,
     dislike_count: apiComment.dislike_count,
-    currentUserReaction: apiComment.current_user_reaction,
+    currentUserReaction: reaction, // Assign directly here
   };
+
 
   if (apiComment.replies && apiComment.replies.length > 0) {
     comment.children = apiComment.replies.map(reply => mapApiCommentToComment(reply));
@@ -185,6 +193,19 @@ export const reactToComment = async (
     throw new Error(errorData.message || '댓글 반응 업데이트에 실패했습니다.');
   }
 
-  const data: { like_count: number; dislike_count: number; currentUserReaction: 'LIKE' | 'DISLIKE' | null } = await response.json();
-  return data;
+  const data = await response.json();
+
+  // API가 currentUserReaction (camelCase) 또는 current_user_reaction (snake_case) 중 하나로 응답할 수 있으므로 둘 다 확인합니다.
+  const rawReaction = data.currentUserReaction !== undefined 
+    ? data.currentUserReaction 
+    : data.current_user_reaction;
+  
+  // 비표준 응답 "Unknown Type: null"을 실제 null 값으로 처리합니다.
+  const reaction = rawReaction === 'Unknown Type: null' ? null : rawReaction;
+
+  return {
+    like_count: data.like_count,
+    dislike_count: data.dislike_count,
+    currentUserReaction: reaction,
+  };
 };
