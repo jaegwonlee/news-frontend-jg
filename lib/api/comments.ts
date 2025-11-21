@@ -3,19 +3,19 @@ import { Comment, ApiComment } from '@/types';
 
 // Helper function to map ApiComment to Comment
 const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
-  const getCleanedReaction = (val: any): 'LIKE' | 'DISLIKE' | null | undefined => {
-    if (val === 'Unknown Type: null') return null;
+  const getCleanedReaction = (val: any): 'LIKE' | 'DISLIKE' | null => {
+    if (val === 'Unknown Type: null' || val === undefined) return null;
     return val;
   };
 
-  // API 응답에서 camelCase(currentUserReaction)와 snake_case(current_user_reaction)를 모두 확인합니다。
+  // API 응답에서 camelCase(currentUserReaction)와 snake_case(current_user_reaction)를 모두 확인합니다.
   const reaction = getCleanedReaction(apiComment.currentUserReaction) || getCleanedReaction(apiComment.current_user_reaction);
 
   const comment: Comment = {
     id: apiComment.id,
     author_id: apiComment.user_id,
     author_name: apiComment.nickname,
-    avatar_url: apiComment.avatar_url || apiComment.profile_image_url,
+    avatar_url: apiComment.avatar_url || apiComment.profile_image_url, // Fallback to old field
     content: apiComment.content,
     created_at: apiComment.created_at,
     status: apiComment.status as 'ACTIVE' | 'DELETED_BY_USER' | undefined,
@@ -24,7 +24,6 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
     dislike_count: apiComment.dislike_count,
     currentUserReaction: reaction,
   };
-
 
   if (apiComment.replies && apiComment.replies.length > 0) {
     comment.children = apiComment.replies.map(reply => mapApiCommentToComment(reply));
@@ -196,8 +195,8 @@ export const reactToComment = async (
 
   const data = await response.json();
 
-  const getCleanedReaction = (val: any): 'LIKE' | 'DISLIKE' | null | undefined => {
-    if (val === 'Unknown Type: null') return null;
+  const getCleanedReaction = (val: any): 'LIKE' | 'DISLIKE' | null => {
+    if (val === 'Unknown Type: null' || val === undefined) return null;
     return val;
   };
 
