@@ -3,12 +3,13 @@ import { Comment, ApiComment } from '@/types';
 
 // Helper function to map ApiComment to Comment
 const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
+  const getCleanedReaction = (val: any): 'LIKE' | 'DISLIKE' | null | undefined => {
+    if (val === 'Unknown Type: null') return null;
+    return val;
+  };
+
   // API 응답에서 camelCase(currentUserReaction)와 snake_case(current_user_reaction)를 모두 확인합니다。
-  const rawReaction = apiComment.currentUserReaction !== undefined
-    ? apiComment.currentUserReaction
-    : apiComment.current_user_reaction;
-    
-  const reaction = rawReaction === 'Unknown Type: null' ? null : rawReaction;
+  const reaction = getCleanedReaction(apiComment.currentUserReaction) || getCleanedReaction(apiComment.current_user_reaction);
 
   const comment: Comment = {
     id: apiComment.id,
@@ -21,7 +22,7 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
     parent_id: apiComment.parent_comment_id,
     like_count: apiComment.like_count,
     dislike_count: apiComment.dislike_count,
-    currentUserReaction: reaction, // Assign directly here
+    currentUserReaction: reaction,
   };
 
 
@@ -195,13 +196,12 @@ export const reactToComment = async (
 
   const data = await response.json();
 
-  // API가 currentUserReaction (camelCase) 또는 current_user_reaction (snake_case) 중 하나로 응답할 수 있으므로 둘 다 확인합니다.
-  const rawReaction = data.currentUserReaction !== undefined 
-    ? data.currentUserReaction 
-    : data.current_user_reaction;
-  
-  // 비표준 응답 "Unknown Type: null"을 실제 null 값으로 처리합니다.
-  const reaction = rawReaction === 'Unknown Type: null' ? null : rawReaction;
+  const getCleanedReaction = (val: any): 'LIKE' | 'DISLIKE' | null | undefined => {
+    if (val === 'Unknown Type: null') return null;
+    return val;
+  };
+
+  const reaction = getCleanedReaction(data.currentUserReaction) || getCleanedReaction(data.current_user_reaction);
 
   return {
     like_count: data.like_count,
