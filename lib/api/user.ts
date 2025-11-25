@@ -7,6 +7,9 @@
 
 import { User, UserUpdate, Article, NotificationSetting } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
+import { mockUserProfile, mockLikedArticles, mockSavedArticles, mockAvatars, mockNotificationSettings, mockSavedArticleCategories } from "@/app/mocks/user";
+
+const USE_MOCKS = true; // Set to true to use mock data
 
 /**
  * @function getUserProfile
@@ -17,6 +20,10 @@ import { fetchWrapper } from "./fetchWrapper";
  * @cache 5분(300초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getUserProfile(token: string): Promise<User> {
+  if (USE_MOCKS) {
+    console.log("Mock: Fetching user profile");
+    return Promise.resolve(mockUserProfile);
+  }
   const response = await fetchWrapper(`/api/user/me`, {
     method: 'GET',
     headers: {
@@ -53,6 +60,12 @@ export async function getUserProfile(token: string): Promise<User> {
  * @logic 프로필 업데이트 성공 후, `getUserProfile`을 다시 호출하여 최신 데이터를 가져와 반환합니다.
  */
 export async function updateUserProfile(token: string, updatedData: UserUpdate): Promise<User> {
+  if (USE_MOCKS) {
+    console.log("Mock: Updating user profile", updatedData);
+    // Simulate update by merging with mockUserProfile
+    const updatedUser = { ...mockUserProfile, ...updatedData };
+    return Promise.resolve(updatedUser);
+  }
   const response = await fetchWrapper(`/api/user/me`, {
     method: 'PUT',
     headers: {
@@ -81,6 +94,11 @@ export async function updateUserProfile(token: string, updatedData: UserUpdate):
  * @cache 1분(60초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getLikedArticles(token: string, limit: number = 20, offset: number = 0): Promise<{ articles: Article[], totalCount: number }> {
+  if (USE_MOCKS) {
+    console.log("Mock: Fetching liked articles");
+    const paginatedArticles = mockLikedArticles.slice(offset, offset + limit);
+    return Promise.resolve({ articles: paginatedArticles, totalCount: mockLikedArticles.length });
+  }
   const url = new URL(`/api/user/me/liked-articles`, 'http://localhost');
   url.searchParams.append('limit', String(limit));
   url.searchParams.append('offset', String(offset));
@@ -125,6 +143,10 @@ export async function getLikedArticles(token: string, limit: number = 20, offset
  * @cache 1시간(3600초) 주기로 ISR을 통해 캐시를 갱신합니다. 아바타 목록은 자주 바뀌지 않으므로 캐시 기간을 길게 설정합니다.
  */
 export async function getAvatars(): Promise<string[]> {
+  if (USE_MOCKS) {
+    console.log("Mock: Fetching avatars");
+    return Promise.resolve(mockAvatars);
+  }
   const response = await fetchWrapper(`/api/avatars`, {
     method: 'GET',
     next: { revalidate: 3600 }
@@ -146,6 +168,10 @@ export async function getAvatars(): Promise<string[]> {
  * @cache 'no-store' 옵션으로 캐시를 사용하지 않아 항상 최신 설정을 가져옵니다.
  */
 export async function getNotificationSettings(token: string): Promise<NotificationSetting[]> {
+  if (USE_MOCKS) {
+    console.log("Mock: Fetching notification settings");
+    return Promise.resolve(mockNotificationSettings);
+  }
   const response = await fetchWrapper(`/api/user/me/notification-settings`, {
     method: 'GET',
     headers: {
@@ -171,6 +197,10 @@ export async function getNotificationSettings(token: string): Promise<Notificati
  * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  */
 export async function updateNotificationSettings(token: string, settings: NotificationSetting[]): Promise<NotificationSetting[]> {
+  if (USE_MOCKS) {
+    console.log("Mock: Updating notification settings", settings);
+    return Promise.resolve(settings); // Simulate successful update
+  }
   const response = await fetchWrapper(`/api/user/me/notification-settings`, {
     method: 'PUT',
     headers: {
@@ -199,6 +229,18 @@ export async function updateNotificationSettings(token: string, settings: Notifi
  * @cache 'no-store' 옵션으로 캐시를 사용하지 않아 항상 최신 데이터를 가져옵니다.
  */
 export async function getSavedArticles(token: string, limit: number = 20, offset: number = 0): Promise<{ articles: Article[], totalCount: number, byCategory: { category: string, count: number }[] }> {
+  if (USE_MOCKS) {
+    console.log("Mock: Fetching saved articles");
+    const paginatedArticles = mockSavedArticles.slice(offset, offset + limit);
+    return Promise.resolve({ 
+      articles: paginatedArticles, 
+      totalCount: mockSavedArticles.length, 
+      byCategory: mockSavedArticleCategories.map(cat => ({ 
+        category: cat.name, 
+        count: cat.article_count || 0 
+      })) 
+    });
+  }
   const url = new URL(`/api/saved/articles`, 'http://localhost');
   url.searchParams.append('limit', String(limit));
   url.searchParams.append('offset', String(offset));
@@ -261,6 +303,14 @@ export async function getSavedArticles(token: string, limit: number = 20, offset
  * @throws {Error} - 현재 비밀번호가 틀렸거나 API 호출에 실패했을 경우 에러를 발생시킵니다.
  */
 export async function changePassword(token: string, currentPassword: string, newPassword: string): Promise<void> {
+  if (USE_MOCKS) {
+    console.log("Mock: Changing password");
+    if (currentPassword === "aaaa1111!!!!") { // Check against the mock login password
+      return Promise.resolve();
+    } else {
+      return Promise.reject(new Error("현재 비밀번호가 일치하지 않습니다. (목업)"));
+    }
+  }
   const response = await fetchWrapper(`/api/user/me/password`, {
     method: 'PUT',
     headers: {
@@ -295,6 +345,14 @@ export async function changePassword(token: string, currentPassword: string, new
  *          자동 로그아웃 처리(세션 만료 이벤트)가 발생하지 않도록 합니다.
  */
 export async function deleteAccount(token: string, currentPassword: string): Promise<void> {
+  if (USE_MOCKS) {
+    console.log("Mock: Deleting account");
+    if (currentPassword === "aaaa1111!!!!") { // Check against the mock login password
+      return Promise.resolve();
+    } else {
+      return Promise.reject(new Error("비밀번호가 일치하지 않습니다. (목업)"));
+    }
+  }
   const response = await fetchWrapper(`/api/user/me/delete`, {
     method: 'POST',
     headers: {

@@ -1,18 +1,14 @@
-'use client';
+"use client";
 
-import { Bookmark } from 'lucide-react';
+import { Bookmark } from "lucide-react";
 
 interface ArticleSaveButtonProps {
   isSaved: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
 }
 
-export default function ArticleSaveButton({
-  isSaved,
-  onClick,
-  disabled = false,
-}: ArticleSaveButtonProps) {
+export default function ArticleSaveButton({ isSaved, onClick, disabled = false }: ArticleSaveButtonProps) {
   return (
     <button
       onClick={onClick}

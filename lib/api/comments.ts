@@ -1,5 +1,8 @@
 import { fetchWrapper } from './fetchWrapper';
 import { Comment, ApiComment } from '@/types';
+import { mockComments } from '@/app/mocks/comments';
+
+const USE_MOCKS = true; // Set to true to use mock data
 
 // Helper function to map ApiComment to Comment
 const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
@@ -38,6 +41,12 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
  * @returns 댓글 목록 Promise
  */
 export const getComments = async (articleId: number, token?: string): Promise<{ comments: Comment[], totalCount: number }> => {
+  if (USE_MOCKS) {
+    console.log(`Mock: Fetching comments for article ${articleId}`);
+    const mappedComments = mockComments.map(mapApiCommentToComment);
+    return Promise.resolve({ comments: mappedComments, totalCount: mockComments.length });
+  }
+
   const url = `/api/articles/${articleId}/comments`;
   
   const response = await fetchWrapper(url, {
@@ -66,6 +75,24 @@ export const getComments = async (articleId: number, token?: string): Promise<{ 
  * @returns 생성된 댓글 Promise
  */
 export const addComment = async (articleId: number, content: string, token: string, parentId?: number): Promise<Comment> => {
+  if (USE_MOCKS) {
+    console.log(`Mock: Adding comment to article ${articleId}`);
+    const newComment: ApiComment = {
+        id: Math.floor(Math.random() * 10000),
+        content,
+        parent_comment_id: parentId || null,
+        created_at: new Date().toISOString(),
+        user_id: 1, // Mock user ID
+        nickname: "목업맨", // Mock user nickname
+        profile_image_url: "/user-placeholder.svg",
+        like_count: 0,
+        dislike_count: 0,
+        current_user_reaction: null,
+        replies: []
+    };
+    return Promise.resolve(mapApiCommentToComment(newComment));
+  }
+
   const response = await fetchWrapper(`/api/articles/${articleId}/comments`, {
     method: 'POST',
     headers: {
@@ -88,6 +115,11 @@ export const addComment = async (articleId: number, content: string, token: stri
  * @returns 성공 여부 Promise
  */
 export const deleteComment = async (commentId: number, token: string): Promise<{ message: string }> => {
+  if (USE_MOCKS) {
+    console.log(`Mock: Deleting comment ${commentId}`);
+    return Promise.resolve({ message: "성공적으로 삭제되었습니다. (목업)" });
+  }
+
   const response = await fetchWrapper(`/api/comments/${commentId}`, {
     method: 'DELETE',
     headers: {
@@ -108,6 +140,17 @@ export const deleteComment = async (commentId: number, token: string): Promise<{
  * @returns 수정된 댓글 Promise
  */
 export const updateComment = async (commentId: number, content: string, token: string): Promise<Comment> => {
+    if (USE_MOCKS) {
+        console.log(`Mock: Updating comment ${commentId}`);
+        const originalComment = mockComments.find(c => c.id === commentId) || mockComments[0].replies?.find(r => r.id === commentId);
+        const updatedComment: ApiComment = {
+            ...(originalComment || mockComments[0]),
+            id: commentId,
+            content,
+        };
+        return Promise.resolve(mapApiCommentToComment(updatedComment));
+    }
+
   const response = await fetchWrapper(`/api/comments/${commentId}`, {
     method: 'PATCH',
     headers: {
@@ -131,6 +174,11 @@ export const updateComment = async (commentId: number, content: string, token: s
  * @returns 응답 메시지 Promise
  */
 export const reportComment = async (commentId: number, reason: string, token: string): Promise<{ message: string }> => {
+    if (USE_MOCKS) {
+        console.log(`Mock: Reporting comment ${commentId} for reason: ${reason}`);
+        return Promise.resolve({ message: "신고가 접수되었습니다. (목업)" });
+    }
+
   const response = await fetchWrapper(`/api/comments/${commentId}/report`, {
     method: 'POST',
     headers: {
@@ -164,6 +212,14 @@ export const reactToComment = async (
   reactionType: 'LIKE' | 'DISLIKE' | 'NONE',
   token: string
 ): Promise<{ like_count: number; dislike_count: number; currentUserReaction: 'LIKE' | 'DISLIKE' | null }> => {
+  if (USE_MOCKS) {
+    console.log(`Mock: Reacting to comment ${commentId} with ${reactionType}`);
+    return Promise.resolve({
+        like_count: Math.floor(Math.random() * 20),
+        dislike_count: Math.floor(Math.random() * 5),
+        currentUserReaction: reactionType === 'NONE' ? null : reactionType,
+    });
+  }
   
   let response;
   const url = `/api/comments/${commentId}/react`;

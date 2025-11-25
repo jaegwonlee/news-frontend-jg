@@ -201,7 +201,7 @@ export default function TopicDetailPage() {
   const rightComments = rightPanelArticle ? commentsByArticle[rightPanelArticle.id] || [] : [];
 
   return (
-    <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-0">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0">
       {id && <TopicViewCounter topicId={id} />}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-4">
         <aside className="lg:col-span-3 relative h-[600px] lg:h-[729px] overflow-hidden">

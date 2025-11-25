@@ -2,19 +2,21 @@
 
 import { useState } from 'react';
 import { SavedArticleCategory } from '@/types';
-import { X, Trash2, Edit, Check, Loader } from 'lucide-react';
+import { X, Trash2, Edit, Check, Loader, Plus } from 'lucide-react';
 
 interface ManageCategoriesModalProps {
   categories: SavedArticleCategory[];
   onClose: () => void;
+  onCreate: (name: string) => Promise<void>;
   onRename: (categoryId: number, newName: string) => Promise<void>;
   onDelete: (categoryId: number) => Promise<void>;
 }
 
-export default function ManageCategoriesModal({ categories, onClose, onRename, onDelete }: ManageCategoriesModalProps) {
+export default function ManageCategoriesModal({ categories, onClose, onCreate, onRename, onDelete }: ManageCategoriesModalProps) {
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [loadingState, setLoadingState] = useState<{ type: 'rename' | 'delete'; id: number } | null>(null);
+  const [createCategoryName, setCreateCategoryName] = useState('');
+  const [loadingState, setLoadingState] = useState<{ type: 'create' | 'rename' | 'delete'; id: number | 'new' } | null>(null);
 
   const handleStartEdit = (category: SavedArticleCategory) => {
     setEditingCategoryId(category.id);
@@ -40,13 +42,37 @@ export default function ManageCategoriesModal({ categories, onClose, onRename, o
     setLoadingState(null);
   };
 
+  const handleCreateCategory = async () => {
+    if (!createCategoryName.trim()) return;
+    setLoadingState({ type: 'create', id: 'new' });
+    await onCreate(createCategoryName);
+    setLoadingState(null);
+    setCreateCategoryName('');
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center p-4" onClick={onClose}>
-      <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <div className="bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <header className="p-5 flex justify-between items-center border-b border-zinc-700">
           <h2 className="text-xl font-bold text-white">카테고리 관리</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-zinc-800 transition-colors"><X className="text-zinc-400" /></button>
         </header>
+        
+        <div className="p-5 border-b border-zinc-800">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={createCategoryName}
+              onChange={(e) => setCreateCategoryName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
+              placeholder="새 카테고리 이름..."
+              className="flex-grow bg-zinc-800 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button onClick={handleCreateCategory} className="p-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-zinc-700 disabled:cursor-not-allowed" disabled={!createCategoryName.trim() || loadingState?.type === 'create'}>
+              {loadingState?.type === 'create' ? <Loader size={18} className="animate-spin" /> : <Plus size={18} />}
+            </button>
+          </div>
+        </div>
 
         <div className="p-5 overflow-y-auto space-y-3">
           {categories.map((cat) => (
@@ -69,7 +95,7 @@ export default function ManageCategoriesModal({ categories, onClose, onRename, o
                     <button onClick={() => handleSaveRename(cat.id)} className="p-2 text-green-400 hover:bg-green-500/20 rounded-full" disabled={loadingState?.id === cat.id}>
                       {loadingState?.type === 'rename' && loadingState.id === cat.id ? <Loader size={18} className="animate-spin" /> : <Check size={18} />}
                     </button>
-                    <button onClick={handleCancelEdit} className="p-2 text-zinc-400 hover:bg-zinc-700 rounded-full"><X size={18} /></button>
+                    <button onClick={() => handleCancelEdit()} className="p-2 text-zinc-400 hover:bg-zinc-700 rounded-full"><X size={18} /></button>
                   </>
                 ) : (
                   <>

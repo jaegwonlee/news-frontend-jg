@@ -29,10 +29,10 @@ export default function ProfileSidebar() {
   const activeTab = searchParams.get('tab') || 'profile';
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-zinc-900 p-4 border-r border-zinc-800">
+    <aside className="md:w-64 flex-shrink-0">
       <div className="sticky top-24">
-        <h2 className="text-lg font-semibold text-white mb-6 px-2">마이페이지</h2>
-        <nav className="flex flex-col space-y-2">
+        <h2 className="text-lg font-semibold text-foreground mb-6 px-3">마이페이지</h2>
+        <nav className="flex flex-col space-y-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -42,8 +42,8 @@ export default function ProfileSidebar() {
                 href={`/profile?tab=${tab.id}`}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
                   isActive
-                    ? 'bg-red-600 text-white shadow-lg'
-                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
                 <Icon className="w-5 h-5" />

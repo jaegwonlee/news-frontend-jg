@@ -62,14 +62,14 @@ export default function DeleteAccountSection() {
   };
   return (
     <>
-      <div className="mt-8 p-6 bg-zinc-900 rounded-lg shadow border border-zinc-700">
-        <h2 className="text-2xl font-semibold mb-4 text-red-500">계정 비활성화</h2>
-        <p className="text-zinc-400 mb-4">
+      <div className="p-6 sm:p-8">
+        <h2 className="text-2xl font-bold text-destructive mb-4">계정 비활성화</h2>
+        <p className="text-muted-foreground mb-4">
           계정을 비활성화하면 프로필, 저장된 기사, 좋아요 등 모든 활동 기록이 영구적으로 삭제되며, 이 작업은 되돌릴 수 없습니다.
         </p>
         <button
           onClick={handleOpenModal}
-          className="w-full sm:w-auto px-6 py-2 border border-red-600 text-red-500 rounded-md shadow-sm text-sm font-medium hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+          className="w-full sm:w-auto px-6 py-2 border border-destructive text-destructive rounded-md shadow-sm text-sm font-medium hover:bg-destructive/90 hover:text-destructive-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-destructive transition-colors"
         >
           계정 비활성화 진행
         </button>
@@ -83,17 +83,17 @@ export default function DeleteAccountSection() {
         confirmText="계정 영구 삭제"
         isLoading={isLoading}
       >
-        <p className="mb-4 text-sm">
+        <p className="mb-4 text-sm text-foreground">
           이 작업은 되돌릴 수 없습니다. 계속하려면 현재 계정의 비밀번호를 입력하고 확인 버튼을 클릭하세요.
         </p>
         <div className="space-y-2">
-          <label htmlFor="passwordConfirm" className="block text-sm font-medium text-zinc-300">
+          <label htmlFor="passwordConfirm" className="block text-sm font-medium text-muted-foreground">
             비밀번호 확인
           </label>
           <input
             type="password"
             id="passwordConfirm"
-            className="mt-1 block w-full rounded-md border-zinc-600 bg-zinc-800 text-white shadow-sm focus:border-red-500 focus:ring-red-500"
+            className="mt-1 block w-full rounded-md border-border bg-input text-foreground shadow-sm focus:border-primary focus:ring-primary"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoFocus

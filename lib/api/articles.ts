@@ -7,6 +7,9 @@
 
 import { Article, ToggleSaveResponse } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
+import { mockBreakingNews, mockExclusiveNews, mockAllCategoryNews } from "@/app/mocks/articles";
+
+const USE_MOCKS = true; // Set to true to use mock data
 
 /**
  * @function getBreakingNews
@@ -16,6 +19,9 @@ import { fetchWrapper } from "./fetchWrapper";
  *        이를 통해 빌드 시점에 정적으로 페이지를 생성하고, 주기적으로 최신 데이터로 업데이트할 수 있습니다.
  */
 export async function getBreakingNews(): Promise<Article[]> {
+  if (USE_MOCKS) {
+    return Promise.resolve(mockBreakingNews);
+  }
   try {
     const res = await fetchWrapper(`/api/articles/breaking?limit=10&offset=0`, {
       next: { revalidate: 300 } // 5분마다 캐시 갱신
@@ -37,6 +43,9 @@ export async function getBreakingNews(): Promise<Article[]> {
  * @cache 5분(300초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getExclusiveNews(): Promise<Article[]> {
+  if (USE_MOCKS) {
+    return Promise.resolve(mockExclusiveNews);
+  }
   try {
     const res = await fetchWrapper(`/api/articles/exclusives?limit=10&offset=0`, { 
       next: { revalidate: 300 } // 5분마다 캐시 갱신
@@ -62,6 +71,10 @@ export async function getExclusiveNews(): Promise<Article[]> {
  * @returns {Promise<Article[]>} - 해당 카테고리의 기사 객체 배열을 반환하는 프로미스.
  */
 export async function getCategoryNews(categoryName: string, limit: number = 10, token?: string): Promise<Article[]> {
+  if (USE_MOCKS) {
+    const news = mockAllCategoryNews[categoryName] || [];
+    return Promise.resolve(news.slice(0, limit));
+  }
   // 프로덕션 환경에서는 실제 API를 호출합니다.
   const encodedCategoryName = encodeURIComponent(categoryName);
   const apiUrl = `/api/articles/by-category?name=${encodedCategoryName}&limit=${limit}&offset=0`;
@@ -101,6 +114,7 @@ export async function getCategoryNews(categoryName: string, limit: number = 10, 
  * 5. 정렬된 배열에서 `limit` 개수만큼 잘라서 반환합니다.
  */
 export async function getLatestNews(limit: number = 10, token?: string): Promise<Article[]> {
+  // This function now uses the mocked getCategoryNews, so it will work automatically.
   try {
     const categories = ["정치", "경제", "사회", "문화"];
     const promises = categories.map((category) => getCategoryNews(category, limit, token));
@@ -133,6 +147,7 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
  * @logic `getLatestNews`와 유사하지만, 더 많은 기사(카테고리당 50개)를 가져와 페이지네이션 없이 보여주기 위한 목적입니다.
  */
 export async function getAllLatestNews(): Promise<Article[]> {
+  // This function now uses the mocked getCategoryNews, so it will work automatically.
   const categories = ["정치", "경제", "사회", "문화"];
   const newsPromises = categories.map(category => 
     getCategoryNews(category, 50).catch(err => {
@@ -165,6 +180,15 @@ export async function getAllLatestNews(): Promise<Article[]> {
  * @cache 1분(60초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getSearchArticles(q: string, token?: string): Promise<Article[]> {
+  if (USE_MOCKS) {
+    const allMockArticles = Object.values(mockAllCategoryNews).flat();
+    const lowerCaseQuery = q.toLowerCase();
+    const results = allMockArticles.filter(article => 
+        article.title.toLowerCase().includes(lowerCaseQuery) ||
+        article.summary?.toLowerCase().includes(lowerCaseQuery)
+    );
+    return Promise.resolve(results);
+  }
   const encodedQuery = encodeURIComponent(q);
   const headers: HeadersInit = {};
   if (token) {
@@ -193,6 +217,17 @@ export async function getSearchArticles(q: string, token?: string): Promise<Arti
  * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  */
 export async function toggleArticleLike(token: string, articleId: number, currentIsLiked: boolean): Promise<{ data: { articleId: number; likes: number; isLiked: boolean } }> {
+  if (USE_MOCKS) {
+    console.log(`Mock toggling like for article ${articleId}. CurrentIsLiked: ${currentIsLiked}`);
+    const mockResponse = {
+        data: {
+            articleId,
+            likes: Math.floor(Math.random() * 100), // return a random like count
+            isLiked: !currentIsLiked
+        }
+    };
+    return Promise.resolve(mockResponse);
+  }
   const method = currentIsLiked ? 'DELETE' : 'POST'; // 현재 상태에 따라 HTTP 메소드 결정
   const response = await fetchWrapper(`/api/articles/${articleId}/like`, {
     method: method,
@@ -221,6 +256,15 @@ export async function toggleArticleLike(token: string, articleId: number, curren
  *   중복을 제거하고 '좋아요' 수(`like_count`) 기준으로 내림차순 정렬하여 상위 20개를 반환합니다.
  */
 export async function getPopularNews(category?: string, token?: string): Promise<Article[]> {
+    if (USE_MOCKS) {
+        let articles: Article[] = [];
+        if (category) {
+            articles = mockAllCategoryNews[category] || [];
+        } else {
+            articles = Object.values(mockAllCategoryNews).flat();
+        }
+        return Promise.resolve([...articles].sort((a,b) => (b.like_count || 0) - (a.like_count || 0)).slice(0, 20));
+    }
   // 단일 카테고리에 대한 인기 기사를 가져오는 내부 함수
   const fetchByCategory = async (cat: string): Promise<Article[]> => {
     const url = new URL(`/api/articles/popular`, 'http://localhost'); // URL 객체 생성을 위해 임시 base URL 사용
@@ -288,6 +332,10 @@ export async function getPopularNews(category?: string, token?: string): Promise
  * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  */
 export async function toggleArticleSave(token: string, articleId: number, currentIsSaved: boolean): Promise<ToggleSaveResponse> {
+  if (USE_MOCKS) {
+    console.log(`Mock toggling save for article ${articleId}. currentIsSaved: ${currentIsSaved}`);
+    return Promise.resolve({ success: true });
+  }
   const method = currentIsSaved ? 'DELETE' : 'POST';
   const response = await fetchWrapper(`/api/articles/${articleId}/save`, {
     method: method,

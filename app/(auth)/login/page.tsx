@@ -26,7 +26,7 @@ const VALIDATION_RULES: Record<string, { validate: (value: string) => boolean; m
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth(); // 'news' 프로젝트의 인증 방식에 맞게 수정 필요
+  const { login } = useAuth();
   const [formState, setFormState] = useState({
     email: "",
     password: "",
@@ -35,26 +35,26 @@ export default function LoginPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
-    if (touched[name]) {
-      const rule = VALIDATION_RULES[name];
-      if (rule) {
-        const isValid = rule.validate(value);
-        if (isValid) {
-          setErrors((prev) => ({ ...prev, [name]: "" }));
-        } else {
-          setErrors((prev) => ({ ...prev, [name]: rule.message }));
-        }
-      }
+    // Clear the error for the field being typed in
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setFocusedField(e.target.name);
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
+    setFocusedField(null); // Clear focused field on blur
+
     const rule = VALIDATION_RULES[name];
     if (rule) {
       const isValid = rule.validate(value);
@@ -70,7 +70,7 @@ export default function LoginPage() {
     e.preventDefault();
     setServerError(null);
 
-    // 폼 유효성 검사
+    // Final validation on all fields
     const newErrors: Record<string, string> = {};
     let formIsValid = true;
     for (const key in formState) {
@@ -126,10 +126,11 @@ export default function LoginPage() {
             value={formState.email}
             onChange={handleInputChange}
             onBlur={handleBlur}
+            onFocus={handleFocus}
             autoComplete="email"
             required
           />
-          {touched.email && errors.email && <p className="text-red-400 text-[10px] mt-1">{errors.email}</p>}
+          {errors.email && (focusedField === "email" || (touched.email && formState.email.length > 0)) && <p className="text-red-400 text-[10px] mt-1">{errors.email}</p>}
         </div>
         <div>
           <FormField
@@ -140,10 +141,11 @@ export default function LoginPage() {
             value={formState.password}
             onChange={handleInputChange}
             onBlur={handleBlur}
+            onFocus={handleFocus}
             autoComplete="current-password"
             required
           />
-          {touched.password && errors.password && <p className="text-red-400 text-[10px] mt-1">{errors.password}</p>}
+          {errors.password && (focusedField === "password" || (touched.password && formState.password.length > 0)) && <p className="text-red-400 text-[10px] mt-1">{errors.password}</p>}
         </div>
 
         {serverError && (

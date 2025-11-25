@@ -1,0 +1,57 @@
+'use client';
+
+import { Article } from '@/types';
+import Link from 'next/link';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { formatRelativeTime } from '@/lib/utils';
+import ArticleImageWithFallback from '../ArticleImageWithFallback';
+import StyledArticleTitle from '../common/StyledArticleTitle';
+
+interface SearchResultCardProps {
+  article: Article;
+  index: number;
+}
+
+export default function SearchResultCard({ article, index }: SearchResultCardProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.05 }}
+      className="w-full"
+    >
+      <Link
+        href={article.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block bg-zinc-800/50 rounded-xl overflow-hidden group hover:bg-zinc-800 transition-colors duration-300 h-full"
+      >
+        <div className="relative w-full h-40">
+          <ArticleImageWithFallback
+            src={article.thumbnail_url}
+            alt={article.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+        </div>
+        <div className="p-4 flex flex-col h-full">
+            <StyledArticleTitle
+                title={article.title}
+                className="text-md font-bold text-white mb-2 line-clamp-2"
+            />
+            <p className="text-zinc-400 text-sm line-clamp-2 flex-grow">{article.description}</p>
+            <div className="flex items-center text-xs text-zinc-500 mt-3">
+              {article.favicon_url && (
+                <Image src={article.favicon_url} alt={article.source} width={12} height={12} className="mr-1.5 rounded-sm" />
+              )}
+              <span className="truncate max-w-[100px]">{article.source}</span>
+              <span className="mx-1.5">·</span>
+              <span>{formatRelativeTime(article.published_at)}</span>
+            </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}

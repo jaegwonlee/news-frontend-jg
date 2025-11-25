@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useCa
 import { User } from '@/types';
 import { addSessionExpiredListener } from '@/lib/api/fetchWrapper';
 
+const USE_MOCKS = true; // Set to true to use mock data in AuthContext
+
 // Helper function to decode JWT
 const parseJwt = (token: string) => {
   try {
@@ -41,16 +43,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     try {
       const storedToken = localStorage.getItem('authToken');
+      const storedUser = localStorage.getItem('authUser');
+
       if (storedToken) {
-        const decodedToken = parseJwt(storedToken);
-        if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
-          const storedUser = localStorage.getItem('authUser');
-          setToken(storedToken);
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
-          }
+        let isValidToken = false;
+        
+        if (USE_MOCKS && storedToken.startsWith('mock-jwt-token')) {
+            isValidToken = true; // Mock token is always valid for development
+            console.log("--- AuthContext: Using Mock Token from localStorage ---");
         } else {
-          logout();
+            const decodedToken = parseJwt(storedToken);
+            if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
+                isValidToken = true;
+            }
+        }
+
+        if (isValidToken) {
+            setToken(storedToken);
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
+        } else {
+            logout();
         }
       }
     } catch (error) {
@@ -63,8 +77,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const sessionCheckInterval = setInterval(() => {
       const storedToken = localStorage.getItem('authToken');
       if (storedToken) {
-        const decodedToken = parseJwt(storedToken);
-        if (!decodedToken || decodedToken.exp * 1000 < Date.now()) {
+        let isValidToken = false;
+        if (USE_MOCKS && storedToken.startsWith('mock-jwt-token')) {
+            isValidToken = true; // Mock token is always valid for development
+        } else {
+            const decodedToken = parseJwt(storedToken);
+            if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
+                isValidToken = true;
+            }
+        }
+        if (!isValidToken) {
           logout();
         }
       }
@@ -79,8 +101,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [logout]);
 
   const login = (newToken: string, newUser: User) => {
-    const decodedToken = parseJwt(newToken);
-    if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
+    let isValidToken = false;
+
+    if (USE_MOCKS && newToken.startsWith('mock-jwt-token')) {
+        isValidToken = true; // Mock token is always valid for development
+        console.log("--- AuthContext: Mock Login successful ---");
+    } else {
+        const decodedToken = parseJwt(newToken);
+        if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
+            isValidToken = true;
+        }
+    }
+
+    if (isValidToken) {
       setToken(newToken);
       setUser(newUser);
       localStorage.setItem('authToken', newToken);

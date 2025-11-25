@@ -53,6 +53,8 @@ export default function RegisterPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   // 로딩 상태
   const [isLoading, setIsLoading] = useState(false);
+  // 현재 포커스된 필드 상태
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // 입력 값 변경 핸들러
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,10 +66,16 @@ export default function RegisterPage() {
     }
   };
 
+  // 포커스 핸들러
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setFocusedField(e.target.name);
+  };
+
   // 포커스 아웃(blur) 시 유효성 검사 핸들러
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true })); // 터치 상태 업데이트
+    setFocusedField(null); // 포커스 해제
 
     const rule = VALIDATION_RULES[name];
     if (rule) {
@@ -161,10 +169,13 @@ export default function RegisterPage() {
               value={formState.name}
               onChange={handleInputChange}
               onBlur={handleBlur}
+              onFocus={handleFocus}
               required
             />
-            {/* 에러 메시지 표시 */}
-            {touched.name && errors.name && <p className="text-red-400 text-[10px] mt-1">{errors.name}</p>}
+            {/* 에러 메시지 표시: 포커스 상태이거나, 값이 입력된 상태에서 에러가 있을 때 표시 */}
+            {errors.name && (focusedField === "name" || formState.name.length > 0) && (
+              <p className="text-red-400 text-[10px] mt-1">{errors.name}</p>
+            )}
           </div>
           <div>
             <FormField
@@ -175,9 +186,12 @@ export default function RegisterPage() {
               value={formState.nickname}
               onChange={handleInputChange}
               onBlur={handleBlur}
+              onFocus={handleFocus}
               required
             />
-            {touched.nickname && errors.nickname && <p className="text-red-400 text-[10px] mt-1">{errors.nickname}</p>}
+            {errors.nickname && (focusedField === "nickname" || formState.nickname.length > 0) && (
+              <p className="text-red-400 text-[10px] mt-1">{errors.nickname}</p>
+            )}
           </div>
         </div>
 
@@ -191,10 +205,13 @@ export default function RegisterPage() {
             value={formState.email}
             onChange={handleInputChange}
             onBlur={handleBlur}
+            onFocus={handleFocus}
             autoComplete="email"
             required
           />
-          {touched.email && errors.email && <p className="text-red-400 text-[10px] mt-1">{errors.email}</p>}
+          {errors.email && (focusedField === "email" || formState.email.length > 0) && (
+            <p className="text-red-400 text-[10px] mt-1">{errors.email}</p>
+          )}
         </div>
 
         {/* 비밀번호 필드 */}
@@ -207,10 +224,13 @@ export default function RegisterPage() {
             value={formState.password}
             onChange={handleInputChange}
             onBlur={handleBlur}
+            onFocus={handleFocus}
             autoComplete="new-password"
             required
           />
-          {touched.password && errors.password && <p className="text-red-400 text-[10px] mt-1">{errors.password}</p>}
+          {errors.password && (focusedField === "password" || formState.password.length > 0) && (
+            <p className="text-red-400 text-[10px] mt-1">{errors.password}</p>
+          )}
         </div>
 
         {/* 비밀번호 확인 필드 */}
@@ -223,10 +243,11 @@ export default function RegisterPage() {
             value={formState.passwordConfirm}
             onChange={handleInputChange}
             onBlur={handleBlur}
+            onFocus={handleFocus}
             autoComplete="new-password"
             required
           />
-          {touched.passwordConfirm && errors.passwordConfirm && (
+          {errors.passwordConfirm && (focusedField === "passwordConfirm" || formState.passwordConfirm.length > 0) && (
             <p className="text-red-400 text-[10px] mt-1">{errors.passwordConfirm}</p>
           )}
         </div>
@@ -241,9 +262,12 @@ export default function RegisterPage() {
             value={formState.phone}
             onChange={handleInputChange}
             onBlur={handleBlur}
+            onFocus={handleFocus}
             required
           />
-          {touched.phone && errors.phone && <p className="text-red-400 text-[10px] mt-1">{errors.phone}</p>}
+          {errors.phone && (focusedField === "phone" || formState.phone.length > 0) && (
+            <p className="text-red-400 text-[10px] mt-1">{errors.phone}</p>
+          )}
         </div>
 
         {/* 서버 에러 메시지 표시 영역 */}
@@ -257,9 +281,9 @@ export default function RegisterPage() {
             type="submit"
             disabled={isLoading} // 로딩 중 비활성화
             // 버튼 스타일 (빨간색 배경, hover 효과 등)
-            className="w-full mt-2 px-4 py-3 font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-neutral-600 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-red-500/50 transition-all duration-300 transform hover:scale-105"
+            className="w-full mt-4 px-4 py-3.5 font-black text-white bg-gradient-to-r from-red-600 to-red-500 rounded-lg hover:from-red-500 hover:to-red-400 disabled:from-zinc-600 disabled:to-zinc-600 disabled:cursor-not-allowed shadow-lg shadow-red-500/30 hover:shadow-red-500/50 active:scale-[0.98] transition-all duration-200 uppercase tracking-widest"
           >
-            {isLoading ? "가입하는 중..." : "가입하기"}
+            {isLoading ? "가입하는 중..." : "FIGHT START"}
           </button>
         </div>
 

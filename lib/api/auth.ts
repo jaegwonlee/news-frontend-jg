@@ -7,6 +7,9 @@
 
 import { SignUpData, AuthResponse, LoginCredentials } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
+import { mockUserProfile } from "@/app/mocks/user"; // Reusing mockUserProfile
+
+const USE_MOCKS = true; // Set to true to use mock data
 
 /**
  * @function signUpUser
@@ -18,6 +21,24 @@ import { fetchWrapper } from "./fetchWrapper";
  *                   백엔드에서 받은 에러 메시지나 기본 에러 메시지를 포함한 에러를 발생시킵니다.
  */
 export async function signUpUser(userData: SignUpData): Promise<AuthResponse> {
+  if (USE_MOCKS) {
+    console.log("--- Using Mock SignUp ---");
+    // Simulate some validation
+    if (userData.email === "existing@example.com") {
+      throw new Error("이미 사용 중인 이메일입니다. (목업)");
+    }
+    const mockToken = 'mock-jwt-token-for-signup';
+    const mockSignedUpUser = {
+      ...mockUserProfile,
+      email: userData.email,
+      name: userData.name,
+      nickname: userData.nickname,
+      phone: userData.phone,
+      id: Math.floor(Math.random() * 1000) + 2, // New mock ID
+    };
+    return Promise.resolve({ token: mockToken, user: mockSignedUpUser, message: "회원가입이 완료되었습니다. (목업)" });
+  }
+
   const response = await fetchWrapper(`/api/auth/signup`, {
     method: 'POST',
     body: JSON.stringify(userData),
@@ -48,6 +69,23 @@ export async function signUpUser(userData: SignUpData): Promise<AuthResponse> {
  *   명확한 피드백을 제공합니다.
  */
 export async function loginUser(credentials: LoginCredentials): Promise<AuthResponse> {
+  // --- MOCK LOGIN IMPLEMENTATION ---
+  if (USE_MOCKS && credentials.email === 'a@a.com' && credentials.password === 'aaaa1111!!!!') {
+    console.log("--- Using Mock Login ---");
+    const mockUser = {
+      id: 1,
+      email: 'a@a.com',
+      name: '테스트유저',
+      nickname: '목업맨',
+      profile_image_url: '/user-placeholder.svg',
+      introduction: '백엔드 없이 프론트엔드 개발 중인 목업 유저입니다.'
+    };
+    const mockToken = 'mock-jwt-token-for-development-purpose-only';
+    
+    return Promise.resolve({ token: mockToken, user: mockUser });
+  }
+  // --- END MOCK LOGIN ---
+  
   const response = await fetchWrapper(`/api/auth/login`, {
     method: 'POST',
     body: JSON.stringify(credentials),

@@ -12,20 +12,20 @@ export default function NotificationSettings() {
 
   if (isLoading) {
     return (
-      <>
-        <h2 className="text-2xl font-bold text-white mb-6 border-b border-zinc-700 pb-3">알림 설정</h2>
-        <p className="text-zinc-400">로딩 중...</p>
-      </>
+      <div className="p-6 sm:p-8">
+        <h2 className="text-2xl font-bold text-foreground mb-6 border-b border-border pb-3">알림 설정</h2>
+        <p className="text-muted-foreground">로딩 중...</p>
+      </div>
     );
   }
 
   return (
-    <>
-      <h2 className="text-2xl font-bold text-white mb-6 border-b border-zinc-700 pb-3">알림 설정</h2>
+    <div className="p-6 sm:p-8">
+      <h2 className="text-2xl font-bold text-foreground mb-6 border-b border-border pb-3">알림 설정</h2>
       <div className="space-y-4">
         {settings.map((setting) => (
-          <div key={setting.notification_type} className="flex items-center justify-between p-3 bg-zinc-800 rounded-md border border-zinc-700">
-            <span className="text-lg text-white">{NOTIFICATION_TYPE_NAMES[setting.notification_type]}</span>
+          <div key={setting.notification_type} className="flex items-center justify-between p-4 bg-background rounded-md border border-border">
+            <span className="font-medium text-foreground">{NOTIFICATION_TYPE_NAMES[setting.notification_type]}</span>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -33,14 +33,14 @@ export default function NotificationSettings() {
                 checked={setting.is_enabled}
                 onChange={() => handleToggle(setting.notification_type)}
               />
-              <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-zinc-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-zinc-500 peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-muted rounded-full peer peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
             </label>
           </div>
         ))}
       </div>
       {error && (
-        <p className="text-red-400 text-sm mt-4">{error}</p>
+        <p className="text-red-500 text-sm mt-4">{error}</p>
       )}
-    </>
+    </div>
   );
 }

@@ -5,16 +5,11 @@ import { Heart } from "lucide-react";
 interface ArticleLikeButtonProps {
   likes: number;
   isLiked: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
 }
 
-export default function ArticleLikeButton({
-  likes,
-  isLiked,
-  onClick,
-  disabled = false,
-}: ArticleLikeButtonProps) {
+export default function ArticleLikeButton({ likes, isLiked, onClick, disabled = false }: ArticleLikeButtonProps) {
   return (
     <button
       onClick={onClick}

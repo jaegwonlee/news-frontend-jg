@@ -31,10 +31,10 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
   ];
 
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl shadow-2xl p-6 md:p-8">
+    <div className="p-6 sm:p-8">
       <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
         {/* Avatar */}
-        <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden ring-4 ring-offset-4 ring-offset-zinc-900 ring-blue-500 flex-shrink-0">
+        <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden ring-4 ring-offset-4 ring-offset-card ring-blue-500 flex-shrink-0">
           <Image
             src={profile.profile_image_url || '/user-placeholder.svg'}
             alt="Current Avatar"
@@ -46,10 +46,10 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
 
         {/* Profile Info */}
         <div className="flex-grow text-center md:text-left">
-          <h2 className="text-3xl md:text-4xl font-bold text-white">{profile.name}</h2>
-          <p className="text-md text-zinc-400 mt-1">{profile.email}</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground">{profile.name}</h2>
+          <p className="text-md text-muted-foreground mt-1">{profile.email}</p>
           {profile.introduction && (
-            <p className="text-base text-zinc-300 mt-4 max-w-xl mx-auto md:mx-0">
+            <p className="text-base text-foreground/80 mt-4 max-w-xl mx-auto md:mx-0">
               {profile.introduction}
             </p>
           )}
@@ -59,7 +59,7 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
         <div className="flex-shrink-0">
           <button
             onClick={onEditClick}
-            className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors duration-300 shadow-md"
+            className="px-5 py-2.5 text-sm font-semibold text-primary-foreground bg-primary rounded-full hover:bg-primary/90 transition-colors duration-300 shadow-md"
           >
             프로필 수정
           </button>
@@ -69,10 +69,10 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
       {/* Activity Stats */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
         {activityStats.map((stat, index) => (
-          <div key={index} className="flex items-center p-5 bg-zinc-800/70 rounded-xl border border-zinc-700">
+          <div key={index} className="flex items-center p-5 bg-background rounded-xl border border-border">
             <div className="mr-5">{stat.icon}</div>
             <div className="flex-grow">
-              <p className="text-sm text-zinc-400">{stat.label}</p>
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
               <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             </div>
           </div>
@@ -81,4 +81,3 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
     </div>
   );
 }
-

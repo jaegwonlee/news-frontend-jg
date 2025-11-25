@@ -77,8 +77,8 @@ const InquiryForm: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-white">문의하기</h2>
+    <div className="p-6 sm:p-8">
+      <h2 className="text-2xl font-bold text-foreground mb-6">문의하기</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <FormField
           id="inquirySubject"
@@ -90,22 +90,22 @@ const InquiryForm: React.FC = () => {
           required
         />
         <div>
-          <label htmlFor="inquiryContent" className="block text-sm font-medium text-zinc-400 mb-2">내용</label>
+          <label htmlFor="inquiryContent" className="block text-sm font-medium text-muted-foreground mb-2">내용</label>
           <textarea
             id="inquiryContent"
             rows={5}
-            className="w-full p-3 bg-zinc-800 border border-zinc-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full p-3 bg-input border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             required
           ></textarea>
         </div>
         <div>
-          <label htmlFor="attachment" className="block text-sm font-medium text-zinc-400 mb-2">첨부 파일 (선택 사항, 최대 5MB)</label>
+          <label htmlFor="attachment" className="block text-sm font-medium text-muted-foreground mb-2">첨부 파일 (선택 사항, 최대 5MB)</label>
           <input
             id="attachment"
             type="file"
-            className="w-full text-zinc-400 border border-zinc-700 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
+            className="w-full text-muted-foreground border border-border rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
             onChange={handleFileChange}
             accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt"
           />
@@ -116,10 +116,10 @@ const InquiryForm: React.FC = () => {
             id="privacyAgreement"
             checked={privacyAgreement}
             onChange={(e) => setPrivacyAgreement(e.target.checked)}
-            className="form-checkbox h-4 w-4 text-red-500 rounded border-zinc-600 focus:ring-red-500 bg-zinc-800"
+            className="h-4 w-4 text-primary rounded border-border bg-input focus:ring-primary"
             required
           />
-          <label htmlFor="privacyAgreement" className="ml-2 text-sm text-zinc-400">
+          <label htmlFor="privacyAgreement" className="ml-2 text-sm text-muted-foreground">
             개인정보 수집 및 이용에 동의합니다.
           </label>
         </div>
@@ -131,7 +131,7 @@ const InquiryForm: React.FC = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full px-4 py-3 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-neutral-600 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all duration-300 transform hover:scale-105"
+          className="w-full px-4 py-3 font-bold text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary/50 transition-all"
         >
           {isLoading ? '제출 중...' : '문의 제출'}
         </button>

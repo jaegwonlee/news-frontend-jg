@@ -44,6 +44,20 @@ export default function InquiryHistory() {
     fetchInquiries();
   }, [fetchInquiries]);
 
+  const StatusBadge = ({ status }: { status: Inquiry['status'] }) => {
+    const statusMap = {
+      SUBMITTED: { text: '접수됨', className: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+      ANSWERED: { text: '답변 완료', className: 'bg-green-500/10 text-green-600 dark:text-green-400' },
+      CLOSED: { text: '종료됨', className: 'bg-secondary text-muted-foreground' },
+    };
+    const currentStatus = statusMap[status] || statusMap.CLOSED;
+    return (
+      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${currentStatus.className}`}>
+        {currentStatus.text}
+      </span>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-48">
@@ -61,31 +75,23 @@ export default function InquiryHistory() {
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-white mb-4">문의 내역</h2>
+    <div className="p-6 sm:p-8 space-y-4">
+      <h2 className="text-2xl font-bold text-foreground mb-4">문의 내역</h2>
       {inquiries.length === 0 ? (
-        <p className="text-zinc-400">제출된 문의가 없습니다.</p>
+        <p className="text-muted-foreground">제출된 문의가 없습니다.</p>
       ) : (
         <ul className="space-y-3">
           {inquiries.map((inquiry) => (
             <li
               key={inquiry.id}
-              className="bg-zinc-800 p-4 rounded-lg shadow border border-zinc-700 cursor-pointer hover:bg-zinc-700 transition-colors"
+              className="bg-background p-4 rounded-lg shadow-sm border border-border cursor-pointer hover:bg-accent transition-colors"
               onClick={() => setSelectedInquiryId(inquiry.id)}
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="text-lg font-semibold text-white">{inquiry.subject}</span>
-                <span className={`text-sm font-medium ${
-                  inquiry.status === 'SUBMITTED' ? 'text-yellow-500' :
-                  inquiry.status === 'ANSWERED' ? 'text-green-500' :
-                  'text-zinc-500'
-                }`}>
-                  {inquiry.status === 'SUBMITTED' ? '접수됨' :
-                   inquiry.status === 'ANSWERED' ? '답변 완료' :
-                   '종료됨'}
-                </span>
+                <span className="text-lg font-semibold text-foreground">{inquiry.subject}</span>
+                <StatusBadge status={inquiry.status} />
               </div>
-              <p className="text-sm text-zinc-400">제출일: {new Date(inquiry.created_at).toLocaleDateString()}</p>
+              <p className="text-sm text-muted-foreground">제출일: {new Date(inquiry.created_at).toLocaleDateString()}</p>
             </li>
           ))}
         </ul>

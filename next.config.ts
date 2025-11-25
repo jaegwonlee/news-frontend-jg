@@ -65,6 +65,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "picsum.photos", // 목업 데이터용 picsum.photos 이미지
       },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com", // 목업 데이터용 via.placeholder.com 이미지
+      },
       // 다른 뉴스 매체의 이미지 도메인이 있다면 여기에 추가합니다.
       // 예: { protocol: 'https', hostname: 'img.example-news.com' }
     ],

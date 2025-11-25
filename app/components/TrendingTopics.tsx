@@ -1,123 +1,88 @@
-// app/components/TrendingTopics.tsx
-
-"use client";
-
-import { useEffect, useState } from "react";
-import { getPopularTopics, getLatestTopics } from "@/lib/api";
-import { Eye, MessageCircle } from "lucide-react";
-import Link from "next/link";
-import { Topic } from "@/types";
 import { formatRelativeTime } from "@/lib/utils";
-import { Tooltip } from 'react-tooltip'
-import 'react-tooltip/dist/react-tooltip.css'
+import { Topic } from "@/types";
+import { ArrowRight, Eye } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface TrendingTopicsProps {
-  displayMode: 'popular' | 'latest';
+  topics: Topic[];
+  displayMode: "popular" | "latest";
 }
 
-export default function TrendingTopics({ displayMode }: TrendingTopicsProps) {
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchTopics = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        let fetchedTopics: Topic[];
-        if (displayMode === 'popular') {
-          fetchedTopics = await getPopularTopics();
-          fetchedTopics.sort((a, b) => (b.popularity_score || 0) - (a.popularity_score || 0));
-          setTopics(fetchedTopics.slice(0, 10));
-        } else { // displayMode === 'latest'
-          fetchedTopics = await getLatestTopics();
-          setTopics(fetchedTopics.slice(0, 10));
-        }
-      } catch (err) {
-        setError("토픽 목록을 불러오는 데 실패했습니다.");
-        console.error(err);
-        setTopics([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTopics();
-  }, [displayMode]);
-
+export default function TrendingTopics({ topics, displayMode }: TrendingTopicsProps) {
   return (
-    <>
-      <Tooltip id="trending-topic-tooltip" />
-
-      {isLoading ? (
-        <div className="flex-1 flex justify-center items-center text-zinc-400">
-          로딩 중...
-        </div>
-      ) : error ? (
-        <div className="flex-1 flex justify-center items-center text-red-500">
-          {error}
-        </div>
+    <div className="h-full overflow-y-auto pr-1">
+      {topics.length === 0 ? (
+        <p className="text-muted-foreground text-center pt-10">표시할 토픽이 없습니다.</p>
       ) : (
-        <div className="space-y-3 h-full overflow-y-auto pr-2">
-          {topics.length === 0 ? (
-            <p className="text-zinc-500 text-center pt-10">표시할 토픽이 없습니다.</p>
-          ) : (
-            topics.map((topic, index) => {
-              const rank = index + 1;
-              const isPopular = displayMode === 'popular';
+        <div className="flex flex-col gap-3">
+          {topics.map((topic, index) => {
+            const rank = index + 1;
+            const isPopular = displayMode === "popular";
+            const isTopThree = isPopular && rank <= 3;
 
-              // Define styles for top ranks
-              const rankColors = [
-                "text-yellow-400", // 1st
-                "text-slate-300",  // 2nd
-                "text-amber-600"   // 3rd
-              ];
-              const rankColor = isPopular && rank <= 3 ? rankColors[index] : "text-zinc-400";
-              const rankGlow = isPopular && rank <= 3 ? `hover:shadow-[0_0_15px_2px_${rank === 1 ? 'rgba(250,204,21,0.4)' : rank === 2 ? 'rgba(203,213,225,0.4)' : 'rgba(217,119,6,0.4)'}]` : 'hover:shadow-blue-500/20';
+            const rankClasses = [
+              // Rank 1
+              {
+                gradient: "bg-gradient-gold",
+                border: "border-yellow-400/50 hover:border-yellow-400",
+                shadow: "hover:shadow-lg hover:shadow-yellow-500/10",
+                rankText: "text-yellow-400",
+              },
+              // Rank 2
+              {
+                gradient: "bg-gradient-silver",
+                border: "border-slate-400/50 hover:border-slate-300",
+                shadow: "hover:shadow-lg hover:shadow-slate-500/10",
+                rankText: "text-slate-300",
+              },
+              // Rank 3
+              {
+                gradient: "bg-gradient-bronze",
+                border: "border-amber-600/50 hover:border-amber-500",
+                shadow: "hover:shadow-lg hover:shadow-amber-600/10",
+                rankText: "text-amber-600",
+              },
+            ];
 
-              return (
-                <Link
-                  href={`/debate/${topic.id}`}
-                  key={topic.id}
-                  className={`group relative block bg-gradient-to-br from-zinc-900 to-zinc-800 p-4 rounded-lg border border-zinc-700 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:border-blue-500/50 hover:from-zinc-800 hover:to-zinc-700 ${rankGlow}`}
-                  data-tooltip-id="trending-topic-tooltip"
-                  data-tooltip-content={topic.display_name}
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Rank or Bullet */}
-                    <div className="flex-shrink-0 w-6 text-center">
-                      {isPopular ? (
-                        <span className={`font-bold text-lg ${rankColor} transition-colors`}>{rank}</span>
-                      ) : (
-                        <span className="text-blue-400 font-bold">•</span>
-                      )}
-                    </div>
+            const cardClasses = cn(
+              "group flex items-center gap-3 p-3 rounded-lg border transition-all duration-300 ease-in-out transform hover:-translate-y-1",
+              "bg-card/50 backdrop-blur-sm",
+              isTopThree
+                ? `${rankClasses[rank - 1].gradient} ${rankClasses[rank - 1].border} ${rankClasses[rank - 1].shadow}`
+                : "border-border hover:border-primary/50 hover:bg-accent"
+            );
 
-                    {/* Topic Name and Metadata */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-base font-semibold text-transparent bg-clip-text bg-gradient-to-r from-zinc-200 to-zinc-400 truncate group-hover:from-white group-hover:to-zinc-300 transition-colors">
-                        {topic.display_name}
-                      </h4>
-                      {/* Repositioned and Reordered Metadata */}
-                      <div className="flex justify-end items-center gap-3 mt-1 text-xs text-zinc-500">
-                        <div className="flex items-center gap-1">
-                          <span>{formatRelativeTime(topic.published_at)}</span>
-                        </div>
-                        <span className="text-zinc-600">·</span>
-                        <div className="flex items-center gap-1">
-                          <Eye className="w-3 h-3" />
-                          <span>{topic.view_count}</span>
-                        </div>
+            const rankTextClasses = cn(
+              "text-xl font-black transition-colors",
+              isTopThree ? rankClasses[rank - 1].rankText : "text-muted-foreground group-hover:text-primary"
+            );
+
+            return (
+              <Link href={`/debate/${topic.id}`} key={topic.id} className="outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
+                <div className={cardClasses}>
+                  <div className="w-8 flex-shrink-0 text-center">
+                    <span className={rankTextClasses}>{isPopular ? rank : "•"}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-foreground truncate">{topic.display_name}</p>
+                    <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>{formatRelativeTime(topic.published_at)}</span>
+                      <div className="flex items-center gap-1">
+                        <Eye size={12} />
+                        <span>{topic.view_count.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
-                </Link>
-              );
-            })
-          )}
+                  <div className="transform transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
+                    <ArrowRight size={20} className="text-muted-foreground group-hover:text-primary" />
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
-    </>
+    </div>
   );
 }

@@ -72,6 +72,21 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
     }
   };
 
+  const StatusBadge = ({ status }: { status: Inquiry['status'] }) => {
+    const statusMap = {
+      SUBMITTED: { text: '답변 대기중', className: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+      ANSWERED: { text: '답변 완료', className: 'bg-green-500/10 text-green-600 dark:text-green-400' },
+      CLOSED: { text: '종료됨', className: 'bg-secondary text-muted-foreground' },
+    };
+    const currentStatus = statusMap[status] || statusMap.CLOSED;
+    return (
+      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${currentStatus.className}`}>
+        {currentStatus.text}
+      </span>
+    );
+  };
+
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-48">
@@ -89,64 +104,52 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
   }
 
   return (
-    <div className="space-y-4">
-      <button
-        onClick={onBack}
-        className="mb-4 px-4 py-2 text-sm font-semibold text-white bg-zinc-600 rounded-md hover:bg-zinc-700 transition-colors"
-      >
-        ← 목록으로 돌아가기
-      </button>
-      <h2 className="text-2xl font-bold text-white">문의 상세</h2>
+    <div className="space-y-6">
+        <div className="bg-background p-6 rounded-lg border border-border">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4 pb-4 border-b border-border">
+                <h3 className="text-xl font-semibold text-foreground">{inquiry.subject}</h3>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <StatusBadge status={inquiry.status} />
+                    <span>{new Date(inquiry.created_at).toLocaleString()}</span>
+                </div>
+            </div>
+            <div className="text-foreground/90 whitespace-pre-wrap mb-6 min-h-[100px]">
+              {inquiry.content}
+            </div>
 
-      <div className="bg-zinc-800 p-6 rounded-lg shadow-inner border border-zinc-700">
-        <h3 className="text-xl font-semibold text-white mb-2">{inquiry.subject}</h3>
-        <div className="flex items-center gap-4 text-sm text-zinc-400 mb-4">
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
-              inquiry.status === 'SUBMITTED' ? 'bg-yellow-600/30 text-yellow-300' :
-              inquiry.status === 'ANSWERED' ? 'bg-green-600/30 text-green-300' :
-              'bg-zinc-600/30 text-zinc-300'
-            }`}>
-            {inquiry.status === 'SUBMITTED' ? '답변 대기중' : inquiry.status === 'ANSWERED' ? '답변 완료' : '종료됨'}
-          </span>
-          <span>{new Date(inquiry.created_at).toLocaleString()}</span>
+            {inquiry.file_path && (
+            <div className="mt-4">
+                <h4 className="font-semibold text-muted-foreground mb-2">첨부 파일</h4>
+                <button
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                {isDownloading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                    <DownloadCloud className="w-4 h-4" />
+                )}
+                {isDownloading ? '다운로드 중...' : (inquiry.file_originalname || '파일 다운로드')}
+                </button>
+            </div>
+            )}
         </div>
-        <div className="prose prose-invert prose-zinc max-w-none text-zinc-300 whitespace-pre-wrap mb-6">
-          {inquiry.content}
-        </div>
-
-        {inquiry.file_path && (
-          <div className="mt-4">
-            <h4 className="font-semibold text-zinc-300 mb-2">첨부 파일</h4>
-            <button
-              onClick={handleDownload}
-              disabled={isDownloading}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-zinc-500"
-            >
-              {isDownloading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <DownloadCloud className="w-4 h-4" />
-              )}
-              {isDownloading ? '다운로드 중...' : (inquiry.file_originalname || '파일 다운로드')}
-            </button>
-          </div>
-        )}
 
         {inquiry.reply && (
-          <div className="mt-6 pt-6 border-t border-zinc-700">
-            <h4 className="text-lg font-semibold text-red-400 mb-3">운영자 답변</h4>
-            <div className="prose prose-invert prose-zinc max-w-none text-zinc-200 whitespace-pre-wrap">
-              {inquiry.reply.content}
+            <div className="bg-accent/50 p-6 rounded-lg border border-border">
+                <h4 className="text-lg font-semibold text-foreground mb-3">운영자 답변</h4>
+                <div className="text-foreground/90 whitespace-pre-wrap">
+                {inquiry.reply.content}
+                </div>
+                {inquiry.reply.created_at && (
+                <p className="text-xs text-muted-foreground mt-3 text-right">
+                    {new Date(inquiry.reply.created_at).toLocaleString()}
+                </p>
+                )}
             </div>
-            {inquiry.reply.created_at && (
-              <p className="text-xs text-zinc-500 mt-3 text-right">
-                {new Date(inquiry.reply.created_at).toLocaleString()}
-              </p>
-            )}
-          </div>
         )}
-      </div>
     </div>
   );
 }
+

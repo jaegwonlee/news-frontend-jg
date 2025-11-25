@@ -1,25 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSearchArticles } from "@/lib/api";
-import { Article } from "@/types";
-import Link from "next/link";
-import Image from "next/image";
-import { formatRelativeTime } from "@/lib/utils";
-import StyledArticleTitle from "@/app/components/common/StyledArticleTitle";
-import { FAVICON_URLS } from "@/lib/constants"; // Import FAVICON_URLS
-import ArticleImageWithFallback from "@/app/components/ArticleImageWithFallback"; // Import new component
-import ArticleLikeButton from "@/app/components/ArticleLikeButton"; // Import ArticleLikeButton
-import { useAuth } from "@/app/context/AuthContext"; // 👈 1. useAuth 임포트
+import { Article, Topic } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/app/context/AuthContext";
+import { AlertTriangle, SearchX } from "lucide-react";
 
-export default function SearchClientPage() {
+// Import new components
+import SearchInput from "@/app/components/search/SearchInput";
+import RecentSearches, { addRecentSearch } from "@/app/components/search/RecentSearches";
+import TrendingSearches from "@/app/components/search/TrendingSearches";
+import SearchResultCard from "@/app/components/search/SearchResultCard";
+import { EmptyState } from "@/app/components/common/EmptyState";
+import LoadingSpinner from "@/app/components/common/LoadingSpinner";
+
+// Mock data for trending topics
+const mockTrendingTopics: Topic[] = [
+  { id: 1, display_name: '인공지능', view_count: 1200, published_at: new Date().toISOString(), summary: '인공지능 관련 최신 동향 및 뉴스' },
+  { id: 2, display_name: '부동산 정책', view_count: 980, published_at: new Date().toISOString(), summary: '새로운 부동산 규제와 시장 분석' },
+  { id: 3, display_name: '전기차 보조금', view_count: 850, published_at: new Date().toISOString(), summary: '정부의 전기차 구매 보조금 정책' },
+  { id: 4, display_name: '코스피', view_count: 760, published_at: new Date().toISOString(), summary: '국내 주식 시장 코스피 지수 정보' },
+  { id: 5, display_name: 'CES 2025', view_count: 600, published_at: new Date().toISOString(), summary: '세계 최대 가전 박람회 CES 2025 주요 소식' },
+];
+
+function SearchClientPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q");
-  const { token } = useAuth(); // 👈 2. useAuth로 토큰 가져오기
+  const { token } = useAuth();
 
   const [searchResults, setSearchResults] = useState<Article[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [trendingTopics, setTrendingTopics] = useState<Topic[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,7 +47,6 @@ export default function SearchClientPage() {
       setIsLoading(true);
       setError(null);
       try {
-        // 👇 3. API 호출 시 token 전달
         const results = await getSearchArticles(searchQuery, token || undefined);
         setSearchResults(results);
       } catch (err: any) {
@@ -44,74 +57,120 @@ export default function SearchClientPage() {
     };
 
     fetchResults();
-  }, [searchQuery, token]); // 👈 4. useEffect 의존성 배열에 token 추가
+  }, [searchQuery, token]);
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-zinc-900 text-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-red-500"></div>
-        <p className="ml-4 text-xl">검색 결과를 불러오는 중...</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    setTrendingTopics(mockTrendingTopics);
+  }, []);
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-zinc-900 text-red-500 text-lg">
-        <p>오류: {error}</p>
-      </div>
-    );
-  }
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      addRecentSearch(query.trim());
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    }
+  };
+  
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    in: { opacity: 1, y: 0 },
+    out: { opacity: 0, y: -20 },
+  };
+
+  const renderLoading = () => (
+    <div className="flex flex-col justify-center items-center h-full mt-12">
+      <LoadingSpinner size="large" />
+      <p className="mt-4 text-zinc-400">검색 결과를 불러오는 중...</p>
+    </div>
+  );
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 text-white">
-      <h1 className="text-3xl font-bold mb-6 border-b border-zinc-700 pb-4">'{searchQuery}' 검색 결과</h1>
-
-      {searchResults.length === 0 ? (
-        <p className="text-zinc-400 text-center">'{searchQuery}'에 대한 검색 결과가 없습니다.</p>
-      ) : (
-        <div className="space-y-6">
-          {searchResults.map((item) => (
-            <div // Changed Link to div to allow ArticleLikeButton to be a separate interactive element
-              key={item.id}
-              className="flex gap-4 items-start p-4 bg-zinc-900 rounded-lg shadow-md hover:bg-zinc-800 transition-colors"
+    <div className="min-h-screen bg-zinc-900 text-white px-4 sm:px-6 lg:px-8">
+      <AnimatePresence mode="wait">
+        {!searchQuery ? (
+          <motion.div
+            key="initial"
+            variants={pageVariants}
+            initial="initial"
+            animate="in"
+            exit="out"
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-4xl mx-auto pt-24 pb-16 text-center"
+          >
+            <motion.h1 
+              className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-red-500 to-orange-400 text-transparent bg-clip-text"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <Link
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex gap-4 items-start flex-1" // Make Link take up available space
-              >
-                {item.thumbnail_url && (
-                  <div className="relative w-32 h-20 shrink-0">
-                    <ArticleImageWithFallback
-                      src={item.thumbnail_url}
-                      alt={item.title}
-                      fill
+              무엇을 찾고 계신가요?
+            </motion.h1>
+            <p className="text-zinc-400 mb-10 text-lg">뉴스 기사, 토론, 키워드를 검색해 보세요.</p>
+            <SearchInput onSearch={handleSearch} />
+            <RecentSearches onSearch={handleSearch} />
+            <TrendingSearches topics={trendingTopics} onSearch={handleSearch} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="results"
+            variants={pageVariants}
+            initial="initial"
+            animate="in"
+            exit="out"
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-7xl mx-auto pt-10 pb-16"
+          >
+            <SearchInput onSearch={handleSearch} initialQuery={searchQuery} />
+            
+            {isLoading ? (
+              renderLoading()
+            ) : error ? (
+               <div className="mt-12">
+                 <EmptyState
+                    Icon={AlertTriangle}
+                    title="오류 발생"
+                    description={`검색 중 오류가 발생했습니다: ${error}`}
+                  />
+               </div>
+            ) : (
+              <>
+                <h2 className="text-xl text-zinc-300 font-semibold mt-10 mb-6">
+                  <span className="font-bold text-red-500">'{searchQuery}'</span>
+                  <span className="text-zinc-400">에 대한 {searchResults.length}개의 검색 결과</span>
+                </h2>
+                {searchResults.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {searchResults.map((article, index) => (
+                      <SearchResultCard key={article.id} article={article} index={index} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-12">
+                    <EmptyState 
+                      Icon={SearchX}
+                      title="검색 결과 없음"
+                      description={`'${searchQuery}'에 대한 검색 결과가 없습니다. 다른 키워드로 검색해 보세요.`}
                     />
                   </div>
                 )}
-                <div className="flex-1">
-                  <StyledArticleTitle
-                    title={item.title}
-                    className="text-lg font-medium text-white mb-2 line-clamp-2"
-                  />
-                  <p className="text-zinc-400 text-sm line-clamp-3 mb-2">{item.description}</p>
-                  <div className="flex items-center text-xs text-zinc-500">
-                    {item.favicon_url && (
-                      <Image src={item.favicon_url} alt={item.source} width={12} height={12} className="mr-1 rounded-sm" />
-                    )}
-                    <span className="truncate max-w-[100px]">{item.source}</span>
-                    <span className="mx-1">·</span>
-                    <span>{formatRelativeTime(item.published_at)}</span>
-                  </div>
-                </div>
-              </Link>
-              
-            </div>
-          ))}
-        </div>
-      )}
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
+}
+
+
+export default function SearchClientPage() {
+    return (
+        <Suspense fallback={
+          <div className="bg-zinc-900 min-h-screen flex flex-col justify-center items-center">
+            <LoadingSpinner size="large" />
+            <p className="mt-4 text-zinc-400">페이지 로딩 중...</p>
+          </div>
+        }>
+            <SearchClientPageContent />
+        </Suspense>
+    )
 }

@@ -89,23 +89,29 @@ function ProfilePageContent() {
   };
 
   return (
-    <div className="flex-grow p-6 md:p-8 lg:p-10">
-      {renderContent()}
+    <div className="flex-grow">
+      <div className="bg-card rounded-xl border border-border shadow-sm">
+        {renderContent()}
+      </div>
     </div>
   );
 }
 
 export default function ProfilePage() {
   return (
-    <div className="flex min-h-screen bg-black text-white">
-      <Suspense fallback={<div className="w-64 flex-shrink-0 bg-zinc-900 p-4 border-r border-zinc-800"><h2 className="text-lg font-semibold text-white mb-6 px-2">마이페이지</h2></div>}>
-        <ProfileSidebar />
-      </Suspense>
-      <main className="flex-grow">
-        <Suspense fallback={<div className="flex items-center justify-center h-full"><LoadingSpinner /></div>}>
-          <ProfilePageContent />
-        </Suspense>
-      </main>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex flex-col md:flex-row gap-12">
+        <aside className="md:w-64 flex-shrink-0">
+          <Suspense fallback={<div className="w-full h-96 bg-muted rounded-lg animate-pulse" />}>
+            <ProfileSidebar />
+          </Suspense>
+        </aside>
+        <main className="flex-1 min-w-0">
+          <Suspense fallback={<div className="w-full h-96 bg-muted rounded-lg animate-pulse" />}>
+            <ProfilePageContent />
+          </Suspense>
+        </main>
+      </div>
     </div>
   );
 }
