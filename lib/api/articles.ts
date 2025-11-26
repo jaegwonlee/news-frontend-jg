@@ -9,7 +9,7 @@ import { Article, ToggleSaveResponse } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
 import { mockBreakingNews, mockExclusiveNews, mockAllCategoryNews } from "@/app/mocks/articles";
 
-const USE_MOCKS = true; // Set to true to use mock data
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
 
 /**
  * @function getBreakingNews
@@ -70,14 +70,18 @@ export async function getExclusiveNews(): Promise<Article[]> {
  * @param {string} [token] - 사용자 인증 토큰. 제공될 경우, 개인화된 데이터를 포함할 수 있습니다.
  * @returns {Promise<Article[]>} - 해당 카테고리의 기사 객체 배열을 반환하는 프로미스.
  */
-export async function getCategoryNews(categoryName: string, limit: number = 10, token?: string): Promise<Article[]> {
+export async function getCategoryNews(categoryName: string, limit?: number, token?: string): Promise<Article[]> {
   if (USE_MOCKS) {
     const news = mockAllCategoryNews[categoryName] || [];
-    return Promise.resolve(news.slice(0, limit));
+    return Promise.resolve(limit ? news.slice(0, limit) : news);
   }
   // 프로덕션 환경에서는 실제 API를 호출합니다.
   const encodedCategoryName = encodeURIComponent(categoryName);
-  const apiUrl = `/api/articles/by-category?name=${encodedCategoryName}&limit=${limit}&offset=0`;
+  let apiUrl = `/api/articles/by-category?name=${encodedCategoryName}`;
+  
+  if (limit) {
+    apiUrl += `&limit=${limit}`;
+  }
   
   const headers: HeadersInit = {};
   if (token) {
@@ -86,7 +90,7 @@ export async function getCategoryNews(categoryName: string, limit: number = 10, 
 
   try {
     const response = await fetchWrapper(apiUrl, {
-      cache: "no-store",
+      cache: 'no-store', // 데이터가 2MB를 초과하여 캐시 오류가 발생하므로 캐시를 사용하지 않음
       headers: headers
     });
     if (!response.ok) {
@@ -237,7 +241,7 @@ export async function toggleArticleLike(token: string, articleId: number, curren
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(errorData.message || '좋아요 상태 업데이트에 실패했습니다.');
   }
 
@@ -345,7 +349,7 @@ export async function toggleArticleSave(token: string, articleId: number, curren
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(errorData.message || '기사 저장 상태 업데이트에 실패했습니다.');
   }
 
@@ -354,5 +358,8 @@ export async function toggleArticleSave(token: string, articleId: number, curren
     return { success: true };
   }
 
-  return response.json();
-}
+    return response.json();
+
+  }
+
+  

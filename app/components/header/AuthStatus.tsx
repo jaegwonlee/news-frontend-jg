@@ -67,7 +67,7 @@ export default function AuthStatus() {
               alt="프로필"
               width={32}
               height={32}
-              className="rounded-full object-cover border-2 border-border group-hover:ring-2 group-hover:ring-red-500 transition-all"
+              className={`rounded-full object-cover border-2 border-border ring-2 ${isDarkMode ? "ring-white" : "ring-black"} transition-all`}
               unoptimized={!!user.profile_image_url}
             />
           </div>

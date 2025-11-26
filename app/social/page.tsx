@@ -5,7 +5,7 @@ import CategoryNewsClientPage from '@/app/components/CategoryNewsClientPage';
 export default async function SocialPage() {
   const categoryName = "사회";
   // Fetch data on the server
-  const articles = await getCategoryNews(categoryName, 50);
+  const articles = await getCategoryNews(categoryName);
 
   return <CategoryNewsClientPage articles={articles} categoryName={categoryName} />;
 }

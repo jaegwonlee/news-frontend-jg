@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
+import ScrollToTopButton from "./components/common/ScrollToTopButton";
 import { ThemeProvider } from "./components/ThemeProvider";
 import "./globals.css";
 
@@ -41,6 +42,7 @@ export default function RootLayout({
                 {children}
               </main>
               <Footer />
+              <ScrollToTopButton />
             </SocketProvider>
           </AuthProvider>
         </ThemeProvider>

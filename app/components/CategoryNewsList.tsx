@@ -8,24 +8,9 @@ import Image from "next/image";
 import Link from "next/link";
 import ClientPaginationControls from './common/ClientPaginationControls';
 import LoadingSpinner from './common/LoadingSpinner';
+import { getCategoryNews } from '@/lib/api/articles'; // Import getCategoryNews
 
 const ARTICLES_PER_PAGE = 20;
-
-async function fetchArticlesByCategory(categoryName: string): Promise<Article[]> {
-  const encodedCategoryName = encodeURIComponent(categoryName);
-  const apiUrl = `https://news02.onrender.com/api/articles/by-category?name=${encodedCategoryName}&limit=1000&offset=0`;
-  try {
-    const response = await fetch(apiUrl, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error(`API 호출 실패: ${response.status}`);
-    }
-    const data: Article[] = await response.json();
-    return data;
-  } catch (error) {
-    console.error("뉴스 데이터를 가져오는 중 에러 발생:", error);
-    return [];
-  }
-}
 
 export default function CategoryNewsList({
   categoryName,
@@ -42,7 +27,8 @@ export default function CategoryNewsList({
   useEffect(() => {
     async function loadArticles() {
       setIsLoading(true);
-      const articles = await fetchArticlesByCategory(categoryName);
+      // Use the standardized getCategoryNews function
+      const articles = await getCategoryNews(categoryName); // Fetch all articles
       setNewsList(articles);
       setIsLoading(false);
     }

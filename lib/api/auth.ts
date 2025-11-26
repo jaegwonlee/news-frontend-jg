@@ -9,7 +9,7 @@ import { SignUpData, AuthResponse, LoginCredentials } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
 import { mockUserProfile } from "@/app/mocks/user"; // Reusing mockUserProfile
 
-const USE_MOCKS = true; // Set to true to use mock data
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
 
 /**
  * @function signUpUser
@@ -44,14 +44,14 @@ export async function signUpUser(userData: SignUpData): Promise<AuthResponse> {
     body: JSON.stringify(userData),
   });
 
-  // 응답 본문을 먼저 파싱하여 에러 메시지 등을 확인합니다.
-  const data = await response.json();
-
   if (!response.ok) {
     // 응답이 성공적이지 않으면, 백엔드가 보낸 에러 메시지를 사용하거나 기본 메시지를 설정하여 에러를 throw합니다.
+    const data = await response.json().catch(() => ({ message: '회원가입에 실패했습니다.' }));
     throw new Error(data.message || '회원가입에 실패했습니다.');
   }
 
+  // 응답 본문을 먼저 파싱하여 에러 메시지 등을 확인합니다.
+  const data = await response.json();
   return data; // 성공 시 파싱된 데이터를 반환합니다.
 }
 

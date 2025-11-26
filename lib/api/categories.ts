@@ -5,7 +5,7 @@ import { SavedArticleCategory } from "@/types";
 import { mockSavedArticleCategories } from "@/app/mocks/user";
 import { mockSavedArticles } from "@/app/mocks/articles";
 
-const USE_MOCKS = true; // Set to true to use mock data
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
 
 /**
  * GET /api/saved/categories
@@ -49,7 +49,7 @@ export async function createCategory(token: string, name: string): Promise<Saved
     body: JSON.stringify({ name }),
   });
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(errorData.message || '카테고리 생성에 실패했습니다.');
   }
   return response.json();
@@ -77,7 +77,7 @@ export async function updateCategory(token: string, categoryId: number, name: st
     body: JSON.stringify({ name }),
   });
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(errorData.message || '카테고리 이름 변경에 실패했습니다.');
   }
   return response.json();
@@ -103,7 +103,7 @@ export async function deleteCategory(token: string, categoryId: number): Promise
     },
   });
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(errorData.message || '카테고리 삭제에 실패했습니다.');
   }
 }

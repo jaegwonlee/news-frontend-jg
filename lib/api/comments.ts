@@ -2,7 +2,7 @@ import { fetchWrapper } from './fetchWrapper';
 import { Comment, ApiComment } from '@/types';
 import { mockComments } from '@/app/mocks/comments';
 
-const USE_MOCKS = true; // Set to true to use mock data
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
 
 // Helper function to map ApiComment to Comment
 const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
@@ -53,11 +53,13 @@ export const getComments = async (articleId: number, token?: string): Promise<{ 
     method: 'GET',
     headers: token ? { 'Authorization': `Bearer ${token}` } : {},
   });
+
   if (!response.ok) {
-    throw new Error(`Failed to fetch comments for article ${articleId}`);
+    const errorData = await response.json().catch(() => ({ message: `Failed to fetch comments for article ${articleId}` }));
+    throw new Error(errorData.message || `Failed to fetch comments for article ${articleId}`);
   }
+
   const apiResponse = await response.json();
-  
   const mappedComments = (apiResponse.comments || []).map(mapApiCommentToComment);
 
   return {
@@ -101,9 +103,12 @@ export const addComment = async (articleId: number, content: string, token: stri
     },
     body: JSON.stringify({ content, parent_comment_id: parentId }), // Use parent_comment_id
   });
+
   if (!response.ok) {
-    throw new Error(`Failed to add comment to article ${articleId}`);
+    const errorData = await response.json().catch(() => ({ message: `Failed to add comment to article ${articleId}` }));
+    throw new Error(errorData.message || `Failed to add comment to article ${articleId}`);
   }
+  
   const apiResponse: { message: string; comment: ApiComment } = await response.json();
   return mapApiCommentToComment(apiResponse.comment);
 };
@@ -126,9 +131,12 @@ export const deleteComment = async (commentId: number, token: string): Promise<{
       'Authorization': `Bearer ${token}`,
     },
   });
+
   if (!response.ok) {
-    throw new Error(`Failed to delete comment ${commentId}`);
+    const errorData = await response.json().catch(() => ({ message: `Failed to delete comment ${commentId}` }));
+    throw new Error(errorData.message || `Failed to delete comment ${commentId}`);
   }
+
   return response.json(); // This API returns { message: string }, no mapping needed
 };
 
@@ -159,9 +167,12 @@ export const updateComment = async (commentId: number, content: string, token: s
     },
     body: JSON.stringify({ content }),
   });
+
   if (!response.ok) {
-    throw new Error(`Failed to update comment ${commentId}`);
+    const errorData = await response.json().catch(() => ({ message: `Failed to update comment ${commentId}` }));
+    throw new Error(errorData.message || `Failed to update comment ${commentId}`);
   }
+
   const apiComment: ApiComment = await response.json();
   return mapApiCommentToComment(apiComment);
 };
@@ -187,11 +198,9 @@ export const reportComment = async (commentId: number, reason: string, token: st
     },
     body: JSON.stringify({ reason }),
   });
-  // The API returns 200 OK for both success and 409 Conflict (already reported)
-  // So we just check if response is ok, and parse the message.
+  
   if (!response.ok) {
-    // If the backend sends a non-200 status for other errors, we can catch it here.
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: `Failed to report comment ${commentId}` }));
     throw new Error(errorData.message || `Failed to report comment ${commentId}`);
   }
   return response.json();
@@ -245,7 +254,7 @@ export const reactToComment = async (
   }
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: '댓글 반응 업데이트에 실패했습니다.' }));
     throw new Error(errorData.message || '댓글 반응 업데이트에 실패했습니다.');
   }
 

@@ -5,7 +5,7 @@ import CategoryNewsClientPage from '@/app/components/CategoryNewsClientPage';
 export default async function EconomyPage() {
   const categoryName = "경제";
   // Fetch data on the server
-  const articles = await getCategoryNews(categoryName, 50);
+  const articles = await getCategoryNews(categoryName);
 
   return <CategoryNewsClientPage articles={articles} categoryName={categoryName} />;
 }

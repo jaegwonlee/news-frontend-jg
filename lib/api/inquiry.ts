@@ -3,7 +3,7 @@ import { BACKEND_BASE_URL } from "../constants";
 import { mockInquiries, MockInquiry, MockInquiryReply } from "@/app/mocks/inquiry"; // Assuming you update Inquiry types to match mock
 import { Inquiry as InquiryType } from "@/types"; // Use an alias to avoid conflict if mockInquiry also defines Inquiry
 
-const USE_MOCKS = true; // Set to true to use mock data
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
 
 // Extend Inquiry interface to include reply types for clarity in mock
 export interface Inquiry extends InquiryType {
@@ -52,7 +52,7 @@ export const submitInquiry = async (
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: '문의 제출에 실패했습니다.' }));
     throw new Error(errorData.message || '문의 제출에 실패했습니다.');
   }
 
@@ -94,7 +94,7 @@ export const getInquiries = async (token: string): Promise<Inquiry[]> => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: '문의 내역을 불러오는데 실패했습니다.' }));
     throw new Error(errorData.message || '문의 내역을 불러오는데 실패했습니다.');
   }
 
@@ -132,7 +132,7 @@ export const getInquiryDetail = async (token: string, inquiryId: number): Promis
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: '문의 상세 정보를 불러오는데 실패했습니다.' }));
     throw new Error(errorData.message || '문의 상세 정보를 불러오는데 실패했습니다.');
   }
 

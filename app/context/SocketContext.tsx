@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { BACKEND_BASE_URL } from '@/lib/constants';
 import { useAuth } from './AuthContext';
 
 interface SocketContextType {
@@ -20,10 +21,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (token) {
-      const newSocket = io('https://news02.onrender.com', {
+      const newSocket = io(BACKEND_BASE_URL, {
         auth: {
           token: token,
         },
+        transports: ['websocket'], // Force websocket transport
         reconnectionAttempts: 5, // Add reconnection attempts
       });
 

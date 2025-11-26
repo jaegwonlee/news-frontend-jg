@@ -69,6 +69,18 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "via.placeholder.com", // 목업 데이터용 via.placeholder.com 이미지
       },
+      {
+        protocol: "https",
+        hostname: "www.yna.co.kr", // 연합뉴스 파비콘
+      },
+      {
+        protocol: "https",
+        hostname: "www.newsis.com", // 뉴시스 파비콘
+      },
+      {
+        protocol: "https",
+        hostname: "ohmynews.com", // 오마이뉴스 파비콘 (서브도메인 제외)
+      },
       // 다른 뉴스 매체의 이미지 도메인이 있다면 여기에 추가합니다.
       // 예: { protocol: 'https', hostname: 'img.example-news.com' }
     ],

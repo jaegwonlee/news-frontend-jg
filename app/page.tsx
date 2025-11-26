@@ -16,8 +16,9 @@ export default async function Home() {
   });
 
   const categories = ["정치", "경제", "사회", "문화", "스포츠"];
+  // Fetch ALL articles for each category
   const newsPromises = categories.map((category) =>
-    getCategoryNews(category, 10).catch((err) => {
+    getCategoryNews(category).catch((err) => { // No limit
       console.error(`메인 페이지 서버 렌더링 중 ${category} 뉴스 로드 실패:`, err);
       return [];
     })
@@ -25,11 +26,11 @@ export default async function Home() {
 
   const [
     topicDetail,
-    politicsNews,
-    economyNews,
-    socialNews,
-    cultureNews,
-    sportsNews,
+    rawPoliticsNews,
+    rawEconomyNews,
+    rawSocialNews,
+    rawCultureNews,
+    rawSportsNews,
     breakingNews,
     exclusiveNews,
     popularTopics,
@@ -59,6 +60,16 @@ export default async function Home() {
     Topic[],
     Topic[]
   ];
+
+  // Filter articles to include only those from the last 7 days
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const filterByDate = (articles: Article[]) => articles.filter(a => new Date(a.published_at) > sevenDaysAgo);
+
+  const politicsNews = filterByDate(rawPoliticsNews);
+  const economyNews = filterByDate(rawEconomyNews);
+  const socialNews = filterByDate(rawSocialNews);
+  const cultureNews = filterByDate(rawCultureNews);
+  const sportsNews = filterByDate(rawSportsNews);
 
   return (
     <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

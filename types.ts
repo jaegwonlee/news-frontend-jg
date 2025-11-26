@@ -1,4 +1,21 @@
 /**
+ * @file types.ts
+ * @description 전역적으로 사용되는 TypeScript 타입을 정의하는 파일입니다.
+ */
+
+/**
+ * 채팅 메시지 데이터 구조
+ */
+export interface Message {
+  id: number;
+  author: string;
+  message: string;
+  profile_image_url?: string;
+  created_at: string;
+  isHidden?: boolean;
+}
+
+/**
  * API에서 받아오는 기사(Article) 데이터 구조 정의
  */
 export interface Article {
@@ -9,7 +26,7 @@ export interface Article {
   url: string;
   published_at: string;
   thumbnail_url: string;
-  favicon_url: string;
+  favicon_url: string | null;
   description?: string; // Added for search results
   summary?: string;
   // 상세 페이지에서 추가되는 필드
@@ -200,4 +217,12 @@ export interface Inquiry {
 export interface InquiryReply {
   content: string;
   created_at: string;
+}
+
+export interface LinkMetadata {
+  url: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  favicon?: string;
 }

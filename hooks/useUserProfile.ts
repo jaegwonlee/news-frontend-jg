@@ -39,7 +39,7 @@ export const useUserProfile = () => {
         setCurrentProfileData(userProfile);
         setSelectedAvatar(userProfile.profile_image_url || undefined);
 
-        const avatarList = await getAvatars();
+        const avatarList = await getAvatars(token);
         console.log("Fetched avatar list:", avatarList);
         setAvatars(avatarList);
       } catch (err: any) {

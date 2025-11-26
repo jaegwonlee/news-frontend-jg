@@ -11,7 +11,7 @@ export interface ApiChatMessage {
   profile_image_url?: string; // Added as per POST response
 }
 
-const USE_MOCKS = true; // Set to true to use mock data
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
 
 /**
  * 가장 최근에 발행된 토픽 10개를 가져옵니다.
@@ -174,19 +174,21 @@ export async function getChatHistory(
     });
 
     if (!response.ok) {
-      console.error("Failed to fetch chat history");
-      return [];
+      // Handle non-OK responses consistently
+      const errorData = await response.json().catch(() => ({ message: response.statusText }));
+      console.error("Failed to fetch chat history:", errorData.message);
+      throw new Error(errorData.message || "Failed to fetch chat history");
     }
 
-    return response.json().then((rawMessages: any[]) => {
-      return rawMessages.map((rawMsg: any) => ({
+    const rawMessages: any[] = await response.json();
+    
+    return rawMessages.map((rawMsg: any) => ({
         id: rawMsg.id,
         message: rawMsg.content,
         created_at: rawMsg.created_at,
         author: rawMsg.nickname,
         profile_image_url: rawMsg.profile_image_url,
-      }));
-    });
+    }));
   } catch (error) {
     if ((error as Error).message === "Session expired") return [];
     console.error("Failed to fetch chat history", error);
@@ -225,7 +227,7 @@ export async function sendChatMessage(topicId: number, content: string, token: s
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(errorData.message || "메시지 전송에 실패했습니다.");
   }
 
@@ -250,7 +252,7 @@ export async function deleteChatMessage(messageId: number, token: string): Promi
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(errorData.message || "메시지 삭제에 실패했습니다.");
   }
   // No content expected for 200 OK on DELETE
@@ -288,7 +290,7 @@ export async function getPresignedUrlForChat(
   if (!response.ok) {
     let errorMessage = "Presigned URL 생성에 실패했습니다.";
     try {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({ message: response.statusText }));
       if (errorData && errorData.message) {
         errorMessage = errorData.message;
       }
@@ -329,7 +331,7 @@ export async function reportChatMessage(
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(errorData.message || "메시지 신고에 실패했습니다.");
   }
 

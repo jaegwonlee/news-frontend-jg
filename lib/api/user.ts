@@ -9,7 +9,7 @@ import { User, UserUpdate, Article, NotificationSetting } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
 import { mockUserProfile, mockLikedArticles, mockSavedArticles, mockAvatars, mockNotificationSettings, mockSavedArticleCategories } from "@/app/mocks/user";
 
-const USE_MOCKS = true; // Set to true to use mock data
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
 
 /**
  * @function getUserProfile
@@ -32,11 +32,12 @@ export async function getUserProfile(token: string): Promise<User> {
     next: { revalidate: 300 } 
   });
 
-  const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(data.message || '프로필 정보를 가져오는데 실패했습니다.');
+    const errorData = await response.json().catch(() => ({ message: '프로필 정보를 가져오는데 실패했습니다.' }));
+    throw new Error(errorData.message || '프로필 정보를 가져오는데 실패했습니다.');
   }
+
+  const data = await response.json();
 
   // 백엔드에서 받은 데이터를 프론트엔드 타입(User)에 맞게 매핑합니다.
   return {
@@ -142,21 +143,31 @@ export async function getLikedArticles(token: string, limit: number = 20, offset
  * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  * @cache 1시간(3600초) 주기로 ISR을 통해 캐시를 갱신합니다. 아바타 목록은 자주 바뀌지 않으므로 캐시 기간을 길게 설정합니다.
  */
-export async function getAvatars(): Promise<string[]> {
+export async function getAvatars(token: string): Promise<string[]> {
   if (USE_MOCKS) {
     console.log("Mock: Fetching avatars");
     return Promise.resolve(mockAvatars);
   }
-  const response = await fetchWrapper(`/api/avatars`, {
-    method: 'GET',
-    next: { revalidate: 3600 }
-  });
+  try {
+    const response = await fetchWrapper(`/api/avatars`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      next: { revalidate: 3600 }
+    });
 
-  if (!response.ok) {
-    throw new Error('아바타 목록을 가져오는데 실패했습니다.');
+    if (!response.ok) {
+      // Log the error instead of throwing, to prevent crashing the profile page
+      console.error('아바타 목록을 가져오는데 실패했습니다. Status:', response.status);
+      return []; // Return empty array on failure
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('An unexpected error occurred in getAvatars:', error);
+    return []; // Return empty array on unexpected errors too
   }
-
-  return response.json();
 }
 
 /**

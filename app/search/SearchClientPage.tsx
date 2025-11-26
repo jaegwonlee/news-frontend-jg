@@ -79,12 +79,12 @@ function SearchClientPageContent() {
   const renderLoading = () => (
     <div className="flex flex-col justify-center items-center h-full mt-12">
       <LoadingSpinner size="large" />
-      <p className="mt-4 text-zinc-400">검색 결과를 불러오는 중...</p>
+      <p className="mt-4 text-muted-foreground">검색 결과를 불러오는 중...</p>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-white px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground px-4 sm:px-6 lg:px-8">
       <AnimatePresence mode="wait">
         {!searchQuery ? (
           <motion.div
@@ -104,7 +104,7 @@ function SearchClientPageContent() {
             >
               무엇을 찾고 계신가요?
             </motion.h1>
-            <p className="text-zinc-400 mb-10 text-lg">뉴스 기사, 토론, 키워드를 검색해 보세요.</p>
+            <p className="text-muted-foreground mb-10 text-lg">뉴스 기사, 토론, 키워드를 검색해 보세요.</p>
             <SearchInput onSearch={handleSearch} />
             <RecentSearches onSearch={handleSearch} />
             <TrendingSearches topics={trendingTopics} onSearch={handleSearch} />
@@ -133,9 +133,9 @@ function SearchClientPageContent() {
                </div>
             ) : (
               <>
-                <h2 className="text-xl text-zinc-300 font-semibold mt-10 mb-6">
+                <h2 className="text-xl text-foreground font-semibold mt-10 mb-6">
                   <span className="font-bold text-red-500">'{searchQuery}'</span>
-                  <span className="text-zinc-400">에 대한 {searchResults.length}개의 검색 결과</span>
+                  <span className="text-muted-foreground">에 대한 {searchResults.length}개의 검색 결과</span>
                 </h2>
                 {searchResults.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -165,9 +165,9 @@ function SearchClientPageContent() {
 export default function SearchClientPage() {
     return (
         <Suspense fallback={
-          <div className="bg-zinc-900 min-h-screen flex flex-col justify-center items-center">
+          <div className="bg-background min-h-screen flex flex-col justify-center items-center">
             <LoadingSpinner size="large" />
-            <p className="mt-4 text-zinc-400">페이지 로딩 중...</p>
+            <p className="mt-4 text-muted-foreground">페이지 로딩 중...</p>
           </div>
         }>
             <SearchClientPageContent />

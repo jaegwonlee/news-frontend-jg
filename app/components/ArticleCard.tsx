@@ -4,6 +4,7 @@ import { Article } from "@/types";
 import { MessageSquare } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { getCategoryTheme } from "@/lib/categoryColors";
 import ArticleLikeButton from "./ArticleLikeButton";
 import ArticleSaveButton from "./ArticleSaveButton";
 import ClientOnlyTime from "./common/ClientOnlyTime";
@@ -27,11 +28,21 @@ export default function ArticleCard({
   onSaveToggle,
   onCommentIconClick,
   className = "",
-  hoverColor = "red",
+  hoverColor, // Default removed
   hideImage = false,
 }: ArticleCardProps) {
-  const borderColorClass = hoverColor === "red" ? "group-hover:border-red-500" : "group-hover:border-blue-500";
-  const textColorClass = hoverColor === "red" ? "group-hover:text-red-500" : "group-hover:text-blue-500";
+  // Determine hover colors dynamically
+  let borderColorClass = 'group-hover:border-primary';
+  let textColorClass = 'group-hover:text-primary';
+
+  if (hoverColor) {
+    borderColorClass = hoverColor === "red" ? "group-hover:border-red-500" : "group-hover:border-blue-500";
+    textColorClass = hoverColor === "red" ? "group-hover:text-red-500" : "group-hover:text-blue-500";
+  } else if (article.category) {
+    const theme = getCategoryTheme(article.category);
+    borderColorClass = theme.hoverBorder;
+    textColorClass = theme.hoverText;
+  }
 
   const handleCommentClick = (e: React.MouseEvent) => {
     e.preventDefault();

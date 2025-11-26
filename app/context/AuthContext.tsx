@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useCa
 import { User } from '@/types';
 import { addSessionExpiredListener } from '@/lib/api/fetchWrapper';
 
-const USE_MOCKS = true; // Set to true to use mock data in AuthContext
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data in AuthContext
 
 // Helper function to decode JWT
 const parseJwt = (token: string) => {
