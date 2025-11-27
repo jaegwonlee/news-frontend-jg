@@ -12,7 +12,7 @@ import Favicon from "./common/Favicon";
 
 interface ArticleCardProps {
   article: Article;
-  variant?: "hero" | "standard" | "horizontal" | "compact" | "overlay";
+  variant?: "hero" | "standard" | "horizontal" | "compact" | "overlay" | "chat"; // Added "chat"
   onLikeToggle?: (article: Article) => void;
   onSaveToggle?: (article: Article) => void;
   onCommentIconClick?: (article: Article) => void;
@@ -199,6 +199,33 @@ export default function ArticleCard({
             <div className="flex gap-3 text-white/70 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
               <ClientOnlyTime date={article.published_at} />
             </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  // --- Variant: Chat (Compact Image Left, Title Right) ---
+  if (variant === "chat") {
+    return (
+      <Link href={article.url} target="_blank" className={`group flex gap-3 w-full max-w-sm items-center p-2 bg-card-foreground/10 rounded-lg hover:bg-card-foreground/20 transition-colors ${className}`}>
+        <div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-md">
+          <Image
+            src={article.thumbnail_url || "/placeholder.png"}
+            alt={article.title}
+            fill
+            className="object-cover"
+            sizes="64px"
+            unoptimized
+          />
+        </div>
+        <div className="flex flex-col flex-grow min-w-0">
+          <h3 className={`font-semibold text-sm leading-tight line-clamp-2 transition-colors ${textColorClass}`}>
+            {article.title}
+          </h3>
+          <div className="flex items-center text-xs text-muted-foreground mt-1">
+            {article.favicon_url && <Favicon src={article.favicon_url} alt={`${article.source} favicon`} size={12} />}
+            <span className="font-medium ml-1">{article.source}</span>
           </div>
         </div>
       </Link>

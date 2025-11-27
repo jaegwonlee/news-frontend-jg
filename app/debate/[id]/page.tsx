@@ -2,15 +2,14 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import ArticleCard from "@/app/components/ArticleCard";
-import ChatRoom from "@/app/components/ChatRoom";
-import TopicViewCounter from "@/app/components/TopicViewCounter";
-import { getTopicDetail, toggleArticleLike, toggleArticleSave } from "@/lib/api";
-import { getComments } from "@/lib/api/comments";
-import { TopicDetail, Article, Comment, CommentReactionUpdate } from "@/types";
+import { getTopicDetail } from "@/lib/api";
+import { Topic, Article, TopicDetail } from "@/types";
 import { useAuth } from "@/app/context/AuthContext";
-import RelatedTopicsCarousel from "@/app/components/RelatedTopicsCarousel";
-import CommentSidePanel from "@/app/components/CommentSidePanel";
+import LoadingSpinner from "@/app/components/common/LoadingSpinner";
+import TopicCommentSection from "@/app/components/debate/comments/TopicCommentSection";
+import ArticleSidePanel from "@/app/components/debate/ArticleSidePanel";
+import { Users, Calendar } from "lucide-react";
+import { format } from "date-fns";
 
 export default function TopicDetailPage() {
   const params = useParams();
@@ -20,169 +19,33 @@ export default function TopicDetailPage() {
   const [topicDetail, setTopicDetail] = useState<TopicDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const [leftPanelArticle, setLeftPanelArticle] = useState<Article | null>(null);
-  const [rightPanelArticle, setRightPanelArticle] = useState<Article | null>(null);
 
-  const [commentsByArticle, setCommentsByArticle] = useState<Record<number, Comment[]>>({});
-  const [isCommentsLoading, setIsCommentsLoading] = useState(false);
-
-  useEffect(() => {
-    if (id && !isNaN(parseInt(id, 10))) {
-      const fetchData = async () => {
-        try {
-          setIsLoading(true);
-          const data = await getTopicDetail(id, token || undefined);
-          
-          if (data.articles && data.articles.length > 0) {
-            const commentCountPromises = data.articles.map(async (article) => {
-              try {
-                const { totalCount } = await getComments(article.id, token || undefined);
-                return { ...article, comment_count: totalCount };
-              } catch (commentError) {
-                console.error(`Failed to fetch comment count for article ${article.id}:`, commentError);
-                return { ...article, comment_count: 0 };
-              }
-            });
-            const articlesWithCommentCounts = await Promise.all(commentCountPromises);
-            setTopicDetail({ ...data, articles: articlesWithCommentCounts });
-          } else {
-            setTopicDetail(data);
-          }
-        } catch (err) {
-          setError("토픽 정보를 불러오는 데 실패했습니다.");
-          console.error(err);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchData();
+  const fetchTopicData = useCallback(async () => {
+    if (!id || isNaN(parseInt(id, 10))) {
+        setIsLoading(false);
+        setError("유효하지 않은 토픽 ID입니다.");
+        return;
+    };
+    setIsLoading(true);
+     try {
+        const data = await getTopicDetail(id, token || undefined);
+        setTopicDetail(data);
+    } catch (err) {
+        setError("토픽 정보를 불러오는 데 실패했습니다.");
+        console.error(err);
+    } finally {
+        setIsLoading(false);
     }
   }, [id, token]);
 
-  const handleLikeToggle = async (articleToToggle: Article) => {
-    if (!token) return;
-    try {
-      const response = await toggleArticleLike(token, articleToToggle.id, articleToToggle.isLiked || false);
-      setTopicDetail((prevDetail) => {
-        if (!prevDetail) return null;
-        return {
-          ...prevDetail,
-          articles: prevDetail.articles.map((article) =>
-            article.id === articleToToggle.id
-              ? { ...article, isLiked: response.data.isLiked, like_count: response.data.likes }
-              : article
-          ),
-        };
-      });
-    } catch (error) {
-      console.error("Failed to toggle like:", error);
-    }
-  };
 
-  const handleSaveToggle = async (articleToToggle: Article) => {
-    if (!token) return;
-    const newIsSaved = !articleToToggle.isSaved;
-    try {
-      await toggleArticleSave(token, articleToToggle.id, articleToToggle.isSaved || false);
-      setTopicDetail((prevDetail) => {
-        if (!prevDetail) return null;
-        return {
-          ...prevDetail,
-          articles: prevDetail.articles.map((article) =>
-            article.id === articleToToggle.id ? { ...article, isSaved: newIsSaved } : article
-          ),
-        };
-      });
-    } catch (error) {
-      console.error("Failed to toggle save:", error);
-    }
-  };
+  useEffect(() => {
+    fetchTopicData();
+  }, [fetchTopicData]);
 
-  const handleCommentIconClick = async (article: Article) => {
-    if (article.side === 'LEFT') {
-      setLeftPanelArticle(article);
-      setRightPanelArticle(null);
-    } else if (article.side === 'RIGHT') {
-      setRightPanelArticle(article);
-      setLeftPanelArticle(null);
-    }
-
-    if (commentsByArticle[article.id]) {
-      return;
-    }
-
-    setIsCommentsLoading(true);
-    try {
-      const { comments: fetchedComments } = await getComments(article.id, token || undefined);
-      setCommentsByArticle(prev => ({ ...prev, [article.id]: fetchedComments }));
-    } catch (err) {
-      console.error(`Failed to fetch comments for article ${article.id}:`, err);
-    } finally {
-      setIsCommentsLoading(false);
-    }
-  };
-
-  const handlePanelClose = (side: 'left' | 'right') => {
-    if (side === 'left') {
-      setLeftPanelArticle(null);
-    } else if (side === 'right') {
-      setRightPanelArticle(null);
-    }
-  };
-
-  const handleCommentCountUpdate = useCallback((articleId: number, newCount: number) => {
-    setTopicDetail(prevDetail => {
-      if (!prevDetail) return null;
-      return {
-        ...prevDetail,
-        articles: prevDetail.articles.map(article =>
-          article.id === articleId ? { ...article, comment_count: newCount } : article
-        )
-      };
-    });
-  }, []);
-
-  const refetchComments = useCallback(async (article: Article) => {
-    setIsCommentsLoading(true);
-    try {
-      const { comments: fetchedComments, totalCount } = await getComments(article.id, token || undefined);
-      setCommentsByArticle(prev => ({ ...prev, [article.id]: fetchedComments }));
-      handleCommentCountUpdate(article.id, totalCount);
-    } catch (err) {
-      console.error(`Failed to refetch comments for article ${article.id}:`, err);
-    } finally {
-      setIsCommentsLoading(false);
-    }
-  }, [token, handleCommentCountUpdate]);
-
-  const handleCommentReaction = (
-    commentId: number,
-    updatedReaction: CommentReactionUpdate
-  ) => {
-    const activeArticleId = leftPanelArticle?.id || rightPanelArticle?.id;
-    if (!activeArticleId) return;
-
-    const updateComments = (comments: Comment[]): Comment[] => {
-      return comments.map(comment => {
-        if (comment.id === commentId) {
-          return { ...comment, ...updatedReaction };
-        }
-        if (comment.children) {
-          return { ...comment, children: updateComments(comment.children) };
-        }
-        return comment;
-      });
-    };
-
-    setCommentsByArticle(prev => {
-      const newCommentsForArticle = updateComments(prev[activeArticleId] || []);
-      return { ...prev, [activeArticleId]: newCommentsForArticle };
-    });
-  };
 
   if (isLoading) {
-    return <div className="text-center text-white p-10">로딩 중...</div>;
+    return <div className="flex items-center justify-center h-screen"><LoadingSpinner size="large" /></div>;
   }
 
   if (error) {
@@ -190,81 +53,40 @@ export default function TopicDetailPage() {
   }
 
   if (!topicDetail) {
-    return <div className="text-center text-white p-10">토픽 정보를 찾을 수 없습니다.</div>;
+    return <div className="text-center p-10">토픽 정보를 찾을 수 없습니다.</div>;
   }
 
   const { topic, articles } = topicDetail;
-  const leftArticles = articles.filter((article) => article.side === "LEFT");
-  const rightArticles = articles.filter((article) => article.side === "RIGHT");
-
-  const leftComments = leftPanelArticle ? commentsByArticle[leftPanelArticle.id] || [] : [];
-  const rightComments = rightPanelArticle ? commentsByArticle[rightPanelArticle.id] || [] : [];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0">
-      {id && <TopicViewCounter topicId={id} />}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-4">
-        <aside className="lg:col-span-3 relative h-[600px] lg:h-[729px] overflow-hidden">
-          <div className="space-y-6 h-full overflow-y-auto pr-2 pt-4 w-full">
-            {leftArticles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                article={article}
-                variant="horizontal"
-                onLikeToggle={() => handleLikeToggle(article)}
-                onSaveToggle={() => handleSaveToggle(article)}
-                onCommentIconClick={handleCommentIconClick}
-                hoverColor="blue"
-              />
-            ))}
-          </div>
-          <CommentSidePanel
-            isOpen={!!leftPanelArticle}
-            onClose={() => handlePanelClose('left')}
-            article={leftPanelArticle}
-            comments={leftComments}
-            isCommentsLoading={isCommentsLoading}
-            onCommentCountUpdate={handleCommentCountUpdate}
-            refetchComments={refetchComments}
-            onCommentReaction={handleCommentReaction}
-            side="left"
-          />
-        </aside>
-        <main className="lg:col-span-6">
-          <div className="border border-zinc-700 rounded-lg h-[600px] lg:h-[729px] flex flex-col">
-            <div className="flex-1 min-h-0">
-              <ChatRoom topic={topic} articles={articles} />
-            </div>
-          </div>
-        </main>
-        <aside className="lg:col-span-3 relative h-[600px] lg:h-[729px] overflow-hidden">
-          <div className="space-y-6 h-full overflow-y-auto pr-2 pt-4 w-full">
-            {rightArticles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                article={article}
-                variant="horizontal"
-                onLikeToggle={() => handleLikeToggle(article)}
-                onSaveToggle={() => handleSaveToggle(article)}
-                onCommentIconClick={handleCommentIconClick}
-                hoverColor="red"
-              />
-            ))}
-          </div>
-          <CommentSidePanel
-            isOpen={!!rightPanelArticle}
-            onClose={() => handlePanelClose('right')}
-            article={rightPanelArticle}
-            comments={rightComments}
-            isCommentsLoading={isCommentsLoading}
-            onCommentCountUpdate={handleCommentCountUpdate}
-            refetchComments={refetchComments}
-            onCommentReaction={handleCommentReaction}
-            side="right"
-          />
-        </aside>
-      </div>
-      {id && <RelatedTopicsCarousel currentTopicId={id} />}
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+            
+            {/* Main Content: Topic Header + Comments */}
+            <main className="lg:col-span-2">
+                <header className="mb-8">
+                    <h1 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight mb-4">{topic.display_name}</h1>
+                    <p className="text-base text-muted-foreground">{topic.summary}</p>
+                    <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground border-t border-b border-border py-3">
+                        <div className="flex items-center gap-2">
+                            <Users size={16} />
+                            <span>조회수 {topic.view_count.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Calendar size={16} />
+                            <span>게시일: {format(new Date(topic.published_at), 'yyyy년 MM월 dd일')}</span>
+                        </div>
+                    </div>
+                </header>
+                
+                <TopicCommentSection topicId={id as string} />
+
+            </main>
+
+            {/* Side Panel: Articles with Tabs */}
+            <ArticleSidePanel articles={articles} />
+
+       </div>
     </div>
   );
 }

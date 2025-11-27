@@ -3,6 +3,7 @@
 import ReportModal from "@/app/components/common/ReportModal";
 import { useAuth } from "@/app/context/AuthContext";
 import { useSocket } from "@/app/context/SocketContext";
+import { useChatSearch } from "@/hooks/useChatSearch";
 import {
   ApiChatMessage,
   deleteChatMessage,
@@ -10,8 +11,8 @@ import {
   getPresignedUrlForChat,
   sendChatMessage,
 } from "@/lib/api/topics";
-import { BACKEND_BASE_URL } from "@/lib/constants";
-import { Article, Topic, Message } from "@/types";
+import { getFullImageUrl } from "@/lib/utils";
+import { Message, Topic } from "@/types";
 import { format } from "date-fns";
 import {
   AlertTriangle,
@@ -36,7 +37,6 @@ import { createPortal } from "react-dom";
 import MessageRenderer from "./MessageRenderer";
 import ConfirmationPopover from "./common/ConfirmationPopover";
 import ToastNotification, { ToastType } from "./common/ToastNotification";
-import { useChatSearch } from "@/hooks/useChatSearch";
 
 type ToastState = {
   message: string;
@@ -45,12 +45,6 @@ type ToastState = {
   left: number;
   alignment: "left" | "right";
 } | null;
-
-const getFullImageUrl = (url?: string): string => {
-  if (!url) return "/user-placeholder.svg";
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  return `${BACKEND_BASE_URL}${url}`;
-};
 
 const formatTimestamp = (dateString: string) => {
   try {
@@ -62,10 +56,9 @@ const formatTimestamp = (dateString: string) => {
 
 interface ChatRoomProps {
   topic?: Topic;
-  articles?: Article[];
 }
 
-export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
+export default function ChatRoom({ topic }: ChatRoomProps) {
   const { socket, isConnected, error: socketError } = useSocket();
   const { user, token } = useAuth();
   const { theme } = useTheme();
@@ -98,7 +91,7 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     handleNavigateResult,
     closeSearch,
   } = useChatSearch(messages, messageRefs);
-  
+
   // --- Effects ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -128,6 +121,7 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
             message: msg.message,
             profile_image_url: getFullImageUrl(msg.profile_image_url),
             created_at: msg.created_at,
+            article_preview: msg.article_preview, // Added
           }));
           setMessages(formattedHistory);
           setTimeout(() => scrollToBottom("auto"), 100);
@@ -145,13 +139,17 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     if (socket && room) {
       socket.emit("join_room", room);
       const messageListener = (data: ApiChatMessage) => {
-        setMessages((prev) => [...prev, {
+        setMessages((prev) => [
+          ...prev,
+          {
             id: data.id,
             author: data.author,
             message: data.message,
             profile_image_url: getFullImageUrl(data.profile_image_url),
             created_at: data.created_at,
-        }]);
+            article_preview: data.article_preview, // Added
+          },
+        ]);
       };
       const deleteListener = (data: { messageId: number }) => {
         setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
@@ -216,7 +214,7 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
       }
     }
   };
-  
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !token || !topic?.id) return;
@@ -237,14 +235,13 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
-      setNewMessage(prev => prev + text);
+      setNewMessage((prev) => prev + text);
     } catch (err) {
       console.error("클립보드 읽기 실패:", err);
       // 사용자에게 클립보드 접근 권한이 거부되었거나 API를 지원하지 않는 경우를 대비한 알림
       alert("클립보드 내용을 붙여넣을 수 없습니다. 브라우저 설정을 확인해주세요.");
     }
   };
-
 
   const openConfirmation = (messageId: number) => {
     setDialog({ type: "delete", messageId });
@@ -270,20 +267,20 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     setReportTargetMessageId(messageId);
     setIsReportModalOpen(true);
   };
-  
+
   const scrollToBottom = (behavior: "smooth" | "auto" = "smooth") => {
     messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
   };
-  
+
   const showToast = (messageId: number, message: string, type: ToastType) => {
     const messageEl = messageRefs.current.get(messageId);
     if (!messageEl || !chatContainerRef.current) return;
-    
+
     const messageRect = messageEl.getBoundingClientRect();
     const containerRect = chatContainerRef.current.getBoundingClientRect();
     const msg = messages.find((m) => m.id === messageId);
     const isMyMessage = user ? msg?.author === (user.nickname || user.name) : false;
-    
+
     let top = messageRect.top - 8;
     let left;
     let alignment: "left" | "right";
@@ -299,10 +296,12 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     const estimatedToastWidth = 320;
     const toastMargin = 16;
     if (alignment === "left") {
-      if (left + estimatedToastWidth > containerRect.right - toastMargin) left = containerRect.right - estimatedToastWidth - toastMargin;
+      if (left + estimatedToastWidth > containerRect.right - toastMargin)
+        left = containerRect.right - estimatedToastWidth - toastMargin;
       if (left < containerRect.left + toastMargin) left = containerRect.left + toastMargin;
     } else {
-      if (left - estimatedToastWidth < containerRect.left + toastMargin) left = containerRect.left + estimatedToastWidth + toastMargin;
+      if (left - estimatedToastWidth < containerRect.left + toastMargin)
+        left = containerRect.left + estimatedToastWidth + toastMargin;
       if (left > containerRect.right - toastMargin) left = containerRect.right - toastMargin;
     }
     if (top < containerRect.top + toastMargin) top = containerRect.top + toastMargin;
@@ -312,7 +311,13 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
   };
 
   const handleReportSuccess = (message: string, type: ToastType, reportedId: number) => {
-    setToast({ message, type, top: 50, left: (chatContainerRef.current?.getBoundingClientRect()?.right ?? window.innerWidth) - 350, alignment: "right" });
+    setToast({
+      message,
+      type,
+      top: 50,
+      left: (chatContainerRef.current?.getBoundingClientRect()?.right ?? window.innerWidth) - 350,
+      alignment: "right",
+    });
     if (type === "success" || message.includes("이미 신고")) {
       setReportedMessageIds((prev) => new Set(prev).add(reportedId));
     }
@@ -327,124 +332,353 @@ export default function ChatRoom({ topic, articles = [] }: ChatRoomProps) {
     return "메시지를 입력하세요...";
   };
 
-  const isDarkMode = theme === 'dark';
+  const isDarkMode = theme === "dark";
   const containerClasses = isDarkMode
-    ? "relative flex flex-col h-full rounded-2xl overflow-hidden border border-white/10 bg-card/60 backdrop-blur-xl shadow-2xl"
-    : "relative flex flex-col h-full rounded-2xl overflow-hidden border border-border bg-card shadow-lg";
+    ? "relative flex flex-col h-full rounded-2xl overflow-hidden border border-white/10 bg-[#2b303b] backdrop-blur-xl shadow-2xl"
+    : "relative flex flex-col h-full rounded-2xl overflow-hidden border border-border bg-[#9bbbd4] shadow-lg";
 
   // --- Render ---
   return (
     <div ref={chatContainerRef} className={containerClasses}>
-        <div className={`absolute left-0 right-0 z-[-1] overflow-hidden`} style={{ top: '64px', bottom: '80px', backgroundImage: `url('/360_F_948079407_7qSn6DZAT9njgxFGhumiviPQyur2ThqV.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: isDarkMode ? '0.25' : '1', transition: 'all 300ms' }}></div>
-        {/* Header */}
-        <div className={`flex justify-between items-center p-3 h-16 shrink-0 ${isDarkMode ? 'border-b border-white/10' : 'border-b border-border bg-white'}`}>
-            <div className="flex items-center gap-3">
-                <h2 className="text-lg font-bold text-foreground truncate">{topic?.id === 1 ? "Round 1" : topic ? topic.display_name : "실시간 채팅"}</h2>
-                <div className="flex items-center text-sm text-muted-foreground"><Users className="w-4 h-4 mr-1" /><span>{topic ? "12" : "..."}</span></div>
-            </div>
+      <div
+        className={`absolute left-0 right-0 z-[-1] overflow-hidden`}
+        style={{
+          top: "64px",
+          bottom: "80px",
+          backgroundImage: `url('/360_F_948079407_7qSn6DZAT9njgxFGhumiviPQyur2ThqV.jpg')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: isDarkMode ? "0" : "0.4",
+          transition: "all 300ms",
+        }}
+      ></div>
+      {/* Header */}
+      <div
+        className={`flex justify-between items-center p-3 h-16 shrink-0 ${
+          isDarkMode ? "border-b border-white/10 bg-black" : "border-b border-border bg-white"
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-bold text-foreground truncate">
+            {topic?.id === 1 ? "Round 1" : topic ? topic.display_name : "실시간 채팅"}
+          </h2>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Users className="w-4 h-4 mr-1" />
+            <span>{topic ? "12" : "..."}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsSearchVisible(true)}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+          <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors">
+            <MoreVertical className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      {isSearchVisible && (
+        <div className="absolute top-0 left-0 right-0 bg-card/80 backdrop-blur-sm z-20 h-16 flex items-center px-3 border-b border-border animate-fade-in-down">
+          <div className="flex items-center flex-1">
+            <Search className="w-5 h-5 text-muted-foreground shrink-0" />
+            <input
+              type="text"
+              placeholder="채팅 내용 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleNavigateResult("next");
+                }
+              }}
+              autoFocus
+              className="flex-1 bg-transparent px-3 text-foreground placeholder-muted-foreground focus:outline-none"
+            />
+          </div>
+          {searchQuery && (
             <div className="flex items-center gap-2">
-                <button onClick={() => setIsSearchVisible(true)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors"><Search className="w-5 h-5" /></button>
-                <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors"><MoreVertical className="w-5 h-5" /></button>
+              <span className="text-sm text-muted-foreground w-20 text-center">
+                {searchResults.length > 0 ? `${currentResultIndex + 1} / ${searchResults.length}` : "0 / 0"}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavigateResult("prev");
+                }}
+                disabled={searchResults.length === 0}
+                className="p-2 text-muted-foreground hover:text-foreground disabled:text-muted-foreground/50 disabled:cursor-not-allowed"
+              >
+                <ChevronUp className="w-5 h-5" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavigateResult("next");
+                }}
+                disabled={searchResults.length === 0}
+                className="p-2 text-muted-foreground hover:text-foreground disabled:text-muted-foreground/50 disabled:cursor-not-allowed"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </button>
             </div>
+          )}
+          <button
+            onClick={closeSearch}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors ml-2"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
+      )}
 
-        {/* Search Bar */}
-        {isSearchVisible && (
-            <div className="absolute top-0 left-0 right-0 bg-card/80 backdrop-blur-sm z-20 h-16 flex items-center px-3 border-b border-border animate-fade-in-down">
-                <div className="flex items-center flex-1">
-                    <Search className="w-5 h-5 text-muted-foreground shrink-0" />
-                    <input type="text" placeholder="채팅 내용 검색..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleNavigateResult("next"); } }} autoFocus className="flex-1 bg-transparent px-3 text-foreground placeholder-muted-foreground focus:outline-none" />
-                </div>
-                {searchQuery && (
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground w-20 text-center">{searchResults.length > 0 ? `${currentResultIndex + 1} / ${searchResults.length}` : "0 / 0"}</span>
-                        <button onClick={(e) => { e.preventDefault(); handleNavigateResult("prev"); }} disabled={searchResults.length === 0} className="p-2 text-muted-foreground hover:text-foreground disabled:text-muted-foreground/50 disabled:cursor-not-allowed"><ChevronUp className="w-5 h-5" /></button>
-                        <button onClick={(e) => { e.preventDefault(); handleNavigateResult("next"); }} disabled={searchResults.length === 0} className="p-2 text-muted-foreground hover:text-foreground disabled:text-muted-foreground/50 disabled:cursor-not-allowed"><ChevronDown className="w-5 h-5" /></button>
-                    </div>
-                )}
-                <button onClick={closeSearch} className="p-2 text-muted-foreground hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors ml-2"><X className="w-5 h-5" /></button>
+      {/* Popovers and Modals */}
+      {dialog && (
+        <ConfirmationPopover
+          title={"메시지 삭제"}
+          message={"이 메시지를 삭제하시겠습니까?"}
+          confirmText={"삭제"}
+          cancelText={"취소"}
+          onConfirm={confirmAction}
+          onCancel={cancelAction}
+        />
+      )}
+      {toast &&
+        createPortal(
+          <ToastNotification
+            id="portal-toast"
+            message={toast.message}
+            type={toast.type}
+            onDismiss={() => setToast(null)}
+            duration={3500}
+          />,
+          document.body
+        )}
+      {isReportModalOpen && reportTargetMessageId && (
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => {
+            setIsReportModalOpen(false);
+            setReportTargetMessageId(null);
+          }}
+          reportType="chat"
+          targetId={reportTargetMessageId}
+          onReportSuccess={handleReportSuccess}
+        />
+      )}
+      {zoomedImageUrl &&
+        createPortal(
+          <div
+            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 sm:p-8 z-[9999] animate-fade-in-fast"
+            onClick={() => setZoomedImageUrl(null)}
+          >
+            <button
+              className="absolute top-4 right-4 text-white opacity-80 hover:opacity-100 transition-opacity z-[10001]"
+              title="Close (Esc)"
+              onClick={() => setZoomedImageUrl(null)}
+            >
+              <X size={32} />
+            </button>
+            <div className="relative max-w-full max-h-full" onClick={(e) => e.stopPropagation()}>
+              <img
+                src={zoomedImageUrl}
+                alt="Zoomed content"
+                className="block max-w-full max-h-full object-contain animate-zoom-in opacity-100"
+              />
             </div>
+          </div>,
+          document.body
         )}
 
-        {/* Popovers and Modals */}
-        {dialog && <ConfirmationPopover title={"메시지 삭제"} message={"이 메시지를 삭제하시겠습니까?"} confirmText={"삭제"} cancelText={"취소"} onConfirm={confirmAction} onCancel={cancelAction} />}
-        {toast && createPortal(<ToastNotification id="portal-toast" message={toast.message} type={toast.type} onDismiss={() => setToast(null)} duration={3500} />, document.body)}
-        {isReportModalOpen && reportTargetMessageId && <ReportModal isOpen={isReportModalOpen} onClose={() => { setIsReportModalOpen(false); setReportTargetMessageId(null); }} reportType="chat" targetId={reportTargetMessageId} onReportSuccess={handleReportSuccess} />}
-        {zoomedImageUrl && createPortal(
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 sm:p-8 z-[9999] animate-fade-in-fast" onClick={() => setZoomedImageUrl(null)}>
-                <button className="absolute top-4 right-4 text-white opacity-80 hover:opacity-100 transition-opacity z-[10001]" title="Close (Esc)" onClick={() => setZoomedImageUrl(null)}>
-                    <X size={32} />
-                </button>
-                <div className="relative max-w-full max-h-full" onClick={(e) => e.stopPropagation()}>
-                    <img src={zoomedImageUrl} alt="Zoomed content" className="block max-w-full max-h-full object-contain animate-zoom-in opacity-100" />
-                </div>
-            </div>,
-            document.body
-        )}
-        
-        {/* Message List */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4">
-            {isLoadingHistory ? (
-                <div className="flex justify-center items-center h-full text-muted-foreground"><Loader2 className="w-8 h-8 animate-spin" /><p className="ml-3 text-lg">이전 대화 기록을 불러오는 중...</p></div>
+      {/* Message List */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4">
+        {isLoadingHistory ? (
+          <div className="flex justify-center items-center h-full text-muted-foreground">
+            <Loader2 className="w-8 h-8 animate-spin" />
+            <p className="ml-3 text-lg">이전 대화 기록을 불러오는 중...</p>
+          </div>
+        ) : (
+          <>
+            {messages.length === 0 ? (
+              <div className="flex flex-col justify-center items-center h-full text-muted-foreground">
+                <MessageSquareText size={48} />
+                <p className="mt-4 text-lg font-semibold">지금 첫 번째 메시지를 보내</p>
+                <p>토론을 시작해 보세요!</p>
+              </div>
             ) : (
-                <>
-                    {messages.length === 0 ? (
-                        <div className="flex flex-col justify-center items-center h-full text-muted-foreground"><MessageSquareText size={48} /><p className="mt-4 text-lg font-semibold">지금 첫 번째 메시지를 보내</p><p>토론을 시작해 보세요!</p></div>
+              messages.map((msg) => {
+                const isMyMessage = user ? msg.author === (user.nickname || user.name) : false;
+                const activeResult =
+                  currentResultIndex >= 0 && searchResults[currentResultIndex]?.messageId === msg.id
+                    ? searchResults[currentResultIndex]
+                    : null;
+                const isMessageReported = reportedMessageIds.has(msg.id);
+
+                return (
+                  <div
+                    key={msg.id}
+                    ref={(el) => {
+                      if (el) messageRefs.current.set(msg.id, el);
+                      else messageRefs.current.delete(msg.id);
+                    }}
+                    data-message-id={msg.id}
+                  >
+                    {isMyMessage ? (
+                      <div className="group flex justify-end animate-fade-in-up">
+                        <div className="flex items-end gap-1">
+                          {msg.message !== "메시지가 삭제되었습니다." && (
+                            <div className="flex items-center self-end shrink-0">
+                              <button
+                                onClick={() => openConfirmation(msg.id)}
+                                className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100"
+                                title="메시지 삭제"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            {formatTimestamp(msg.created_at)}
+                          </span>
+                          <div className="text-sm">
+                            {msg.isHidden ? (
+                              <span className="italic text-primary-foreground/70">가려진 메시지입니다.</span>
+                            ) : (
+                              <MessageRenderer
+                                msg={msg}
+                                onZoom={setZoomedImageUrl}
+                                onDownload={handleDownload}
+                                isDownloadingUrl={isDownloading}
+                                searchResult={activeResult}
+                                searchQuery={searchQuery}
+                                isMyMessage={true}
+                                isDarkMode={isDarkMode}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     ) : (
-                        messages.map((msg) => {
-                            const isMyMessage = user ? msg.author === (user.nickname || user.name) : false;
-                            const activeResult = currentResultIndex >= 0 && searchResults[currentResultIndex]?.messageId === msg.id ? searchResults[currentResultIndex] : null;
-                            const isMessageReported = reportedMessageIds.has(msg.id);
-                            
-                            return (
-                                <div key={msg.id} ref={(el) => { if (el) messageRefs.current.set(msg.id, el); else messageRefs.current.delete(msg.id); }} data-message-id={msg.id}>
-                                    {isMyMessage ? (
-                                        <div className="group flex justify-end animate-fade-in-up">
-                                            <div className="flex items-end gap-1">
-                                                {msg.message !== "메시지가 삭제되었습니다." && <div className="flex items-center self-end shrink-0"><button onClick={() => openConfirmation(msg.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100" title="메시지 삭제"><Trash2 className="w-4 h-4" /></button></div>}
-                                                <span className="text-[10px] text-muted-foreground whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
-                                                <div className="text-sm">
-                                                    {msg.isHidden ? <span className="italic text-primary-foreground/70">가려진 메시지입니다.</span> : <MessageRenderer msg={msg} articles={articles} onZoom={setZoomedImageUrl} onDownload={handleDownload} isDownloadingUrl={isDownloading} searchResult={activeResult} searchQuery={searchQuery} isMyMessage={true} isDarkMode={isDarkMode} />}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="group flex gap-2.5 animate-fade-in-up">
-                                            <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border-2 border-white bg-white mt-1"><Image src={msg.profile_image_url!} alt={`${msg.author}'s profile`} fill className="rounded-full object-cover" unoptimized /></div>
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-sm text-muted-foreground font-medium">{msg.author}</span>
-                                                <div className="flex items-end gap-1">
-                                                    <div className="text-sm">
-                                                        {msg.isHidden ? <span className="italic text-muted-foreground">가려진 메시지입니다.</span> : <MessageRenderer msg={msg} articles={articles} onZoom={setZoomedImageUrl} onDownload={handleDownload} isDownloadingUrl={isDownloading} searchResult={activeResult} searchQuery={searchQuery} isMyMessage={false} isDarkMode={isDarkMode} />}
-                                                    </div>
-                                                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">{formatTimestamp(msg.created_at)}</span>
-                                                    {msg.message !== "메시지가 삭제되었습니다." && <div className="flex items-center self-end shrink-0"><button onClick={() => openReportModal(msg.id)} className="text-muted-foreground hover:text-yellow-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed" title="메시지 신고" disabled={isMessageReported}><Flag className="w-4 h-4" /></button></div>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })
+                      <div className="group flex gap-2.5 animate-fade-in-up">
+                        <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border-2 border-white bg-white mt-1">
+                          <Image
+                            src={msg.profile_image_url!}
+                            alt={`${msg.author}'s profile`}
+                            fill
+                            className="rounded-full object-cover"
+                            unoptimized
+                          />
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm text-muted-foreground font-medium">{msg.author}</span>
+                          <div className="flex items-end gap-1">
+                            <div className="text-sm">
+                              {msg.isHidden ? (
+                                <span className="italic text-muted-foreground">가려진 메시지입니다.</span>
+                              ) : (
+                                <MessageRenderer
+                                  msg={msg}
+                                  onZoom={setZoomedImageUrl}
+                                  onDownload={handleDownload}
+                                  isDownloadingUrl={isDownloading}
+                                  searchResult={activeResult}
+                                  searchQuery={searchQuery}
+                                  isMyMessage={false}
+                                  isDarkMode={isDarkMode}
+                                />
+                              )}
+                            </div>
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                              {formatTimestamp(msg.created_at)}
+                            </span>
+                            {msg.message !== "메시지가 삭제되었습니다." && (
+                              <div className="flex items-center self-end shrink-0">
+                                <button
+                                  onClick={() => openReportModal(msg.id)}
+                                  className="text-muted-foreground hover:text-yellow-500 transition-colors p-1 rounded-full opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title="메시지 신고"
+                                  disabled={isMessageReported}
+                                >
+                                  <Flag className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     )}
-                    <div ref={messagesEndRef} />
-                </>
+                  </div>
+                );
+              })
             )}
-        </div>
-        
-        {/* Footer Input */}
-        <div className={`shrink-0 px-4 py-4 ${isDarkMode ? 'border-t border-white/10' : 'border-t border-border bg-white'}`}>
-            {socketError && <div className="flex items-center text-destructive text-xs mb-2"><AlertTriangle className="w-4 h-4 mr-1" />{socketError}</div>}
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                <input type="file" ref={fileInputRef} onChange={handleFileSelect} style={{ display: "none" }} accept="image/*,video/*" />
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 h-10 w-10 flex justify-center items-center bg-secondary hover:bg-accent rounded-md text-muted-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={!isConnected || !user || !!socketError || isSending || isUploading || !topic} title="Attach file">{isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}</button>
-                <button type="button" onClick={handlePaste} className="p-2 h-10 w-10 flex justify-center items-center bg-secondary hover:bg-accent rounded-md text-muted-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={!isConnected || !user || !!socketError || isSending || isUploading} title="붙여넣기">
-                  <Clipboard className="w-5 h-5" />
-                </button>
-                <input type="text" placeholder={getPlaceholderText()} disabled={!isConnected || !user || !!socketError || isSending || isUploading || !topic} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="flex-1 p-2 bg-input border border-border rounded-md text-sm text-foreground placeholder-muted-foreground disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" />
-                <button type="submit" disabled={!isConnected || !user || !!socketError || !newMessage.trim() || isSending || isUploading || !topic} className={`p-2 h-10 w-10 flex justify-center items-center bg-primary rounded-md text-primary-foreground transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary ${!(!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic) ? "scale-110" : ""}`}>{isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}</button>
-            </form>
-        </div>
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </div>
+
+      {/* Footer Input */}
+      <div
+        className={`shrink-0 px-4 py-4 ${
+          isDarkMode ? "border-t border-white/10 bg-black" : "border-t border-border bg-white"
+        }`}
+      >
+        {socketError && (
+          <div className="flex items-center text-destructive text-xs mb-2">
+            <AlertTriangle className="w-4 h-4 mr-1" />
+            {socketError}
+          </div>
+        )}
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            style={{ display: "none" }}
+            accept="image/*,video/*"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 h-10 w-10 flex justify-center items-center bg-secondary hover:bg-accent rounded-md text-muted-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!isConnected || !user || !!socketError || isSending || isUploading || !topic}
+            title="Attach file"
+          >
+            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={handlePaste}
+            className="p-2 h-10 w-10 flex justify-center items-center bg-secondary hover:bg-accent rounded-md text-muted-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!isConnected || !user || !!socketError || isSending || isUploading}
+            title="붙여넣기"
+          >
+            <Clipboard className="w-5 h-5" />
+          </button>
+          <input
+            type="text"
+            placeholder={getPlaceholderText()}
+            disabled={!isConnected || !user || !!socketError || isSending || isUploading || !topic}
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            className="flex-1 p-2 bg-input border border-border rounded-md text-sm text-foreground placeholder-muted-foreground disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+          />
+          <button
+            type="submit"
+            disabled={
+              !isConnected || !user || !!socketError || !newMessage.trim() || isSending || isUploading || !topic
+            }
+            className={`p-2 h-10 w-10 flex justify-center items-center bg-primary rounded-md text-primary-foreground transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary ${
+              !(!isConnected || !user || !!socketError || !newMessage.trim() || isSending || !topic) ? "scale-110" : ""
+            }`}
+          >
+            {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

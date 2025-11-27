@@ -1,43 +1,46 @@
 "use client";
 
+import { SearchResult } from "@/hooks/useChatSearch";
+import { MEDIA_EXTENSIONS, S3_URL_PREFIX } from "@/lib/constants";
+import { Message } from "@/types";
 import React from "react";
-import { Article, Message } from "@/types";
+import ArticleCard from "./ArticleCard";
 import MediaRenderer from "./common/MediaRenderer";
-import UrlRenderer from "./common/UrlRenderer";
-import ChatArticleCard from "./ChatArticleCard";
-import { S3_URL_PREFIX, MEDIA_EXTENSIONS } from "@/lib/constants";
 
 interface MessageRendererProps {
   msg: Message;
-  articles: Article[];
   onZoom: (url: string) => void;
   onDownload: (url: string, filename: string) => Promise<void>;
   isDownloadingUrl: string | null;
-  searchResult: { messageId: number; matchIndex: number; } | null;
+  searchResult: SearchResult | null;
   searchQuery: string;
-  isMyMessage: boolean;
-  isDarkMode: boolean;
+  isMyMessage: boolean; // Added
+  isDarkMode: boolean; // Added
 }
 
-const URL_REGEX = /(https?:\[^\]+)/g;
+function highlightText(text: string, query: string, searchResult: SearchResult | null) {
+  if (!query || text.trim() === "") return text;
 
-function highlightText(text: string, query: string) {
-  if (!query || text.trim() === '') return text;
-
-  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$& ");
+  const escapedQuery = query.replace(/[.*+?^${}()|[\\]/g, "\\$& ");
   const regex = new RegExp(escapedQuery, "gi");
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
-  
+  let matchCount = 0; // To keep track of the current match index
+
   text.replace(regex, (match, index) => {
     if (index > lastIndex) {
       parts.push(text.substring(lastIndex, index));
     }
-    parts.push(
-      <mark key={`mark-${index}`} className="bg-yellow-400 text-black rounded px-0.5">
-        {match}
-      </mark>
-    );
+    if (searchResult && matchCount === searchResult.matchIndex) {
+      parts.push(
+        <mark key={`mark-${index}`} className="bg-yellow-400 text-black rounded px-0.5">
+          {match}
+        </mark>
+      );
+    } else {
+      parts.push(match); // Render non-highlighted match if not the target
+    }
+    matchCount++;
     lastIndex = index + match.length;
     return match;
   });
@@ -49,105 +52,83 @@ function highlightText(text: string, query: string) {
   return <>{parts}</>;
 }
 
-
 export default function MessageRenderer({
-  msg, 
-  articles, 
-  onZoom, 
-  onDownload, 
-  isDownloadingUrl, 
-  searchResult, // Note: searchResult is not used in highlightText, simplifying for now
+  msg,
+  onZoom,
+  onDownload,
+  isDownloadingUrl,
+  searchResult,
   searchQuery,
   isMyMessage,
-  isDarkMode
+  isDarkMode,
 }: MessageRendererProps) {
+  // 1. If backend provides an article preview, render it immediately.
+  if (msg.article_preview) {
+    // We can wrap it or style it to fit better in the chat context
+    return (
+      <div className="mt-2">
+        <ArticleCard article={msg.article_preview} variant="chat" />
+      </div>
+    );
+  }
+
   const trimmedMessage = msg.message.trim();
 
-  // --- 1. Determine Content Type ---
-  let isMediaOnly = false;
-  let content: React.ReactNode;
-
+  // 2. Check for media-only messages (uploaded files or direct media links)
   const isBareMediaFilename =
     !trimmedMessage.startsWith("http") &&
     !trimmedMessage.includes("/") &&
-    MEDIA_EXTENSIONS.some(ext => trimmedMessage.toLowerCase().endsWith(ext));
+    MEDIA_EXTENSIONS.some((ext) => trimmedMessage.toLowerCase().endsWith(ext));
 
-  let isSingleUrl = !trimmedMessage.includes(" ");
-  let isSingleMediaUrl = false;
-  let isSingleArticleUrl = false;
-  let article: Article | undefined;
-
-  if (isSingleUrl) {
-    try {
-      const url = new URL(trimmedMessage); // This will throw if not a full URL
-      if (trimmedMessage.startsWith(S3_URL_PREFIX) || MEDIA_EXTENSIONS.some(ext => url.pathname.toLowerCase().endsWith(ext))) {
-        isSingleMediaUrl = true;
-      } else {
-        article = articles.find(a => a.url === trimmedMessage);
-        if (article) isSingleArticleUrl = true;
-      }
-    } catch (e) { /* Not a full URL */ } 
+  if (isBareMediaFilename) {
+    const fullUrl = S3_URL_PREFIX + trimmedMessage.replace(/ /g, "%20");
+    return (
+      <MediaRenderer
+        url={fullUrl}
+        onZoom={onZoom}
+        onDownload={onDownload}
+        isDownloading={isDownloadingUrl === fullUrl}
+      />
+    );
   }
-  
-  if (isBareMediaFilename || isSingleMediaUrl) {
-    isMediaOnly = true;
-    const fullUrl = isBareMediaFilename 
-      ? S3_URL_PREFIX + trimmedMessage.replace(/ /g, "%20") 
-      : trimmedMessage;
-    content = <MediaRenderer url={fullUrl} onZoom={onZoom} onDownload={onDownload} isDownloading={isDownloadingUrl === fullUrl} />;
-  } else if (isSingleArticleUrl && article) {
-    isMediaOnly = true; // Render article cards without a bubble as well
-    content = <ChatArticleCard article={article} />;
-  } else {
-    // --- 3. Parse for mixed content ---
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
 
-    trimmedMessage.replace(URL_REGEX, (match, url, index) => {
-      if (index > lastIndex) {
-        parts.push(highlightText(trimmedMessage.substring(lastIndex, index), searchQuery));
-      }
+  let isMediaUrl = false;
+  let parsedUrl: URL | undefined;
 
-      const matchedArticle = articles.find((a) => a.url === url);
-      const isMediaUrl = (u: string) => {
-        try {
-          return MEDIA_EXTENSIONS.some(ext => new URL(u).pathname.toLowerCase().endsWith(ext));
-        } catch { return false; }
-      };
-
-      if (matchedArticle) {
-        parts.push(<ChatArticleCard key={index} article={matchedArticle} />);
-      } else if (url.startsWith(S3_URL_PREFIX) || isMediaUrl(url)) {
-        parts.push(<MediaRenderer key={index} url={url} onZoom={onZoom} onDownload={onDownload} isDownloading={isDownloadingUrl === url} />);
-      } else {
-        parts.push(<UrlRenderer key={index} url={url} />);
-      }
-      lastIndex = index + match.length;
-      return match;
-    });
-
-    if (lastIndex < trimmedMessage.length) {
-      parts.push(highlightText(trimmedMessage.substring(lastIndex), searchQuery));
+  // Attempt to parse as URL regardless of spaces, new URL() will handle encoding/decoding
+  try {
+    parsedUrl = new URL(trimmedMessage);
+    if (
+      trimmedMessage.startsWith(S3_URL_PREFIX) ||
+      MEDIA_EXTENSIONS.some((ext) => parsedUrl!.pathname.toLowerCase().endsWith(ext))
+    ) {
+      isMediaUrl = true;
     }
-    
-    content = parts.length > 0 ? <>{parts}</> : <>{highlightText(trimmedMessage, searchQuery)}</>;
+  } catch (_e) {
+    /* Not a valid URL format */
   }
 
-  // --- 2. Render based on content type ---
-  if (isMediaOnly) {
-    return content; // Render media/article directly without a bubble
+  if (isMediaUrl && parsedUrl) {
+    return (
+      <MediaRenderer
+        url={trimmedMessage}
+        onZoom={onZoom}
+        onDownload={onDownload}
+        isDownloading={isDownloadingUrl === trimmedMessage}
+      />
+    );
   }
 
-  // It's a text or mixed message, wrap it in a bubble
-  const bubbleClasses = isMyMessage
-      ? (isDarkMode ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-800")
-      : (isDarkMode ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-800");
+  // 3. Render plain text with highlighting
+  const bubbleClass = isMyMessage
+    ? "bg-blue-500 text-white rounded-2xl rounded-tr-none shadow-sm"
+    : isDarkMode
+    ? "bg-zinc-700 text-white rounded-2xl rounded-tl-none shadow-sm"
+    : "bg-white text-gray-900 border border-gray-200 shadow-sm rounded-2xl rounded-tl-none";
 
   return (
-    <div className={`rounded-2xl wrap-break-word px-3 py-2 max-w-xs lg:max-w-md ${bubbleClasses}`}>
-        <div className="text-sm">
-            {content}
-        </div>
+    <div className={`px-4 py-2 shadow-sm max-w-[280px] sm:max-w-sm break-words ${bubbleClass}`}>
+      {highlightText(trimmedMessage, searchQuery, searchResult)}
     </div>
   );
 }

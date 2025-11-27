@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-type SearchResult = {
+export type SearchResult = {
     messageId: number;
     matchIndex: number;
 };

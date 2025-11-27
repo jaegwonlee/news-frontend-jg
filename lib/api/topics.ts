@@ -1,4 +1,4 @@
-import { Topic, TopicDetail } from "@/types";
+import { Article, Topic, TopicDetail } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
 import { mockMainTopicDetail, mockPopularTopics, mockLatestTopics } from "@/app/mocks/topics";
 
@@ -9,6 +9,7 @@ export interface ApiChatMessage {
   created_at: string;
   author: string; // Changed from 'nickname'
   profile_image_url?: string; // Added as per POST response
+  article_preview?: Article | null;
 }
 
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
@@ -50,7 +51,7 @@ export async function getAllTopics(): Promise<Topic[]> {
   try {
     const response = await fetchWrapper(`/api/topics`, {
       method: "GET",
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+      cache: 'no-store', // Disable caching to avoid 2MB limit warning for potentially large lists
     });
     if (!response.ok) {
       console.error("Failed to fetch all topics");
@@ -75,7 +76,7 @@ export async function getPopularTopicsAll(): Promise<Topic[]> {
   try {
     const response = await fetchWrapper(`/api/topics/popular-all`, {
       method: "GET",
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+      cache: 'no-store', // Disable caching to avoid 2MB limit warning for potentially large lists
     });
     if (!response.ok) {
       console.error("Failed to fetch all popular topics");
@@ -106,7 +107,7 @@ export async function getTopicDetail(topicId: string, token?: string): Promise<T
     headers["Authorization"] = `Bearer ${token}`;
   }
   const response = await fetchWrapper(`/api/topics/${topicId}`, {
-    next: { revalidate: 60 },
+    cache: 'no-store', // Disable caching to avoid 2MB limit warning for potentially large topic details
     headers: headers,
   });
 
@@ -184,10 +185,11 @@ export async function getChatHistory(
     
     return rawMessages.map((rawMsg: any) => ({
         id: rawMsg.id,
-        message: rawMsg.content,
+        message: rawMsg.content, // 'content' from backend maps to 'message' here
         created_at: rawMsg.created_at,
         author: rawMsg.nickname,
         profile_image_url: rawMsg.profile_image_url,
+        article_preview: rawMsg.article_preview
     }));
   } catch (error) {
     if ((error as Error).message === "Session expired") return [];
@@ -337,3 +339,39 @@ export async function reportChatMessage(
 
   return response.json();
 }
+
+/**
+ * Casts a vote for a specific topic with a given stance.
+ * @param topicId The ID of the topic.
+ * @param stance The user's stance ('LEFT' or 'RIGHT').
+ * @param token The user's authentication token.
+ * @returns A promise that resolves to an object containing a message and potentially updated vote counts.
+ */
+export async function castTopicVote(
+  topicId: number,
+  stance: 'LEFT' | 'RIGHT',
+  token: string
+): Promise<{ message: string; voteCountLeft?: number; voteCountRight?: number }> {
+  if (USE_MOCKS) {
+    console.log(`Mock voting for topic ${topicId} with stance ${stance}`);
+    return Promise.resolve({ message: "Vote cast successfully (mock)", voteCountLeft: 10, voteCountRight: 5 });
+  }
+  try {
+    const response = await fetchWrapper(`/api/topics/${topicId}/${stance}/vote`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: response.statusText }));
+      throw new Error(errorData.message || "투표에 실패했습니다.");
+    }
+    return response.json();
+  } catch (error) {
+    console.error("Error in castTopicVote:", error);
+    throw error;
+  }
+}
+

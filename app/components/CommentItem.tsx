@@ -1,29 +1,45 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { useAuth } from '@/app/context/AuthContext';
-import { Trash2, Loader2, Pencil, X, Check, MessageSquare, Ban, Flag, ThumbsUp, ThumbsDown, MoreVertical } from 'lucide-react';
-import Image from 'next/image';
-import { formatDistanceToNow, isBefore, subHours, format } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import ReportModal from '@/app/components/common/ReportModal';
-import ToastNotification, { ToastType } from '@/app/components/common/ToastNotification';
-import { reactToComment } from '@/lib/api/comments';
-import { Comment, CommentReactionUpdate } from '@/types';
+import ReportModal from "@/app/components/common/ReportModal";
+import ToastNotification, { ToastType } from "@/app/components/common/ToastNotification";
+import { useAuth } from "@/app/context/AuthContext";
+import { reactToComment } from "@/lib/api/comments";
+import { Comment, CommentReactionUpdate } from "@/types";
+import { format, formatDistanceToNow, isBefore, subHours } from "date-fns";
+import { ko } from "date-fns/locale";
+import {
+  Ban,
+  Check,
+  Flag,
+  Loader2,
+  MessageSquare,
+  MoreVertical,
+  Pencil,
+  ThumbsDown,
+  ThumbsUp,
+  Trash2,
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const getFullImageUrl = (url?: string): string => {
-  if (!url) return '/user-placeholder.svg';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+  if (!url) return "/user-placeholder.svg";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://news01.onrender.com";
   return `${BACKEND_BASE_URL}${url}`;
 };
 
 const highlightMentions = (text: string) => {
   const parts = text.split(/(@[가-힣a-zA-Z0-9_]+)/g);
   return parts.map((part, index) => {
-    if (part.startsWith('@')) {
-      return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
+    if (part.startsWith("@")) {
+      return (
+        <span key={index} className="text-blue-400 font-semibold">
+          {part}
+        </span>
+      );
     }
     return part;
   });
@@ -43,7 +59,7 @@ interface CommentItemProps {
 }
 
 export default function CommentItem({ comment, handlers, depth }: CommentItemProps) {
-  const { user, token } = useAuth(); 
+  const { user, token } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [areChildrenVisible, setAreChildrenVisible] = useState(true);
   const [editText, setEditText] = useState(comment.content);
@@ -60,15 +76,15 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
         setIsMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   const isAuthor = user ? user.id === comment.author_id : false;
-  const isDeleted = comment.status === 'DELETED_BY_USER';
-  const isHidden = comment.status === 'HIDDEN';
+  const isDeleted = comment.status === "DELETED_BY_USER";
+  const isHidden = comment.status === "HIDDEN";
 
   const commentDate = new Date(comment.created_at);
   const now = new Date();
@@ -76,7 +92,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
   const isOlderThan24Hours = isBefore(commentDate, twentyFourHoursAgo);
 
   const formattedTime = isOlderThan24Hours
-    ? format(commentDate, 'yyyy-MM-dd HH:mm', { locale: ko })
+    ? format(commentDate, "yyyy-MM-dd HH:mm", { locale: ko })
     : formatDistanceToNow(commentDate, { addSuffix: true, locale: ko });
 
   const handleEdit = async () => {
@@ -88,45 +104,46 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
   };
 
   const handleDelete = async () => {
-    if (window.confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+    if (window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
       await handlers.onDelete(comment.id);
     }
   };
 
   const handleReportSuccess = (message: string, type: ToastType) => {
     setToast({ message, type });
-    if (type === 'success' || message.includes('이미 신고')) {
+    if (type === "success" || message.includes("이미 신고")) {
       setIsReported(true);
     }
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleReaction = async (newReactionType: 'LIKE' | 'DISLIKE') => {
+  const handleReaction = async (newReactionType: "LIKE" | "DISLIKE") => {
     if (!token || !user) {
       alert("로그인 후 반응을 남길 수 있습니다.");
       return;
     }
-    
-    const reactionToSend = comment.currentUserReaction === newReactionType ? 'NONE' : newReactionType;
+
+    const reactionToSend = comment.currentUserReaction === newReactionType ? "NONE" : newReactionType;
 
     try {
       const response = await reactToComment(comment.id, reactionToSend, token);
-      console.log('API Response from reactToComment:', response); // DEBUG
+      console.log("API Response from reactToComment:", response); // DEBUG
       handlers.onCommentReaction(comment.id, response);
     } catch (error) {
       console.error("Failed to react to comment:", error);
-      setToast({ message: "반응 업데이트에 실패했습니다.", type: 'error' });
+      setToast({ message: "반응 업데이트에 실패했습니다.", type: "error" });
     }
   };
-  
+
   const renderChildren = () => {
     if (!areChildrenVisible || !comment.children || comment.children.length === 0) {
       return null;
     }
 
-    const childrenWrapperClasses = depth === 0
-      ? "pt-2 pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg mt-2 space-y-2"
-      : "pt-2 space-y-2";
+    const childrenWrapperClasses =
+      depth === 0
+        ? "pt-2 pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg mt-2 space-y-2"
+        : "pt-2 space-y-2";
 
     return (
       <div className={childrenWrapperClasses}>
@@ -151,9 +168,9 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
         <div className="flex items-center gap-3 text-zinc-500 italic">
           <Ban size={16} className="shrink-0" />
           <div className="flex-1">
-            <p className="text-sm">{isDeleted ? '삭제된 댓글입니다.' : '가려진 댓글입니다.'}</p>
+            <p className="text-sm">{isDeleted ? "삭제된 댓글입니다." : "가려진 댓글입니다."}</p>
             {comment.children && comment.children.length > 0 && (
-              <button 
+              <button
                 onClick={() => setAreChildrenVisible(!areChildrenVisible)}
                 className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-400 mt-1"
               >
@@ -173,8 +190,8 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
       <div className="flex items-start gap-3 group">
         <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-zinc-700 mt-1">
           <Image
-            src={getFullImageUrl(comment.avatar_url)}
-            alt={comment.author_name || 'User profile image'}
+            src={getFullImageUrl(comment.profile_image_url)}
+            alt={comment.author_name || "User profile image"}
             fill
             className="object-cover"
             unoptimized
@@ -183,9 +200,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm text-zinc-200">{comment.author_name}</span>
-            <span className="text-xs text-zinc-500">
-              {formattedTime}
-            </span>
+            <span className="text-xs text-zinc-500">{formattedTime}</span>
           </div>
 
           {isEditing ? (
@@ -197,8 +212,15 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
                 rows={2}
               />
               <div className="flex justify-end gap-2 mt-2">
-                <button onClick={() => setIsEditing(false)} className="p-1 text-zinc-400 hover:text-white" title="취소"><X size={16} /></button>
-                <button onClick={handleEdit} disabled={isSubmitting} className="p-1 text-green-500 hover:text-green-400 disabled:text-zinc-600" title="저장">
+                <button onClick={() => setIsEditing(false)} className="p-1 text-zinc-400 hover:text-white" title="취소">
+                  <X size={16} />
+                </button>
+                <button
+                  onClick={handleEdit}
+                  disabled={isSubmitting}
+                  className="p-1 text-green-500 hover:text-green-400 disabled:text-zinc-600"
+                  title="저장"
+                >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={16} />}
                 </button>
               </div>
@@ -208,7 +230,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
           )}
 
           <div className="flex items-center gap-4 mt-1">
-            <button 
+            <button
               onClick={() => handlers.onSetReplyTarget({ id: comment.id, nickname: comment.author_name })}
               className="text-xs text-zinc-400 hover:text-white"
             >
@@ -216,7 +238,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
             </button>
 
             {depth === 0 && comment.children && comment.children.length > 0 && (
-              <button 
+              <button
                 onClick={() => setAreChildrenVisible(!areChildrenVisible)}
                 className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
               >
@@ -227,31 +249,39 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
 
             {/* 👈 좋아요 버튼 */}
             <button
-              onClick={() => handleReaction('LIKE')}
+              onClick={() => handleReaction("LIKE")}
               disabled={!user || isSubmitting}
               className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-                ${comment.currentUserReaction === 'LIKE' ? 'text-red-500 hover:text-red-600' : 'text-zinc-400 hover:text-white'}`}
+                ${
+                  comment.currentUserReaction === "LIKE"
+                    ? "text-red-500 hover:text-red-600"
+                    : "text-zinc-400 hover:text-white"
+                }`}
               title="좋아요"
             >
-              <ThumbsUp size={14} className={comment.currentUserReaction === 'LIKE' ? "fill-current" : ""} />
+              <ThumbsUp size={14} className={comment.currentUserReaction === "LIKE" ? "fill-current" : ""} />
               <span>{comment.like_count}</span>
             </button>
-            
+
             {/* 👈 싫어요 버튼 */}
             <button
-              onClick={() => handleReaction('DISLIKE')}
+              onClick={() => handleReaction("DISLIKE")}
               disabled={!user || isSubmitting}
               className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-                ${comment.currentUserReaction === 'DISLIKE' ? 'text-blue-500 hover:text-blue-600' : 'text-zinc-400 hover:text-white'}`}
+                ${
+                  comment.currentUserReaction === "DISLIKE"
+                    ? "text-blue-500 hover:text-blue-600"
+                    : "text-zinc-400 hover:text-white"
+                }`}
               title="싫어요"
             >
-              <ThumbsDown size={14} className={comment.currentUserReaction === 'DISLIKE' ? "fill-current" : ""} />
+              <ThumbsDown size={14} className={comment.currentUserReaction === "DISLIKE" ? "fill-current" : ""} />
               <span>{comment.dislike_count}</span>
             </button>
-            
+
             {isAuthor && (
               <div className="relative" ref={menuRef}>
-                <button onClick={() => setIsMenuOpen(prev => !prev)} className="p-1 text-zinc-400 hover:text-white">
+                <button onClick={() => setIsMenuOpen((prev) => !prev)} className="p-1 text-zinc-400 hover:text-white">
                   <MoreVertical size={16} />
                 </button>
                 {isMenuOpen && (
@@ -290,14 +320,14 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
                   disabled={isReported}
                 >
                   <Flag size={14} />
-                  {isReported ? '신고됨' : '신고'}
+                  {isReported ? "신고됨" : "신고"}
                 </button>
               </>
             )}
           </div>
         </div>
       </div>
-      
+
       {renderChildren()}
 
       {isReportModalOpen && (
@@ -310,18 +340,19 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
         />
       )}
 
-      {toast && createPortal(
-        <div className="fixed bottom-4 right-4 z-9999">
-          <ToastNotification
-            id="comment-report-toast"
-            message={toast.message}
-            type={toast.type}
-            onDismiss={() => setToast(null)}
-            duration={3000}
-          />
-        </div>,
-        document.body
-      )}
+      {toast &&
+        createPortal(
+          <div className="fixed bottom-4 right-4 z-9999">
+            <ToastNotification
+              id="comment-report-toast"
+              message={toast.message}
+              type={toast.type}
+              onDismiss={() => setToast(null)}
+              duration={3000}
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

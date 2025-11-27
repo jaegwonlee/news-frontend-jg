@@ -2,7 +2,7 @@
 
 import { useLinkMetadata } from "@/hooks/useLinkMetadata";
 import { Skeleton } from "./Skeleton";
-import ChatArticleCard from "../ChatArticleCard";
+import ArticleCard from "../ArticleCard";
 import { Article } from "@/types";
 
 export default function UrlRenderer({ url }: { url: string }) {
@@ -27,7 +27,7 @@ export default function UrlRenderer({ url }: { url: string }) {
         );
     }
 
-    // Adapt the generic metadata to the Article type to render a ChatArticleCard
+    // Adapt the generic metadata to the Article type to render an ArticleCard
     const pseudoArticle: Article = {
         id: 0, // No real ID from generic metadata
         url: url,
@@ -42,5 +42,5 @@ export default function UrlRenderer({ url }: { url: string }) {
         like_count: 0,
     };
 
-    return <ChatArticleCard article={pseudoArticle} />;
+    return <ArticleCard article={pseudoArticle} />;
 }

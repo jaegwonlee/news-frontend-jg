@@ -13,6 +13,7 @@ export interface Message {
   profile_image_url?: string;
   created_at: string;
   isHidden?: boolean;
+  article_preview?: Article | null;
 }
 
 /**
@@ -29,8 +30,8 @@ export interface Article {
   favicon_url: string | null;
   description?: string; // Added for search results
   summary?: string;
+  side?: "LEFT" | "RIGHT" | "CENTER"; // Added for debate articles
   // 상세 페이지에서 추가되는 필드
-  side?: "LEFT" | "RIGHT";
   is_featured?: number;
   view_count?: number;
   like_count?: number;
@@ -49,11 +50,12 @@ export interface Comment {
   id: number;
   author_id?: number; // Mapped from API's user_id
   author_name: string; // Mapped from API's nickname
-  avatar_url?: string; // Mapped from API's avatar_url
+  profile_image_url?: string; // Mapped from API's profile_image_url
   content: string;
   created_at: string;
   status?: 'ACTIVE' | 'HIDDEN' | 'DELETED_BY_USER' | 'DELETED_BY_ADMIN'; // Updated based on new status policy
   parent_id?: number | null; // Mapped from API's parent_comment_id
+  stance?: 'LEFT' | 'RIGHT' | 'NEUTRAL'; // For topic comments
   children?: Comment[]; // Mapped from API's replies
   like_count?: number;
   dislike_count?: number;
@@ -72,6 +74,7 @@ export interface ApiComment {
   nickname: string;
   profile_image_url?: string;
   avatar_url?: string;
+  stance?: 'LEFT' | 'RIGHT' | 'NEUTRAL';
   replies?: ApiComment[]; // Nested replies
   like_count?: number;
   dislike_count?: number;
@@ -89,6 +92,16 @@ export interface Topic {
   published_at: string;
   view_count: number;
   popularity_score?: number;
+  total_votes?: number;
+  comment_count?: number;
+  collection_status?: string;
+  vote_count_left?: number;
+  vote_count_right?: number;
+  stance_left?: string;
+  stance_right?: string;
+  vote_start_at?: string;
+  vote_end_at?: string;
+  my_vote?: 'LEFT' | 'RIGHT' | null;
 }
 
 /**

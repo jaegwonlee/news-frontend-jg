@@ -1,9 +1,25 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { BACKEND_BASE_URL } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+/**
+ * Takes a potentially relative URL from the backend and resolves it to a full URL.
+ * Also handles incorrect '/public' prefixes from the API.
+ * @param url The URL string from the API.
+ * @returns A full, usable URL for an image source.
+ */
+export const getFullImageUrl = (url?: string): string => {
+  if (!url) return "/user-placeholder.svg";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (url.startsWith("/public/")) {
+    return url.substring("/public".length);
+  }
+  return `${BACKEND_BASE_URL}${url}`;
+};
 
 /**
  * ISO 8601 형식의 날짜 문자열을 상대 시간(예: "1시간 전")으로 변환하는 함수

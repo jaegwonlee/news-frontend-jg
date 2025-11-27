@@ -18,7 +18,7 @@ const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
     id: apiComment.id,
     author_id: apiComment.user_id,
     author_name: apiComment.nickname,
-    avatar_url: apiComment.avatar_url || apiComment.profile_image_url, // Fallback to old field
+    profile_image_url: apiComment.avatar_url || apiComment.profile_image_url, // Fallback to old field
     content: apiComment.content,
     created_at: apiComment.created_at,
     status: apiComment.status as 'ACTIVE' | 'DELETED_BY_USER' | undefined,
