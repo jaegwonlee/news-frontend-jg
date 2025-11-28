@@ -20,7 +20,7 @@ const Favicon = ({ src, alt, size = 16 }: FaviconProps) => {
   if (error || !src) {
     return (
       <div className="flex items-center justify-center" style={{ width: size, height: size }}>
-        <Globe size={size * 0.8} className="text-zinc-500" />
+        <Globe size={size * 0.8} className="text-muted-foreground" />
       </div>
     );
   }

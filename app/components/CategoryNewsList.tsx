@@ -62,7 +62,7 @@ export default function CategoryNewsList({
   };
 
   return (
-    <section className={`bg-zinc-900 p-4 rounded-lg ${className}`}>
+    <section className={`bg-card p-4 rounded-lg ${className}`}>
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-700">
         <h2 className="text-2xl font-bold text-white">{categoryName}</h2>
       </div>
@@ -81,7 +81,7 @@ export default function CategoryNewsList({
                 className={`px-3 py-1 text-sm rounded-full whitespace-nowrap transition-colors ${
                   selectedSource === source
                     ? 'bg-red-600 text-white'
-                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                    : 'bg-muted text-foreground hover:bg-muted'
                 }`}>
                 {source === 'all' ? '전체' : source}
               </button>
@@ -95,7 +95,7 @@ export default function CategoryNewsList({
 
                 return (
                   <article key={news.id} className="flex flex-col md:flex-row gap-4 group">
-                    <div className="relative w-full md:w-48 h-32 bg-zinc-700 rounded-md shrink-0 overflow-hidden">
+                    <div className="relative w-full md:w-48 h-32 bg-muted rounded-md shrink-0 overflow-hidden">
                       {news.thumbnail_url && (
                         <Image
                           src={news.thumbnail_url}
@@ -115,9 +115,9 @@ export default function CategoryNewsList({
                         target="_blank" 
                         rel="noopener noreferrer"
                       >
-                        <h3 className="text-lg font-semibold text-zinc-100 mb-2 group-hover:underline">{news.title}</h3>
+                        <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:underline">{news.title}</h3>
                       </Link>
-                      <div className="flex items-center text-xs text-zinc-500 mt-auto pt-2">
+                      <div className="flex items-center text-xs text-muted-foreground mt-auto pt-2">
                         {faviconUrl && (
                           <Image
                             src={faviconUrl}
@@ -137,7 +137,7 @@ export default function CategoryNewsList({
                 );
               })
             ) : (
-              <p className="text-zinc-400 text-center py-10">
+              <p className="text-muted-foreground text-center py-10">
                 {selectedSource === 'all' 
                   ? '해당 카테고리에 뉴스가 없습니다.' 
                   : `'${selectedSource}' 출처의 뉴스가 없습니다.`}

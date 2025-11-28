@@ -27,6 +27,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         },
         transports: ['websocket'], // Force websocket transport
         reconnectionAttempts: 5, // Add reconnection attempts
+        timeout: 60000, // 60 seconds timeout
+        reconnectionDelay: 5000, // 5 seconds delay between retries
       });
 
       newSocket.on('connect', () => {

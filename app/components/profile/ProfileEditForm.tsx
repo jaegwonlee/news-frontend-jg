@@ -44,7 +44,7 @@ export default function ProfileEditForm({
       type="button"
       onClick={() => setInnerTab(tab)}
       className={`px-6 py-2.5 text-sm font-bold rounded-full transition-all duration-300 ${
-        innerTab === tab ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+        innerTab === tab ? 'bg-red-600 text-white' : 'bg-card text-muted-foreground hover:bg-muted'
       }`}
     >
       {label}
@@ -52,7 +52,7 @@ export default function ProfileEditForm({
   );
 
   return (
-    <div className="bg-zinc-900/50 border border-zinc-700 rounded-2xl shadow-2xl p-6 md:p-8">
+    <div className="bg-card/50 border border-border rounded-2xl shadow-2xl p-6 md:p-8">
       {/* Centered Header */}
       <div className="flex flex-col items-center text-center">
         <div className="relative mb-4">
@@ -76,12 +76,12 @@ export default function ProfileEditForm({
           </button>
         </div>
         <h2 className="text-3xl font-bold text-white">{profile.name}</h2>
-        <p className="text-md text-zinc-400">{profile.email}</p>
+        <p className="text-md text-muted-foreground">{profile.email}</p>
       </div>
 
       {/* Avatar Options Modal */}
       {showAvatarOptions && (
-        <div className="mt-6 bg-zinc-800/50 p-6 rounded-xl border border-zinc-700">
+        <div className="mt-6 bg-card/50 p-6 rounded-xl border border-border">
           <h3 className="text-lg font-semibold text-white mb-4 text-center">아바타 선택</h3>
           <div className="flex flex-wrap justify-center gap-5">
             {avatars.map((avatarUrl, index) => (
@@ -100,7 +100,7 @@ export default function ProfileEditForm({
       )}
 
       {/* Inner Tab Switcher */}
-      <div className="flex justify-center my-8 p-1 bg-zinc-900 rounded-full">
+      <div className="flex justify-center my-8 p-1 bg-card rounded-full">
         <TabButton tab="info" label="프로필 정보" />
         <TabButton tab="activity" label="나의 활동" />
       </div>
@@ -116,7 +116,7 @@ export default function ProfileEditForm({
               name="nickname"
               value={profile.nickname || ""}
               onChange={onInputChange as React.ChangeEventHandler<HTMLInputElement>}
-              icon={<UserIcon className="w-5 h-5 text-zinc-400" />}
+              icon={<UserIcon className="w-5 h-5 text-muted-foreground" />}
             />
             <FormField
               id="phone"
@@ -125,17 +125,17 @@ export default function ProfileEditForm({
               name="phone"
               value={profile.phone || ""}
               onChange={onInputChange as React.ChangeEventHandler<HTMLInputElement>}
-              icon={<Phone className="w-5 h-5 text-zinc-400" />}
+              icon={<Phone className="w-5 h-5 text-muted-foreground" />}
             />
             <div>
-              <label htmlFor="introduction" className="block text-sm font-medium text-zinc-300 mb-2">자기소개</label>
+              <label htmlFor="introduction" className="block text-sm font-medium text-foreground mb-2">자기소개</label>
               <textarea
                 id="introduction"
                 name="introduction"
                 value={profile.introduction || ""}
                 onChange={onInputChange}
                 rows={4}
-                className="mt-1 block w-full bg-zinc-800 border border-zinc-600 rounded-md py-2 px-3 text-white shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-input border border-border rounded-md py-2 px-3 text-foreground shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 placeholder="회원님의 관심사, 직업 등 자신을 소개해주세요."
               />
             </div>
@@ -144,14 +144,14 @@ export default function ProfileEditForm({
 
         {innerTab === 'activity' && (
           <div className="space-y-4 animate-fade-in-up">
-             <div className="flex items-center justify-between p-4 bg-zinc-800/70 rounded-lg border border-zinc-700">
+             <div className="flex items-center justify-between p-4 bg-card/70 rounded-lg border border-border">
               <div className="flex items-center gap-4">
                 <Bookmark className="w-6 h-6 text-blue-400" />
                 <span className="font-semibold text-white text-lg">저장한 기사</span>
               </div>
               <span className="font-bold text-2xl text-blue-400">{savedArticles.length}</span>
             </div>
-            <div className="flex items-center justify-between p-4 bg-zinc-800/70 rounded-lg border border-zinc-700">
+            <div className="flex items-center justify-between p-4 bg-card/70 rounded-lg border border-border">
               <div className="flex items-center gap-4">
                 <Heart className="w-6 h-6 text-red-400" />
                 <span className="font-semibold text-white text-lg">좋아요한 기사</span>
@@ -164,10 +164,10 @@ export default function ProfileEditForm({
       
       {/* Global Action Buttons */}
       <div className="flex justify-end gap-4 pt-8 mt-8 border-t border-zinc-700">
-        <button type="button" onClick={onCancelEdit} className="px-6 py-3 text-sm font-semibold text-white bg-zinc-600 rounded-lg hover:bg-zinc-700 transition-colors">
+        <button type="button" onClick={onCancelEdit} className="px-6 py-3 text-sm font-semibold text-white bg-muted rounded-lg hover:bg-zinc-700 transition-colors">
           취소
         </button>
-        <button form="profile-form" type="submit" disabled={isUpdating} className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-zinc-500 transition-colors">
+        <button form="profile-form" type="submit" disabled={isUpdating} className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-muted transition-colors">
           {isUpdating ? "저장 중..." : "변경사항 저장"}
         </button>
       </div>

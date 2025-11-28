@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 const Footer = () => {
   const { theme } = useTheme();
@@ -12,13 +13,18 @@ const Footer = () => {
     setMounted(true);
   }, []);
 
-  const isDarkMode = mounted && theme === 'dark';
-  const footerBgColor = isDarkMode ? '#000000' : '#ffffff';
-  const footerTextColor = isDarkMode ? '#ffffff' : '#000000';
-  const footerBorderColor = isDarkMode ? '#27272a' : '#e5e5e5'; // neutral-800 vs neutral-200
+  const isDarkMode = mounted && theme === "dark"; // Re-added this line
+  const footerTextColor = isDarkMode ? "#ffffff" : "#000000";
+  const footerBorderColor = isDarkMode ? "#27272a" : "#e5e5e5"; // neutral-800 vs neutral-200
 
   return (
-    <footer className="w-full mt-24" style={{backgroundColor: footerBgColor, color: footerTextColor}}>
+    <footer
+      className={cn(
+        "w-full mt-24",
+        "bg-carbon-fiber" // Apply carbon fiber unconditionally
+      )}
+      style={{ color: footerTextColor }}
+    >
       <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>

@@ -27,7 +27,7 @@ const HorizontalNewsScroller: React.FC<HorizontalNewsScrollerProps> = ({ news })
             href={article.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 truncate max-w-md text-sm text-neutral-300 hover:text-white px-6"
+            className="shrink-0 truncate max-w-md text-sm text-neutral-300 hover:text-white px-6"
             title={article.title}
           >
             {/* StyledArticleTitle을 사용하여 [속보], [단독] 색상 적용 */}

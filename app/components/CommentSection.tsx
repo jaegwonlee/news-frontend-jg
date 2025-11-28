@@ -98,7 +98,7 @@ export default function CommentSection({
       className={`px-3 py-1 text-sm rounded-md transition-colors ${
         sortBy === value
           ? 'bg-blue-600 text-white'
-          : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+          : 'bg-card text-muted-foreground hover:bg-muted'
       }`}
     >
       {label}
@@ -117,9 +117,9 @@ export default function CommentSection({
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         {isLoading ? (
-          <div className="flex justify-center items-center h-full"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>
+          <div className="flex justify-center items-center h-full"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
         ) : sortedComments.length === 0 ? (
-          <div className="flex flex-col justify-center items-center h-full text-zinc-500"><MessageSquare size={32} className="mb-2" /><p>아직 댓글이 없습니다.</p></div>
+          <div className="flex flex-col justify-center items-center h-full text-muted-foreground"><MessageSquare size={32} className="mb-2" /><p>아직 댓글이 없습니다.</p></div>
         ) : (
           <div className="space-y-4">
             {sortedComments.map((comment) => (
@@ -133,9 +133,9 @@ export default function CommentSection({
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <form onSubmit={handleSubmitComment} className="space-y-2">
           {replyTarget && (
-            <div className="flex items-center text-sm text-zinc-400">
+            <div className="flex items-center text-sm text-muted-foreground">
               <span>@{replyTarget.nickname}님에게 답글 남기는 중...</span>
-              <button type="button" onClick={() => handleSetReplyTarget(null)} className="ml-2 text-zinc-500 hover:text-white"><X size={16} /></button>
+              <button type="button" onClick={() => handleSetReplyTarget(null)} className="ml-2 text-muted-foreground hover:text-foreground"><X size={16} /></button>
             </div>
           )}
           <div className="flex items-center gap-2">
@@ -145,13 +145,13 @@ export default function CommentSection({
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder={user ? '댓글을 입력하세요...' : '로그인 후 댓글을 작성할 수 있습니다.'}
-              className="flex-1 p-2 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 p-2 bg-input border border-border rounded-md text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={!user || isSubmitting}
             />
             <button
               type="submit"
               disabled={!user || !newComment.trim() || isSubmitting}
-              className="p-2 bg-blue-600 rounded-md text-white transition-colors disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-blue-700"
+              className="p-2 bg-blue-600 rounded-md text-white transition-colors disabled:bg-muted disabled:cursor-not-allowed hover:bg-blue-700"
             >
               {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </button>

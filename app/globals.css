@@ -5,6 +5,8 @@
     /* Base colors for Light Mode (Layered Grays) */
     --background-hsl: 240 5% 96.1%; /* Very light gray (zinc-50), for body background */
     --foreground-hsl: 240 10% 3.9%; /* Neutral 950 */
+    --carbon-bg-color: #ffffff; /* White base for light mode */
+    --carbon-pattern: none;
 
     /* Grays for backgrounds, borders, cards */
     --muted-hsl: 240 4.8% 95.9%; /* Neutral 100 */
@@ -15,6 +17,9 @@
 
     --card-hsl: 0 0% 100%; /* Pure White, for main cards */
     --card-foreground-hsl: 240 10% 3.9%; /* Neutral 950 */
+
+    --card-elevated-hsl: 0 0% 100%;
+    --card-elevated-foreground-hsl: 240 10% 3.9%;
 
     --border-hsl: 240 5% 96.1%; /* Very light gray, subtle borders */
     --input-hsl: 240 5% 96.1%; /* Very light gray, same as background */
@@ -39,8 +44,12 @@
 
   .dark {
     /* Base colors for Dark Mode (Layered Grays) */
-    --background-hsl: 240 5.9% 10%; /* zinc-950 */
+    --background-hsl: 0 0% 12%; /* VSCode-like dark gray */
     --foreground-hsl: 0 0% 98%; /* zinc-50 */
+    --carbon-bg-color: #000000; /* Pure black for header/footer in dark mode */
+    --carbon-pattern:
+      linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.03) 75%),
+      linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.03) 75%);
 
     /* Grays for backgrounds, borders, cards */
     --muted-hsl: 240 3.7% 15.9%; /* zinc-800 */
@@ -49,11 +58,14 @@
     --popover-hsl: 240 3.7% 15.9%; /* zinc-800, for dropdowns/popups */
     --popover-foreground-hsl: 0 0% 98%; /* zinc-50 */
 
-    --card-hsl: 240 5% 14%; /* zinc-900, for main cards */
+    --card-hsl: 240 3.7% 15.9%; /* zinc-800, for main cards */
     --card-foreground-hsl: 0 0% 98%; /* zinc-50 */
 
+    --card-elevated-hsl: 0 0% 100%; /* Pure white for elevated cards in dark mode */
+    --card-elevated-foreground-hsl: 0 0% 98%; /* zinc-50 */
+
     --border-hsl: 240 3.7% 15.9%; /* zinc-800, visible on cards and background */
-    --input-hsl: 240 5% 14%; /* zinc-900, same as card */
+    --input-hsl: 240 3.7% 15.9%; /* zinc-800, same as card */
 
     /* Primary/Accent colors */
     --primary-hsl: 0 0% 98%;
@@ -308,6 +320,11 @@
 @layer utilities {
   .bg-gradient-radial {
     background-image: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+  }
+  .bg-carbon-fiber {
+    background-color: var(--carbon-bg-color);
+    background-image: var(--carbon-pattern);
+    background-size: 8px 8px;
   }
 }
 

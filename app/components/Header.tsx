@@ -10,6 +10,7 @@ import { getCategoryTheme } from "@/lib/categoryColors";
 import { usePathname } from "next/navigation";
 import AuthStatus from "./header/AuthStatus";
 import SearchBar from "./header/SearchBar";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
   { title: "정치", href: "/politics" },
@@ -29,13 +30,18 @@ export default function Header() {
     setMounted(true);
   }, []);
 
-  const isDarkMode = mounted && theme === 'dark';
-  const headerBgColor = isDarkMode ? '#000000' : '#ffffff';
-  const headerBorderColor = isDarkMode ? '#27272a' : '#e5e5e5'; // neutral-800 vs neutral-200
-  const separatorColor = isDarkMode ? '#4a4a4a' : '#d4d4d4'; // neutral-700 vs neutral-300
+  const isDarkMode = mounted && theme === "dark"; // Re-added this line
+  const headerBorderColor = isDarkMode ? "#27272a" : "#e5e5e5"; // neutral-800 vs neutral-200
+  const separatorColor = isDarkMode ? "#4a4a4a" : "#d4d4d4"; // neutral-700 vs neutral-300
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b shadow-sm" style={{backgroundColor: headerBgColor, borderColor: headerBorderColor}}>
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full border-b shadow-sm",
+        "bg-carbon-fiber" // Apply carbon fiber unconditionally
+      )}
+      style={{ borderColor: headerBorderColor }}
+    >
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
         <div className="flex flex-col gap-2">
           {/* Top Row: Logo (Centered) and Right Section (Absolute/Flex) */}

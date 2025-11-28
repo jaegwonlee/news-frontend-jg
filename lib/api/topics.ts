@@ -1,4 +1,4 @@
-import { Article, Topic, TopicDetail } from "@/types";
+import { Article, Topic, TopicDetail, TopicPreview } from "@/types";
 import { fetchWrapper } from "./fetchWrapper";
 import { mockMainTopicDetail, mockPopularTopics, mockLatestTopics } from "@/app/mocks/topics";
 
@@ -10,6 +10,7 @@ export interface ApiChatMessage {
   author: string; // Changed from 'nickname'
   profile_image_url?: string; // Added as per POST response
   article_preview?: Article | null;
+  topic_preview?: TopicPreview | null;
 }
 
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
@@ -189,7 +190,8 @@ export async function getChatHistory(
         created_at: rawMsg.created_at,
         author: rawMsg.nickname,
         profile_image_url: rawMsg.profile_image_url,
-        article_preview: rawMsg.article_preview
+        article_preview: rawMsg.article_preview,
+        topic_preview: rawMsg.topic_preview,
     }));
   } catch (error) {
     if ((error as Error).message === "Session expired") return [];

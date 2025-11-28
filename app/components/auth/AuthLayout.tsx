@@ -1,41 +1,100 @@
-// app/components/auth/AuthLayout.tsx
-
-import React from 'react';
-import Image from 'next/image';
+import { cn } from "@/lib/utils";
+import Image from "next/image";
+import React from "react";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
   title: string;
-  variant?: 'default' | 'gloves';
+  variant?: "default" | "gloves";
+  focusedField?: string | null;
 }
 
-/**
- * A simplified layout for authentication pages.
- * The original 'punching bag' style has been replaced with a standard card layout
- * to ensure consistency with the new semantic color system.
- */
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = 'default' }) => {
+const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = "default", focusedField = null }) => {
   return (
-    <div className="h-full flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Optional: Decorative elements can be added back here using theme-friendly colors */}
-      {variant === 'gloves' && (
+    <div className="min-h-screen w-full flex items-start justify-center p-4 pt-12 relative overflow-hidden">
+
+
+      {/* Gloves Container - Positioned relative to screen */}
+      {variant === "gloves" && (
         <>
-          <div className="absolute top-[50%] -translate-y-1/2 left-0 opacity-20 -translate-x-1/4">
-            <Image src="/avatars/blue--glove.svg" alt="Blue Glove" width={300} height={300} />
+          {/* Blue Glove (Left) */}
+          <div
+            className={cn(
+              "absolute top-1/2 left-4 md:left-10 z-50 transition-all duration-300 pointer-events-none -translate-y-1/2",
+              focusedField === "email" ? "animate-punch-left" : "animate-float"
+            )}
+          >
+            <div className="relative w-40 h-40 md:w-52 md:h-52 drop-shadow-2xl">
+              <Image src="/avatars/blue--glove.svg" alt="Blue Glove" fill className="object-contain" priority />
+            </div>
           </div>
-          <div className="absolute top-[50%] -translate-y-1/2 right-0 opacity-20 translate-x-1/4">
-            <Image src="/avatars/red--glove.svg" alt="Red Glove" width={300} height={300} />
+
+          {/* Red Glove (Right) */}
+          <div
+            className={cn(
+              "absolute top-1/2 right-4 md:right-10 z-50 transition-all duration-300 pointer-events-none -translate-y-1/2",
+              focusedField === "password" ? "animate-punch-right" : "animate-float",
+              "animation-delay-1000"
+            )}
+            style={{ animationDelay: "1s" }}
+          >
+            <div className="relative w-40 h-40 md:w-52 md:h-52 drop-shadow-2xl">
+              <Image src="/avatars/red--glove.svg" alt="Red Glove" fill className="object-contain" priority />
+            </div>
           </div>
         </>
       )}
 
-      <div className="relative z-10 w-full max-w-sm">
-        {/* Main Content Card */}
-        <div className="bg-card text-card-foreground border border-border rounded-2xl shadow-xl p-8 space-y-6">
-            <h1 className="text-3xl font-bold text-center text-foreground tracking-wider">
-              {title}
-            </h1>
-            {children}
+      <div className="relative z-10 w-full max-w-md flex flex-col items-center group">
+        {/* Chain / Hanging Mechanism */}
+        <div className="w-2 h-32 bg-gradient-to-b from-neutral-600 to-neutral-800 border-x border-neutral-900 mb-[-10px] relative z-0">
+          {/* Chain links pattern (simulated) */}
+          <div className="absolute inset-0 flex flex-col items-center justify-around py-1">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="w-4 h-6 border-2 border-neutral-400 rounded-full bg-transparent shadow-sm" />
+            ))}
+          </div>
+        </div>
+
+        {/* Punching Bag */}
+        <div
+          className={cn(
+            "relative w-full bg-neutral-950 text-neutral-100 rounded-[3rem] shadow-2xl transition-transform duration-100",
+            focusedField && "animate-shake"
+          )}
+          style={{
+            minHeight: "550px",
+            // Removed background gradient
+            border: "1px solid rgba(255,255,255,0.05)",
+          }}
+        >
+          {/* Bag Texture/Stitching Details */}
+          <div
+            className="absolute top-0 left-0 w-full h-full rounded-[3rem] pointer-events-none opacity-20"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 3h1v1H1V3zm2-2h1v1H3V1z' fill='%23ffffff' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E\")",
+            }}
+          />
+
+          {/* Top Cap of Bag */}
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-32 h-8 bg-neutral-800 rounded-t-lg border-t border-neutral-700 shadow-lg" />
+
+          {/* Content Container */}
+          <div className="relative z-10 p-8 pt-12 flex flex-col items-center">
+            {/* Brand / Title Area */}
+            <div className="mb-8 text-center">
+              <div className="inline-block px-4 py-1 mb-2 border border-red-600/30 bg-red-900/10 rounded text-[10px] font-bold tracking-[0.2em] text-red-500 uppercase">
+                Security Check
+              </div>
+              <h1 className="text-4xl font-black tracking-tighter text-white uppercase drop-shadow-md">{title}</h1>
+              <div className="w-12 h-1 bg-red-600 mx-auto mt-2 rounded-full" />
+            </div>
+
+            <div className="w-full space-y-6">{children}</div>
+          </div>
+
+
         </div>
       </div>
     </div>

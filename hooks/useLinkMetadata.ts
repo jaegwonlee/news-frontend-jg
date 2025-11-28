@@ -21,6 +21,19 @@ export function useLinkMetadata(url: string | undefined): UseLinkMetadataResult 
       return;
     }
 
+    // Prevent fetching metadata for localhost URLs
+    try {
+      const parsedUrl = new URL(url);
+      if (['localhost', '127.0.0.1'].includes(parsedUrl.hostname) || parsedUrl.hostname.endsWith('vercel.app')) {
+        setError(new Error("Cannot fetch metadata for internal URLs."));
+        setMetadata(null);
+        setIsLoading(false);
+        return;
+      }
+    } catch (e) {
+      // If URL is invalid, let it fail in getLinkMetadata
+    }
+
     const fetchMetadata = async () => {
       setIsLoading(true);
       setError(null);

@@ -46,14 +46,14 @@ const ToastNotification = ({ id, message, type, duration = 5000, onDismiss }: To
 
   return (
     <div
-      className={`relative flex items-center p-4 w-full max-w-sm bg-zinc-800 text-white rounded-lg shadow-lg border border-zinc-700 overflow-hidden ${animationClass}`}
+      className={`relative flex items-center p-4 w-full max-w-sm bg-card text-foreground rounded-lg shadow-lg border border-border overflow-hidden ${animationClass}`}
       role="alert"
     >
       <div className="shrink-0">{icons[type]}</div>
       <div className="ml-3 text-sm font-normal flex-1">{message}</div>
       <button
         onClick={handleDismiss}
-        className="ml-4 -mx-1.5 -my-1.5 bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-zinc-600 p-1.5 inline-flex items-center justify-center h-8 w-8"
+        className="ml-4 -mx-1.5 -my-1.5 bg-muted text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg focus:ring-2 focus:ring-ring p-1.5 inline-flex items-center justify-center h-8 w-8"
         aria-label="Close"
       >
         <span className="sr-only">Close</span>

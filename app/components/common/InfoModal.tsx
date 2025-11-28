@@ -18,7 +18,7 @@ export default function InfoModal({ isOpen, onClose, title, children }: InfoModa
       onClick={onClose}
     >
       <div 
-        className="relative bg-zinc-800 rounded-lg shadow-xl w-full max-w-2xl border border-zinc-700 animate-fade-in-up"
+        className="relative bg-card rounded-lg shadow-xl w-full max-w-2xl border border-border animate-fade-in-up"
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
         style={{ animationDuration: '0.3s' }}
       >
@@ -26,12 +26,12 @@ export default function InfoModal({ isOpen, onClose, title, children }: InfoModa
           <h2 className="text-xl font-bold text-white">{title}</h2>
           <button 
             onClick={onClose} 
-            className="text-zinc-400 hover:text-white transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
-        <div className="p-6 text-zinc-300">
+        <div className="p-6 text-foreground">
           {children}
         </div>
       </div>

@@ -67,7 +67,7 @@ export default function ArticleCard({
       <span className="font-medium">{article.source}</span>
       {showTime && (
         <>
-          <span className="text-zinc-600 dark:text-zinc-500">·</span>
+          <span className="text-muted-foreground">·</span>
           <ClientOnlyTime date={article.published_at} />
         </>
       )}
@@ -208,8 +208,8 @@ export default function ArticleCard({
   // --- Variant: Chat (Compact Image Left, Title Right) ---
   if (variant === "chat") {
     return (
-      <Link href={article.url} target="_blank" className={`group flex gap-3 w-full max-w-sm items-center p-2 bg-card-foreground/10 rounded-lg hover:bg-card-foreground/20 transition-colors ${className}`}>
-        <div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-md">
+      <Link href={article.url} target="_blank" className={`group flex items-center rounded-lg border border-gray-800 bg-black hover:bg-gray-900 transition-colors text-white ${className}`}>
+        <div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-l-lg">
           <Image
             src={article.thumbnail_url || "/placeholder.png"}
             alt={article.title}
@@ -219,11 +219,11 @@ export default function ArticleCard({
             unoptimized
           />
         </div>
-        <div className="flex flex-col flex-grow min-w-0">
-          <h3 className={`font-semibold text-sm leading-tight line-clamp-2 transition-colors ${textColorClass}`}>
+        <div className="flex flex-col flex-grow min-w-0 p-2">
+          <h3 className={`font-semibold text-sm leading-tight line-clamp-2`}>
             {article.title}
           </h3>
-          <div className="flex items-center text-xs text-muted-foreground mt-1">
+          <div className="flex items-center text-xs text-gray-300 mt-1">
             {article.favicon_url && <Favicon src={article.favicon_url} alt={`${article.source} favicon`} size={12} />}
             <span className="font-medium ml-1">{article.source}</span>
           </div>

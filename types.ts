@@ -3,6 +3,15 @@
  * @description 전역적으로 사용되는 TypeScript 타입을 정의하는 파일입니다.
  */
 
+export interface TopicPreview {
+  id: number;
+  display_name: string;
+  status: string;
+  left_count: number;
+  right_count: number;
+  vote_remaining_time: string | null;
+}
+
 /**
  * 채팅 메시지 데이터 구조
  */
@@ -14,6 +23,7 @@ export interface Message {
   created_at: string;
   isHidden?: boolean;
   article_preview?: Article | null;
+  topic_preview?: TopicPreview | null;
 }
 
 /**

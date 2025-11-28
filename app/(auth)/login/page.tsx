@@ -2,13 +2,13 @@
 
 // 'news' 프로젝트의 경로로 수정
 import AuthLayout from "@/app/components/auth/AuthLayout";
-import FormField from "@/app/components/auth/FormField"; 
 
 // --- 아래 로직은 'news' 프로젝트에 맞게 수정이 필요합니다. ---
 import { useAuth } from "@/app/context/AuthContext"; // 'news' 프로젝트에 AuthContext가 없다면 이 부분 수정 필요
 import { loginUser } from "@/lib/api"; // 'news' 프로젝트의 lib/api.ts에 loginUser 함수 추가 필요
 // --- ---
 
+import { AlertCircle, ArrowRight, Lock, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -16,11 +16,11 @@ import { useState } from "react";
 const VALIDATION_RULES: Record<string, { validate: (value: string) => boolean; message: string }> = {
   email: {
     validate: (value) => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value),
-    message: "이메일 형식이 틀립니다.",
+    message: "이메일 형식이 올바르지 않습니다.",
   },
   password: {
     validate: (value) => value.length > 0,
-    message: "다시 입력해주세요.",
+    message: "비밀번호를 입력해주세요.",
   },
 };
 
@@ -94,7 +94,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const data = await loginUser(formState); 
+      const data = await loginUser(formState);
       if (data.token && data.user) {
         login(data.token, data.user);
         router.push("/");
@@ -115,56 +115,128 @@ export default function LoginPage() {
 
   return (
     // 'gloves' variant를 사용하여 애니메이션 적용
-    <AuthLayout title="LOGIN" variant="gloves">
-      <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-        <div>
-          <FormField
+    <AuthLayout title="FIGHTER LOGIN" variant="gloves" focusedField={focusedField}>
+      <form className="space-y-6 w-full" onSubmit={handleSubmit} noValidate>
+        {/* Email Field */}
+        <div className="relative group">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+            <Mail
+              className={`h-5 w-5 transition-colors duration-300 ${
+                focusedField === "email" ? "text-red-500" : "text-neutral-500"
+              }`}
+            />
+          </div>
+          <input
             id="email"
-            label="이메일"
-            type="email"
             name="email"
+            type="email"
             value={formState.email}
             onChange={handleInputChange}
             onBlur={handleBlur}
             onFocus={handleFocus}
             autoComplete="email"
             required
+            placeholder="EMAIL ADDRESS"
+            className={`
+              w-full pl-12 pr-4 py-4 
+              bg-neutral-800/50 
+              border-2 ${errors.email && touched.email ? "border-red-500/50" : "border-neutral-700"} 
+              rounded-xl 
+              text-neutral-100 placeholder-neutral-500 font-medium
+              focus:border-red-500 focus:ring-4 focus:ring-red-500/10 focus:bg-neutral-800 
+              transition-all duration-300 outline-none
+            `}
           />
-          {errors.email && (focusedField === "email" || (touched.email && formState.email.length > 0)) && <p className="text-red-400 text-[10px] mt-1">{errors.email}</p>}
+          {errors.email && (focusedField === "email" || (touched.email && formState.email.length > 0)) && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-red-500 animate-fade-in">
+              <AlertCircle className="w-4 h-4" />
+            </div>
+          )}
+          {errors.email && (focusedField === "email" || (touched.email && formState.email.length > 0)) && (
+            <p className="absolute -bottom-5 left-2 text-red-400 text-[10px] font-bold tracking-wide">{errors.email}</p>
+          )}
         </div>
-        <div>
-          <FormField
+
+        {/* Password Field */}
+        <div className="relative group">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+            <Lock
+              className={`h-5 w-5 transition-colors duration-300 ${
+                focusedField === "password" ? "text-red-500" : "text-neutral-500"
+              }`}
+            />
+          </div>
+          <input
             id="password"
-            label="비밀번호"
-            type="password"
             name="password"
+            type="password"
             value={formState.password}
             onChange={handleInputChange}
             onBlur={handleBlur}
             onFocus={handleFocus}
             autoComplete="current-password"
             required
+            placeholder="PASSWORD"
+            className={`
+              w-full pl-12 pr-4 py-4 
+              bg-neutral-800/50 
+              border-2 ${errors.password && touched.password ? "border-red-500/50" : "border-neutral-700"} 
+              rounded-xl 
+              text-neutral-100 placeholder-neutral-500 font-medium
+              focus:border-red-500 focus:ring-4 focus:ring-red-500/10 focus:bg-neutral-800 
+              transition-all duration-300 outline-none
+            `}
           />
-          {errors.password && (focusedField === "password" || (touched.password && formState.password.length > 0)) && <p className="text-red-400 text-[10px] mt-1">{errors.password}</p>}
+          {errors.password && (focusedField === "password" || (touched.password && formState.password.length > 0)) && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-red-500 animate-fade-in">
+              <AlertCircle className="w-4 h-4" />
+            </div>
+          )}
+          {errors.password && (focusedField === "password" || (touched.password && formState.password.length > 0)) && (
+            <p className="absolute -bottom-5 left-2 text-red-400 text-[10px] font-bold tracking-wide">
+              {errors.password}
+            </p>
+          )}
         </div>
 
         {serverError && (
-          <div className="text-red-400 text-sm text-center p-2 bg-red-900/50 rounded-md">{serverError}</div>
+          <div className="text-red-200 text-sm text-center p-3 bg-red-900/40 border border-red-500/30 rounded-lg animate-shake">
+            {serverError}
+          </div>
         )}
 
-        <div>
+        <div className="pt-2">
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full px-4 py-3 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-neutral-600 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all duration-300 transform hover:scale-105"
+            className="
+              w-full py-4 
+              bg-linear-to-r from-red-600 to-red-700 
+              hover:from-red-500 hover:to-red-600 
+              disabled:from-neutral-700 disabled:to-neutral-800 disabled:cursor-not-allowed disabled:text-neutral-500
+              text-white font-black text-lg tracking-widest uppercase 
+              rounded-xl shadow-[0_10px_20px_-5px_rgba(220,38,38,0.5)] 
+              transform transition-all duration-200 
+              hover:scale-[1.02] active:scale-[0.98] 
+              flex items-center justify-center gap-3 group
+              border-b-4 border-red-900 active:border-b-0 active:translate-y-1
+            "
           >
-            {isLoading ? "로그인 중..." : "입장하기"}
+            {isLoading ? (
+              <span>LOADING...</span>
+            ) : (
+              <>
+                <span>ENTER THE RING</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
           </button>
         </div>
-        <div className="text-center text-sm text-neutral-400">
-          계정이 없으신가요?{" "}
-          <a href="/register" className="font-medium text-red-500 hover:underline">
-            회원가입
+
+        <div className="text-center text-sm text-neutral-500 font-medium">
+          DON&apos;T HAVE AN ACCOUNT?{" "}
+          <a href="/register" className="text-red-500 hover:text-red-400 hover:underline transition-colors ml-1">
+            REGISTER NOW
           </a>
         </div>
       </form>

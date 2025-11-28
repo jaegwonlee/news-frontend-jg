@@ -12,7 +12,7 @@ interface LatestNewsProps {
 
 export default function LatestNews({ articles }: LatestNewsProps) {
   if (articles.length === 0) {
-    return <div className="text-center text-zinc-400 py-5">최신 뉴스가 없습니다.</div>;
+    return <div className="text-center text-muted-foreground py-5">최신 뉴스가 없습니다.</div>;
   }
 
   return (
@@ -23,7 +23,7 @@ export default function LatestNews({ articles }: LatestNewsProps) {
           key={article.id} 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="flex items-center gap-4 px-1 py-0.5 rounded-md hover:bg-zinc-800/50 transition-colors duration-150"
+          className="flex items-center gap-4 px-1 py-0.5 rounded-md hover:bg-muted/50 transition-colors duration-150"
         >
           <div className="w-24 h-16 flex-shrink-0 relative">
             <Image
@@ -39,7 +39,7 @@ export default function LatestNews({ articles }: LatestNewsProps) {
             <h3 className="text-sm font-semibold text-white truncate">
               {article.title}
             </h3>
-            <div className="flex items-center text-xs text-zinc-500 mt-1">
+            <div className="flex items-center text-xs text-muted-foreground mt-1">
               {article.favicon_url && (
                 <Image
                   src={article.favicon_url}

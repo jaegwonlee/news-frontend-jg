@@ -142,7 +142,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
 
     const childrenWrapperClasses =
       depth === 0
-        ? "pt-2 pl-6 border-l-2 border-zinc-700/50 bg-zinc-800/50 p-3 rounded-lg mt-2 space-y-2"
+        ? "pt-2 pl-6 border-l-2 border-border/50 bg-card/50 p-3 rounded-lg mt-2 space-y-2"
         : "pt-2 space-y-2";
 
     return (
@@ -165,14 +165,14 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
     }
     return (
       <div className={itemClasses}>
-        <div className="flex items-center gap-3 text-zinc-500 italic">
+        <div className="flex items-center gap-3 text-muted-foreground italic">
           <Ban size={16} className="shrink-0" />
           <div className="flex-1">
             <p className="text-sm">{isDeleted ? "삭제된 댓글입니다." : "가려진 댓글입니다."}</p>
             {comment.children && comment.children.length > 0 && (
               <button
                 onClick={() => setAreChildrenVisible(!areChildrenVisible)}
-                className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-400 mt-1"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-1"
               >
                 <MessageSquare size={14} />
                 <span>답글 보기 ({comment.children.length})</span>
@@ -199,8 +199,8 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm text-zinc-200">{comment.author_name}</span>
-            <span className="text-xs text-zinc-500">{formattedTime}</span>
+            <span className="font-semibold text-sm text-foreground">{comment.author_name}</span>
+            <span className="text-xs text-muted-foreground">{formattedTime}</span>
           </div>
 
           {isEditing ? (
@@ -208,17 +208,17 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
               <textarea
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                className="w-full p-2 bg-zinc-700 border border-zinc-600 rounded-md text-sm text-white"
+                className="w-full p-2 bg-input border border-border rounded-md text-sm text-foreground"
                 rows={2}
               />
               <div className="flex justify-end gap-2 mt-2">
-                <button onClick={() => setIsEditing(false)} className="p-1 text-zinc-400 hover:text-white" title="취소">
+                <button onClick={() => setIsEditing(false)} className="p-1 text-muted-foreground hover:text-foreground" title="취소">
                   <X size={16} />
                 </button>
                 <button
                   onClick={handleEdit}
                   disabled={isSubmitting}
-                  className="p-1 text-green-500 hover:text-green-400 disabled:text-zinc-600"
+                  className="p-1 text-green-500 hover:text-green-400 disabled:text-muted-foreground"
                   title="저장"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={16} />}
@@ -226,13 +226,13 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
               </div>
             </div>
           ) : (
-            <p className="text-sm text-zinc-300 whitespace-pre-wrap py-1">{highlightMentions(comment.content)}</p>
+            <p className="text-sm text-foreground whitespace-pre-wrap py-1">{highlightMentions(comment.content)}</p>
           )}
 
           <div className="flex items-center gap-4 mt-1">
             <button
               onClick={() => handlers.onSetReplyTarget({ id: comment.id, nickname: comment.author_name })}
-              className="text-xs text-zinc-400 hover:text-white"
+              className="text-xs text-muted-foreground hover:text-foreground"
             >
               답글
             </button>
@@ -240,7 +240,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
             {depth === 0 && comment.children && comment.children.length > 0 && (
               <button
                 onClick={() => setAreChildrenVisible(!areChildrenVisible)}
-                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
               >
                 <MessageSquare size={14} />
                 <span>{comment.children.length}</span>
@@ -255,7 +255,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
                 ${
                   comment.currentUserReaction === "LIKE"
                     ? "text-red-500 hover:text-red-600"
-                    : "text-zinc-400 hover:text-white"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               title="좋아요"
             >
@@ -271,7 +271,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
                 ${
                   comment.currentUserReaction === "DISLIKE"
                     ? "text-blue-500 hover:text-blue-600"
-                    : "text-zinc-400 hover:text-white"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               title="싫어요"
             >
@@ -281,17 +281,17 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
 
             {isAuthor && (
               <div className="relative" ref={menuRef}>
-                <button onClick={() => setIsMenuOpen((prev) => !prev)} className="p-1 text-zinc-400 hover:text-white">
+                <button onClick={() => setIsMenuOpen((prev) => !prev)} className="p-1 text-muted-foreground hover:text-foreground">
                   <MoreVertical size={16} />
                 </button>
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-28 bg-zinc-800 border border-zinc-700 rounded-md shadow-lg z-10">
+                  <div className="absolute right-0 mt-2 w-28 bg-popover border border-border rounded-md shadow-lg z-10">
                     <button
                       onClick={() => {
                         setIsEditing(true);
                         setIsMenuOpen(false);
                       }}
-                      className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-700"
+                      className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted"
                     >
                       <Pencil size={14} />
                       <span>수정</span>
@@ -301,7 +301,7 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
                         handleDelete();
                         setIsMenuOpen(false);
                       }}
-                      className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-zinc-700"
+                      className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-muted"
                     >
                       <Trash2 size={14} />
                       <span>삭제</span>
@@ -312,10 +312,10 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
             )}
             {!isAuthor && (
               <>
-                <span className="text-zinc-600 mx-1">·</span>
+                <span className="text-muted-foreground mx-1">·</span>
                 <button
                   onClick={() => setIsReportModalOpen(true)}
-                  className="text-xs text-zinc-400 hover:text-yellow-500 disabled:text-zinc-600 disabled:cursor-not-allowed flex items-center gap-1"
+                  className="text-xs text-muted-foreground hover:text-yellow-500 disabled:text-muted-foreground disabled:cursor-not-allowed flex items-center gap-1"
                   title="댓글 신고"
                   disabled={isReported}
                 >

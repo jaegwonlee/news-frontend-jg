@@ -121,7 +121,8 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
             message: msg.message,
             profile_image_url: getFullImageUrl(msg.profile_image_url),
             created_at: msg.created_at,
-            article_preview: msg.article_preview, // Added
+            article_preview: msg.article_preview,
+            topic_preview: msg.topic_preview,
           }));
           setMessages(formattedHistory);
           setTimeout(() => scrollToBottom("auto"), 100);
@@ -147,7 +148,8 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
             message: data.message,
             profile_image_url: getFullImageUrl(data.profile_image_url),
             created_at: data.created_at,
-            article_preview: data.article_preview, // Added
+            article_preview: data.article_preview,
+            topic_preview: data.topic_preview,
           },
         ]);
       };
@@ -200,8 +202,19 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (topic?.id && isConnected && newMessage.trim() && user && token && !isSending) {
-      const messageToSend = newMessage;
+      let messageToSend = newMessage.trim();
       setNewMessage("");
+
+      // Check if it's a full app URL (local or prod) and convert to relative path
+      try {
+        const url = new URL(messageToSend);
+        if ((['localhost', '127.0.0.1'].includes(url.hostname) || url.hostname.endsWith('vercel.app')) && url.pathname.startsWith('/debate/')) {
+          messageToSend = url.pathname;
+        }
+      } catch (e) {
+        // Not a valid URL, send as is
+      }
+      
       setIsSending(true);
       try {
         await sendChatMessage(topic.id, messageToSend, token);
@@ -334,8 +347,8 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
 
   const isDarkMode = theme === "dark";
   const containerClasses = isDarkMode
-    ? "relative flex flex-col h-full rounded-2xl overflow-hidden border border-white/10 bg-[#2b303b] backdrop-blur-xl shadow-2xl"
-    : "relative flex flex-col h-full rounded-2xl overflow-hidden border border-border bg-[#9bbbd4] shadow-lg";
+    ? "relative flex flex-col h-full rounded-2xl overflow-hidden border border-white/10 bg-card backdrop-blur-xl shadow-2xl"
+    : "relative flex flex-col h-full rounded-2xl overflow-hidden border border-border bg-card shadow-lg";
 
   // --- Render ---
   return (
@@ -355,7 +368,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
       {/* Header */}
       <div
         className={`flex justify-between items-center p-3 h-16 shrink-0 ${
-          isDarkMode ? "border-b border-white/10 bg-black" : "border-b border-border bg-white"
+          isDarkMode ? "border-b border-white/10 bg-background" : "border-b border-border bg-white"
         }`}
       >
         <div className="flex items-center gap-3">
@@ -473,11 +486,11 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
       {zoomedImageUrl &&
         createPortal(
           <div
-            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 sm:p-8 z-[9999] animate-fade-in-fast"
+            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 sm:p-8 z-9999 animate-fade-in-fast"
             onClick={() => setZoomedImageUrl(null)}
           >
             <button
-              className="absolute top-4 right-4 text-white opacity-80 hover:opacity-100 transition-opacity z-[10001]"
+              className="absolute top-4 right-4 text-white opacity-80 hover:opacity-100 transition-opacity z-10001"
               title="Close (Esc)"
               onClick={() => setZoomedImageUrl(null)}
             >
@@ -623,7 +636,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
       {/* Footer Input */}
       <div
         className={`shrink-0 px-4 py-4 ${
-          isDarkMode ? "border-t border-white/10 bg-black" : "border-t border-border bg-white"
+          isDarkMode ? "border-t border-white/10 bg-background" : "border-t border-border bg-white"
         }`}
       >
         {socketError && (

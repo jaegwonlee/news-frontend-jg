@@ -31,7 +31,6 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body
-        style={{backgroundColor: 'hsl(var(--background-hsl))', color: 'hsl(var(--foreground-hsl))'}}
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>

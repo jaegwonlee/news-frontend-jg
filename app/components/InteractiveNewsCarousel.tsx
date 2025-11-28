@@ -50,7 +50,7 @@ export default function InteractiveNewsCarousel({ articles }: InteractiveNewsCar
                   {featuredArticle.title}
                 </Link>
               </h2>
-              <p className="text-zinc-300 line-clamp-3 shadow-md">{featuredArticle.summary}</p>
+              <p className="text-foreground line-clamp-3 shadow-md">{featuredArticle.summary}</p>
             </div>
           )}
         </div>
@@ -75,7 +75,7 @@ export default function InteractiveNewsCarousel({ articles }: InteractiveNewsCar
                 />
                 <div className="overflow-hidden">
                   <h3 className="text-sm font-bold text-white truncate">{article.title}</h3>
-                  <p className="text-xs text-zinc-400 truncate">{article.source}</p>
+                  <p className="text-xs text-muted-foreground truncate">{article.source}</p>
                 </div>
               </div>
             ))}

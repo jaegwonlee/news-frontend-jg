@@ -37,7 +37,7 @@ export default function RelatedTopicsCarousel({ currentTopicId }: RelatedTopicsC
   }, [currentTopicId]);
 
   if (isLoading) {
-    return <div className="text-center text-zinc-400 py-5">관련 토픽 로딩 중...</div>;
+    return <div className="text-center text-muted-foreground py-5">관련 토픽 로딩 중...</div>;
   }
 
   if (error) {
@@ -55,10 +55,10 @@ export default function RelatedTopicsCarousel({ currentTopicId }: RelatedTopicsC
         <div className="scroller-inner flex gap-6 w-max animate-scroll hover:[animation-play-state:paused]">
           {topics.map((topic, index) => (
             <Link href={`/debate/${topic.id}`} key={`${topic.id}-${index}`} className="flex-none w-80 group">
-              <div className="bg-zinc-800/50 border border-zinc-700 rounded-2xl p-6 h-full transition-all duration-300 ease-in-out group-hover:bg-zinc-800 group-hover:border-red-500/50 group-hover:-translate-y-2">
+              <div className="bg-card/50 border border-border rounded-2xl p-6 h-full transition-all duration-300 ease-in-out group-hover:bg-card group-hover:border-red-500/50 group-hover:-translate-y-2">
                 <h4 className="text-lg font-bold text-white truncate mb-2">{topic.display_name}</h4>
-                <p className="text-sm text-zinc-400 line-clamp-2 h-10">{topic.summary}</p>
-                <div className="flex justify-between items-center text-xs text-zinc-500 mt-4 pt-4 border-t border-zinc-700">
+                <p className="text-sm text-muted-foreground line-clamp-2 h-10">{topic.summary}</p>
+                <div className="flex justify-between items-center text-xs text-muted-foreground mt-4 pt-4 border-t border-border">
                   <span>조회수 {topic.view_count}</span>
                   <time dateTime={topic.published_at}>{formatRelativeTime(topic.published_at)}</time>
                 </div>

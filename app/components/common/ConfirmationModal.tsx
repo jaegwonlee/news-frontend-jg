@@ -27,14 +27,14 @@ export default function ConfirmationModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
-      <div className="w-full max-w-md p-6 bg-zinc-900 border border-zinc-700 rounded-xl shadow-lg transform transition-all">
+      <div className="w-full max-w-md p-6 bg-card border border-border rounded-xl shadow-lg transform transition-all">
         <h2 className="text-2xl font-bold text-white mb-4">{title}</h2>
-        <div className="text-zinc-300 mb-6">{children}</div>
+        <div className="text-foreground mb-6">{children}</div>
         <div className="flex justify-end gap-4">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700 rounded-lg hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-500 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-foreground bg-muted rounded-lg hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
           >
             {cancelText}
           </button>

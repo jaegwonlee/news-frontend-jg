@@ -100,11 +100,9 @@ export async function getLikedArticles(token: string, limit: number = 20, offset
     const paginatedArticles = mockLikedArticles.slice(offset, offset + limit);
     return Promise.resolve({ articles: paginatedArticles, totalCount: mockLikedArticles.length });
   }
-  const url = new URL(`/api/user/me/liked-articles`, 'http://localhost');
-  url.searchParams.append('limit', String(limit));
-  url.searchParams.append('offset', String(offset));
+  const url = `/api/user/me/liked-articles?limit=${limit}&offset=${offset}`;
 
-  const response = await fetchWrapper(url.pathname + url.search, {
+  const response = await fetchWrapper(url, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -252,11 +250,9 @@ export async function getSavedArticles(token: string, limit: number = 20, offset
       })) 
     });
   }
-  const url = new URL(`/api/saved/articles`, 'http://localhost');
-  url.searchParams.append('limit', String(limit));
-  url.searchParams.append('offset', String(offset));
+  const url = `/api/saved/articles?limit=${limit}&offset=${offset}`;
 
-  const response = await fetchWrapper(url.pathname + url.search, {
+  const response = await fetchWrapper(url, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

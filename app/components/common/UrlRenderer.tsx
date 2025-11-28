@@ -10,7 +10,7 @@ export default function UrlRenderer({ url }: { url: string }) {
 
     if (isLoading) {
         return (
-            <div className="mt-2 max-w-sm rounded-lg border border-border bg-background p-3">
+            <div className="mt-2 w-80 rounded-lg border border-border bg-background p-3">
                 <Skeleton className="h-24 w-full mb-3" />
                 <Skeleton className="h-4 w-2/4" />
                 <Skeleton className="mt-2 h-3 w-full" />
@@ -42,5 +42,9 @@ export default function UrlRenderer({ url }: { url: string }) {
         like_count: 0,
     };
 
-    return <ArticleCard article={pseudoArticle} />;
+    return (
+        <div className="w-80">
+            <ArticleCard article={pseudoArticle} variant="chat" />
+        </div>
+    );
 }

@@ -31,7 +31,7 @@ export default function ServerPaginationControls({ currentPage, totalPages }: Se
     <nav className="flex justify-center items-center gap-4 mt-8">
       <Link
         href={createPageURL(currentPage - 1)}
-        className={`px-3 py-1 rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors ${currentPage === 1 ? 'pointer-events-none opacity-50' : ''}`}
+        className={`px-3 py-1 rounded-md bg-card text-foreground hover:bg-muted transition-colors ${currentPage === 1 ? 'pointer-events-none opacity-50' : ''}`}
       >
         이전
       </Link>
@@ -43,7 +43,7 @@ export default function ServerPaginationControls({ currentPage, totalPages }: Se
             className={`w-8 h-8 rounded-full text-sm font-semibold transition-colors flex items-center justify-center ${
               currentPage === number
                 ? 'bg-red-500 text-white'
-                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                : 'bg-muted text-foreground hover:bg-muted'
             }`}
           >
             {number}
@@ -52,7 +52,7 @@ export default function ServerPaginationControls({ currentPage, totalPages }: Se
       </div>
       <Link
         href={createPageURL(currentPage + 1)}
-        className={`px-3 py-1 rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors ${currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}`}
+        className={`px-3 py-1 rounded-md bg-card text-foreground hover:bg-muted transition-colors ${currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}`}
       >
         다음
       </Link>

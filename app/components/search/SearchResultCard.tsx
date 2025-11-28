@@ -25,7 +25,7 @@ export default function SearchResultCard({ article, index }: SearchResultCardPro
         href={article.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="block bg-zinc-800/50 rounded-xl overflow-hidden group hover:bg-zinc-800 transition-colors duration-300 h-full"
+        className="block bg-card/50 rounded-xl overflow-hidden group hover:bg-card transition-colors duration-300 h-full"
       >
         <div className="relative w-full h-40">
           <ArticleImageWithFallback
@@ -41,8 +41,8 @@ export default function SearchResultCard({ article, index }: SearchResultCardPro
                 title={article.title}
                 className="text-md font-bold text-white mb-2 line-clamp-2"
             />
-            <p className="text-zinc-400 text-sm line-clamp-2 flex-grow">{article.description}</p>
-            <div className="flex items-center text-xs text-zinc-500 mt-3">
+            <p className="text-muted-foreground text-sm line-clamp-2 flex-grow">{article.description}</p>
+            <div className="flex items-center text-xs text-muted-foreground mt-3">
               {article.favicon_url && (
                 <Image src={article.favicon_url} alt={article.source} width={12} height={12} className="mr-1.5 rounded-sm" />
               )}

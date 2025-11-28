@@ -271,14 +271,13 @@ export async function getPopularNews(category?: string, token?: string): Promise
     }
   // 단일 카테고리에 대한 인기 기사를 가져오는 내부 함수
   const fetchByCategory = async (cat: string): Promise<Article[]> => {
-    const url = new URL(`/api/articles/popular`, 'http://localhost'); // URL 객체 생성을 위해 임시 base URL 사용
-    url.searchParams.append('category', cat);
+    const url = `/api/articles/popular?category=${encodeURIComponent(cat)}`;
     const headers: HeadersInit = {};
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
     try {
-      const response = await fetchWrapper(url.pathname + url.search, {
+      const response = await fetchWrapper(url, {
         cache: 'no-store',
         headers: headers,
       });

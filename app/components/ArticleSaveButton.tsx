@@ -14,7 +14,7 @@ export default function ArticleSaveButton({ isSaved, onClick, disabled = false }
       onClick={onClick}
       disabled={disabled}
       className={`flex items-center gap-1 text-sm transition-colors ${
-        isSaved ? "text-yellow-500 hover:text-yellow-600" : "text-zinc-400 hover:text-white"
+        isSaved ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-foreground"
       } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       title={isSaved ? "저장 취소" : "저장하기"}
     >

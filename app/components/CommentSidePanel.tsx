@@ -41,7 +41,7 @@ export default function CommentSidePanel({
   }, [onClose]);
 
   const panelClasses = `
-    fixed top-0 bottom-0 bg-zinc-900 z-50 flex flex-col w-full lg:w-1/4
+    fixed top-0 bottom-0 bg-card z-50 flex flex-col w-full lg:w-1/4
     transition-transform duration-300 ease-in-out
     ${side === 'left' ? 'left-0' : 'right-0'}
     ${isOpen ? 'translate-x-0' : (side === 'left' ? '-translate-x-full' : 'translate-x-full')}
@@ -56,9 +56,9 @@ export default function CommentSidePanel({
           <div className="flex justify-between items-center p-4 border-b border-zinc-700 shrink-0">
             <div className="flex flex-col overflow-hidden">
               <h2 className="text-lg font-bold text-white">댓글</h2>
-              <p className="text-sm text-zinc-400 truncate">{article.title}</p>
+              <p className="text-sm text-muted-foreground truncate">{article.title}</p>
             </div>
-            <button onClick={onClose} className="text-zinc-400 hover:text-white shrink-0 ml-4">
+            <button onClick={onClose} className="text-muted-foreground hover:text-foreground shrink-0 ml-4">
               <X size={24} />
             </button>
           </div>

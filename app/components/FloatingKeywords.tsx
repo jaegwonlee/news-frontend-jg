@@ -11,7 +11,7 @@ const keywordsData = [
   { text: '#총선', size: 'text-base', color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20' },
   { text: '#국민의힘', size: 'text-sm', color: 'bg-red-500/10 text-red-400 border border-red-500/20' },
   { text: '#더불어민주당', size: 'text-sm', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' },
-  { text: '#제3지대', size: 'text-base', color: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' },
+  { text: '#제3지대', size: 'text-base', color: 'bg-muted/10 text-muted-foreground border border-border/20' },
   { text: '#금리인하', size: 'text-lg', color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' },
   { text: '#부동산', size: 'text-base', color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20' },
 ];

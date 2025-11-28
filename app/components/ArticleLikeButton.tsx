@@ -15,7 +15,7 @@ export default function ArticleLikeButton({ likes, isLiked, onClick, disabled = 
       onClick={onClick}
       disabled={disabled}
       className={`flex items-center gap-1 text-sm transition-colors
-        ${isLiked ? "text-red-500 hover:text-red-600" : "text-zinc-400 hover:text-white"}
+        ${isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"}
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
     >
       <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />

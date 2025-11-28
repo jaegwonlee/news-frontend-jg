@@ -65,7 +65,7 @@ export default function LatestNewsPage() {
 
   return (
     <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8">
-      <div className="bg-zinc-900 p-4 lg:p-6 rounded-lg">
+      <div className="bg-card p-4 lg:p-6 rounded-lg">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-700">
           <Newspaper className="w-6 h-6 text-white" />
           <h2 className="text-lg lg:text-xl font-bold text-white">최신 뉴스</h2>
@@ -88,7 +88,7 @@ export default function LatestNewsPage() {
             />
           </>
         ) : (
-          <p className="text-center text-zinc-400">최신 뉴스가 없습니다.</p>
+          <p className="text-center text-muted-foreground">최신 뉴스가 없습니다.</p>
         )}
       </div>
     </div>

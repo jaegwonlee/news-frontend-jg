@@ -23,7 +23,7 @@ interface DebateCardProps {
 
 const VoteBar = ({ pro, con, isFeatured }: { pro: number; con: number; isFeatured?: boolean }) => {
     const total = pro + con;
-    if (total === 0) return <div className="h-3 w-full bg-gray-700 rounded-full" />;
+    if (total === 0) return <div className="h-3 w-full bg-muted rounded-full" />;
     
     const proPercent = (pro / total) * 100;
     const conPercent = 100 - proPercent;
@@ -45,7 +45,7 @@ const ParticipantAvatars = ({ side, count }: { side: 'pro' | 'con'; count: numbe
         <h4 className={cn("font-bold text-lg", side === 'pro' ? 'text-blue-400' : 'text-red-400')}>{side === 'pro' ? '찬성' : '반대'}</h4>
         <div className="flex -space-x-3">
             {Array.from({ length: Math.min(count, 5) }).map((_, i) => (
-                 <div key={i} className="w-10 h-10 rounded-full border-2 border-gray-800 bg-gray-600 flex items-center justify-center text-xs">
+                 <div key={i} className="w-10 h-10 rounded-full border-2 border-border bg-muted flex items-center justify-center text-xs">
                      U{i+1}
                  </div>
             ))}
@@ -76,7 +76,7 @@ const Countdown = ({ dateString }: { dateString: string }) => {
 
     return (
         <div className="text-center">
-            <p className="text-gray-400 text-sm">남은 시간</p>
+            <p className="text-muted-foreground text-sm">남은 시간</p>
             <p className="text-2xl font-bold">{`${remaining.days}일 ${remaining.hours}시간`}</p>
         </div>
     );
@@ -105,7 +105,7 @@ export default function DebateCard({ topic, status, isFeatured = false }: Debate
   if (isFeatured) {
     return (
       <Link href={`/debate/${topic.id}`} className="block group">
-        <div className="bg-gray-800/50 border border-red-500/50 rounded-2xl p-8 backdrop-blur-sm shadow-2xl shadow-red-500/10 transition-all duration-300 group-hover:border-red-500 group-hover:scale-105">
+        <div className="bg-card/50 border border-red-500/50 rounded-2xl p-8 backdrop-blur-sm shadow-2xl shadow-red-500/10 transition-all duration-300 group-hover:border-red-500 group-hover:scale-105">
           <div className="text-center mb-6">
             <span className="text-red-500 font-bold text-sm tracking-widest">{topic.category}</span>
             <h3 className="text-3xl font-bold mt-2">{topic.display_name}</h3>
@@ -113,9 +113,9 @@ export default function DebateCard({ topic, status, isFeatured = false }: Debate
           <div className="flex justify-around items-center my-8">
             <ParticipantAvatars side="pro" count={proVotes} />
             <div className="text-center">
-                <Swords size={48} className="text-gray-500 mb-4" />
+                <Swords size={48} className="text-muted-foreground mb-4" />
                 <div className="font-mono text-4xl font-black">{totalVotes.toLocaleString()}</div>
-                <div className="text-sm text-gray-400">총 참여자</div>
+                <div className="text-sm text-muted-foreground">총 참여자</div>
             </div>
             <ParticipantAvatars side="con" count={conVotes} />
           </div>
@@ -131,13 +131,13 @@ export default function DebateCard({ topic, status, isFeatured = false }: Debate
   // === Standard & Past Card Variants ===
   return (
     <Link href={`/debate/${topic.id}`} className="block h-full group">
-      <div className="h-full bg-gray-800 border border-gray-700 rounded-lg p-5 flex flex-col transition-all duration-300 group-hover:border-primary group-hover:-translate-y-1">
+      <div className="h-full bg-card border border-border rounded-lg p-5 flex flex-col transition-all duration-300 group-hover:border-primary group-hover:-translate-y-1">
         <div className="flex justify-between items-center mb-3">
-          <span className="text-xs font-bold text-gray-400">{topic.category}</span>
+          <span className="text-xs font-bold text-muted-foreground">{topic.category}</span>
           {status === 'ongoing' ? (
             <div className="text-xs font-bold px-2 py-1 bg-red-900/50 text-red-400 rounded">진행중</div>
           ) : (
-            <div className="text-xs font-bold px-2 py-1 bg-gray-700 text-gray-400 rounded">종료</div>
+            <div className="text-xs font-bold px-2 py-1 bg-muted text-muted-foreground rounded">종료</div>
           )}
         </div>
 
@@ -147,12 +147,12 @@ export default function DebateCard({ topic, status, isFeatured = false }: Debate
             <VoteBar pro={proVotes} con={conVotes} />
         ) : (
             <div className="my-4 text-center">
-                <Crown size={20} className={cn("mx-auto mb-1", winner === 'pro' ? 'text-blue-400' : winner === 'con' ? 'text-red-400' : 'text-gray-500')} />
+                <Crown size={20} className={cn("mx-auto mb-1", winner === 'pro' ? 'text-blue-400' : winner === 'con' ? 'text-red-400' : 'text-muted-foreground')} />
                 <p className="text-sm font-bold">{winner === 'pro' ? '찬성 승리' : winner === 'con' ? '반대 승리' : '무승부'}</p>
             </div>
         )}
 
-        <div className="flex justify-between items-center mt-auto text-sm text-gray-400 pt-4 border-t border-gray-700/50">
+        <div className="flex justify-between items-center mt-auto text-sm text-muted-foreground pt-4 border-t border-border/50">
             <div className="flex items-center gap-1.5">
                 <Vote size={14} />
                 <span>{totalVotes.toLocaleString()}</span>

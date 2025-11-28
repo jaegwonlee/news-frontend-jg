@@ -55,25 +55,25 @@ export default function ReportModal({ isOpen, onClose, reportType, targetId, onR
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-zinc-800 p-6 rounded-lg shadow-xl w-full max-w-md mx-4 border border-zinc-700">
+      <div className="bg-card p-6 rounded-lg shadow-xl w-full max-w-md mx-4 border border-border">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">신고하기</h2>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white">
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X size={24} />
           </button>
         </div>
         <form onSubmit={handleSubmit}>
-          <p className="text-zinc-300 mb-4">신고 사유를 선택해주세요:</p>
+          <p className="text-foreground mb-4">신고 사유를 선택해주세요:</p>
           <div className="space-y-2 mb-6">
             {reportReasons.map((reason) => (
-              <label key={reason.value} className="flex items-center text-zinc-200 cursor-pointer">
+              <label key={reason.value} className="flex items-center text-foreground cursor-pointer">
                 <input
                   type="radio"
                   name="reportReason"
                   value={reason.value}
                   checked={selectedReason === reason.value}
                   onChange={(e) => setSelectedReason(e.target.value)}
-                  className="form-radio h-4 w-4 text-blue-500 bg-zinc-700 border-zinc-600 focus:ring-blue-500"
+                  className="form-radio h-4 w-4 text-blue-500 bg-input border-border focus:ring-blue-500"
                 />
                 <span className="ml-3">{reason.label}</span>
               </label>
@@ -83,7 +83,7 @@ export default function ReportModal({ isOpen, onClose, reportType, targetId, onR
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-zinc-700 text-white rounded-md hover:bg-zinc-600 transition-colors"
+              className="px-4 py-2 bg-muted text-foreground rounded-md hover:bg-zinc-600 transition-colors"
               disabled={isSubmitting}
             >
               취소
