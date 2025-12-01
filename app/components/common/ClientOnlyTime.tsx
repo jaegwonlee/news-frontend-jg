@@ -7,9 +7,10 @@ import { format } from 'date-fns'; // Import date-fns format
 interface ClientOnlyTimeProps {
   date: string;
   format?: string; // Add optional format prop
+  className?: string;
 }
 
-export default function ClientOnlyTime({ date, format: formatStr }: ClientOnlyTimeProps) {
+export default function ClientOnlyTime({ date, format: formatStr, className }: ClientOnlyTimeProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -29,12 +30,12 @@ export default function ClientOnlyTime({ date, format: formatStr }: ClientOnlyTi
 
   if (!isMounted) {
     // On the server, return a placeholder or null to avoid hydration mismatch
-    return <time dateTime={getKstIsoString(date)}></time>;
+    return <time dateTime={getKstIsoString(date)} className={className}></time>;
   }
 
   const dateObj = new Date(date);
   const displayTime = formatStr ? format(dateObj, formatStr) : formatRelativeTime(date);
 
   // After mounting on the client, render the relative time or formatted time
-  return <time dateTime={getKstIsoString(date)}>{displayTime}</time>;
+  return <time dateTime={getKstIsoString(date)} className={className}>{displayTime}</time>;
 }

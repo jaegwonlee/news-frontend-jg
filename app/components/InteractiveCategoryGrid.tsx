@@ -6,11 +6,11 @@ import { getCategoryNews } from '@/lib/api/articles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ArticleCard from './ArticleCard';
-import { getCategoryTheme } from '@/lib/categoryColors';
+import { getCategoryTheme, CategoryTheme } from '@/lib/categoryColors';
 
 const CATEGORIES = ["정치", "경제", "사회", "문화", "스포츠"];
 
-const categoryStyles: { [key: string]: { text: string; bg: string; hoverBg: string; border: string; } } = {
+const categoryStyles: { [key: string]: CategoryTheme } = {
     "정치": getCategoryTheme("정치"),
     "경제": getCategoryTheme("경제"),
     "사회": getCategoryTheme("사회"),

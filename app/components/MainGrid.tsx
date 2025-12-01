@@ -3,7 +3,6 @@
 import { Topic } from "@/types";
 import { useState } from "react";
 import ChatRoom from "./ChatRoom";
-import FloatingKeywords from "./FloatingKeywords";
 import TrendingTopics from "./TrendingTopics";
 
 interface MainGridProps {
@@ -65,7 +64,7 @@ export default function MainGrid({ mainTopic, popularTopics = [], latestTopics =
 
         {/* New Section (Bottom Half) */}
         <div className="bg-card border border-border rounded-xl p-4 flex flex-col min-h-0">
-          <FloatingKeywords />
+          
         </div>
       </div>
     </div>
