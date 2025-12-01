@@ -1,11 +1,11 @@
-import { getCategoryNews } from '@/lib/api/articles';
-import CategoryNewsClientPage from '@/app/components/CategoryNewsClientPage';
+import CategoryNewsClientPage from "@/app/components/CategoryNewsClientPage";
+import { getCategoryNews } from "@/lib/api/articles";
 
 // This is now a Server Component
 export default async function SportsPage() {
   const categoryName = "스포츠";
   // Fetch data on the server
-  const articles = await getCategoryNews(categoryName);
+  const articles = await getCategoryNews(categoryName, 50);
 
   return <CategoryNewsClientPage articles={articles} categoryName={categoryName} />;
 }
