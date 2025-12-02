@@ -103,7 +103,7 @@ export default function NotificationsPage() {
     setError(null);
     try {
       const fetchedNotifications = await getNotifications(token);
-      setNotifications(fetchedNotifications);
+      setNotifications(Array.isArray(fetchedNotifications) ? fetchedNotifications : []);
     } catch (err: any) {
       setError(err.message || "알림을 불러오는데 실패했습니다.");
       console.error("Failed to fetch notifications:", err);
