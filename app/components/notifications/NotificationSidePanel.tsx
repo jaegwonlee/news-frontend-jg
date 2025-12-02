@@ -51,11 +51,14 @@ const NotificationItem = ({ notification, onRead, token, onClosePanel }: Notific
 
   return (
     <div
-      className={`flex items-center gap-4 p-4 rounded-lg transition-colors cursor-pointer ${
-        notification.is_read ? "bg-zinc-50 dark:bg-zinc-800" : "bg-blue-50 dark:bg-blue-900/20"
-      } hover:bg-zinc-100 dark:hover:bg-zinc-700`}
+      className={`flex items-center gap-4 p-4 rounded-lg transition-colors cursor-pointer relative group ${
+        notification.is_read ? "bg-transparent" : "bg-blue-50/20 dark:bg-blue-900/10"
+      } hover:bg-zinc-100 dark:hover:bg-zinc-800`}
       onClick={handleNotificationClick}
     >
+      {!notification.is_read && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 bg-blue-500 rounded-full group-hover:bg-blue-400 transition-colors" />
+      )}
       {notification.metadata?.thumbnail_url ? (
         <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden relative">
           <Image
@@ -74,10 +77,10 @@ const NotificationItem = ({ notification, onRead, token, onClosePanel }: Notific
       )}
 
       <div className="flex-1">
-        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2">
+        <p className="text-sm font-medium text-foreground line-clamp-2">
           {notification.message}
         </p>
-        <div className="flex items-center gap-2 mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
           {notification.metadata?.source_domain && (
             <img
               src={`https://www.google.com/s2/favicons?domain=${notification.metadata.source_domain}&sz=16`}
@@ -162,25 +165,34 @@ export default function NotificationSidePanel() {
             transition={{ type: "tween", duration: 0.2 }}
             className="fixed right-0 top-0 h-full w-full max-w-sm bg-card shadow-lg z-50 flex flex-col"
           >
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-xl font-bold text-foreground">알림</h2>
-              <div className="flex items-center gap-2">
-                <Link href="/notifications" passHref>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
-                    onClick={() => toggleSidePanel(false)} // Close panel when navigating to full page
-                  >
-                    전체 보기
-                  </motion.button>
-                </Link>
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xl font-bold text-foreground">알림</h2>
                 <button
                   onClick={() => toggleSidePanel(false)}
                   className="p-1 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  aria-label="알림 패널 닫기"
                 >
                   <X className="w-5 h-5" />
                 </button>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <Link
+                  href="/notifications"
+                  onClick={() => toggleSidePanel(false)} // Close panel when navigating
+                  className="text-primary hover:underline"
+                >
+                  전체 보기
+                </Link>
+                {notifications.length > 0 && ( // Only show if there are notifications
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={unreadCount === 0}
+                  >
+                    모두 읽음으로 표시
+                  </button>
+                )}
               </div>
             </div>
 
@@ -196,17 +208,10 @@ export default function NotificationSidePanel() {
 
               {!loading && !error && notifications.length > 0 && (
                 <>
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="mb-4">
                     <p className="text-zinc-600 dark:text-zinc-300">
                       읽지 않은 알림: <span className="font-bold">{unreadCount}</span>개
                     </p>
-                    <button
-                      onClick={handleMarkAllAsRead}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-                      disabled={unreadCount === 0}
-                    >
-                      모두 읽음으로 표시
-                    </button>
                   </div>
                   <div className="space-y-4">
                     {notifications.map((notification) => (
