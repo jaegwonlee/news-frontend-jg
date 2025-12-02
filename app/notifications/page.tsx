@@ -3,7 +3,7 @@
 
 import { useAuth } from "@/app/context/AuthContext";
 import { useNotifications } from "@/app/context/NotificationContext";
-import { getNotifications, markAllAsRead, markNotificationAsRead } from "@/lib/api/notifications";
+import { getNotifications, markAllAsRead, markAsRead } from "@/lib/api/notifications";
 import { Notification, NotificationType } from "@/lib/types/notification";
 import { formatRelativeTime } from "@/lib/utils";
 import { Bell, AlertCircle, Star, Clock, Zap, MessageSquare, Megaphone } from "lucide-react";
@@ -23,7 +23,7 @@ const NotificationItem = ({ notification, onRead, token }: NotificationItemProps
 
   const handleNotificationClick = async () => {
     if (!notification.is_read && token) {
-      await markNotificationAsRead(token, notification.id);
+      await markAsRead(token, notification.id);
       onRead(notification.id);
     }
     router.push(notification.url);
