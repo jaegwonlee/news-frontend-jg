@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Bell, Headset, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -24,13 +24,13 @@ const navLinks = [
 export default function Header() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isDarkMode = mounted && theme === "dark"; // Re-added this line
+  const isDarkMode = theme === "dark"; // Re-added this line
   const headerBorderColor = isDarkMode ? "#27272a" : "#e5e5e5"; // neutral-800 vs neutral-200
   const separatorColor = isDarkMode ? "#4a4a4a" : "#d4d4d4"; // neutral-700 vs neutral-300
 
@@ -58,10 +58,14 @@ export default function Header() {
                 className="p-1 rounded-full hover:bg-accent transition-colors group"
                 aria-label="Toggle Theme"
               >
-                {isDarkMode ? (
-                  <Moon className="w-5 h-5 text-[var(--icon-adaptive)] hover:text-foreground transition-transform group-hover:scale-125" />
+                {mounted ? (
+                  isDarkMode ? (
+                    <Moon className="w-5 h-5 text-[var(--icon-adaptive)] hover:text-foreground transition-transform group-hover:scale-125" />
+                  ) : (
+                    <Sun className="w-5 h-5 text-[var(--icon-adaptive)] hover:text-foreground transition-transform group-hover:scale-125" />
+                  )
                 ) : (
-                  <Sun className="w-5 h-5 text-[var(--icon-adaptive)] hover:text-foreground transition-transform group-hover:scale-125" />
+                  <div className="w-5 h-5" /> // Render an empty div or a default icon placeholder
                 )}
               </button>
               <Link href="/inquiry" className="p-1 rounded-full hover:bg-accent transition-colors hidden sm:block group">
