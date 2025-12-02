@@ -6,6 +6,7 @@ export enum NotificationType {
   EXCLUSIVE_NEWS = 'EXCLUSIVE_NEWS',
   VOTE_REMINDER = 'VOTE_REMINDER',
   ADMIN_NOTICE = 'ADMIN_NOTICE',
+  FRIEND_REQUEST = 'FRIEND_REQUEST', // New
 }
 
 export interface NotificationMetadata {

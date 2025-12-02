@@ -10,6 +10,7 @@ const ALL_NOTIFICATION_TYPES: NotificationType[] = [
   "EXCLUSIVE_NEWS",
   "VOTE_REMINDER",
   "ADMIN_NOTICE",
+  "FRIEND_REQUEST", // New
 ];
 
 export const useNotificationSettings = () => {

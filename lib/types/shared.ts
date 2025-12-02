@@ -22,7 +22,7 @@ export interface SavedArticleCategory {
   article_count?: number;
 }
 
-export type NotificationType = "NEW_TOPIC" | "BREAKING_NEWS" | "EXCLUSIVE_NEWS" | "VOTE_REMINDER" | "ADMIN_NOTICE";
+export type NotificationType = "NEW_TOPIC" | "BREAKING_NEWS" | "EXCLUSIVE_NEWS" | "VOTE_REMINDER" | "ADMIN_NOTICE" | "FRIEND_REQUEST";
 
 export interface NotificationSetting {
   notification_type: NotificationType;

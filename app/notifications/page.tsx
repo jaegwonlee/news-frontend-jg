@@ -6,7 +6,7 @@ import { useNotifications } from "@/app/context/NotificationContext";
 import { getNotifications, markAllAsRead, markAsRead } from "@/lib/api/notifications";
 import { Notification, NotificationType } from "@/lib/types/notification";
 import { formatRelativeTime } from "@/lib/utils";
-import { Bell, AlertCircle, Star, Clock, Zap, MessageSquare, Megaphone } from "lucide-react";
+import { Bell, AlertCircle, Star, Clock, Zap, MessageSquare, Megaphone, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
@@ -41,6 +41,8 @@ const NotificationItem = ({ notification, onRead, token }: NotificationItemProps
         return <Clock className="w-5 h-5 text-blue-500" />;
       case NotificationType.ADMIN_NOTICE:
         return <Megaphone className="w-5 h-5 text-green-500" />;
+      case NotificationType.FRIEND_REQUEST: // New
+        return <UserPlus className="w-5 h-5 text-indigo-500" />; // New icon for friend request
       default:
         return <Bell className="w-5 h-5 text-zinc-500" />;
     }
