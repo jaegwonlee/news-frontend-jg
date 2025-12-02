@@ -35,15 +35,15 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <SocketProvider>
-              <NotificationProvider>
+            <NotificationProvider>
+              <SocketProvider>
                 <Header />
                 <main className="flex-1 w-full">{children}</main>
                 <Footer />
                 <ScrollToTopButton />
                 <NotificationToast />
-              </NotificationProvider>
-            </SocketProvider>
+              </SocketProvider>
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
