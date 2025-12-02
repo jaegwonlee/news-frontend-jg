@@ -9,15 +9,16 @@ import { formatRelativeTime } from "@/lib/utils";
 import { Bell, AlertCircle, Star, Clock, Zap, Megaphone, X, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, useRef } from "react"; // Added useRef
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTheme } from "next-themes";
 
 interface NotificationItemProps {
   notification: Notification;
   onRead: (id: number) => void;
   token: string | null;
-  onClosePanel: () => void; // Added to close panel after click
+  onClosePanel: () => void;
 }
 
 const NotificationItem = ({ notification, onRead, token, onClosePanel }: NotificationItemProps) => {
@@ -28,7 +29,7 @@ const NotificationItem = ({ notification, onRead, token, onClosePanel }: Notific
       await markAsRead(token, notification.id);
       onRead(notification.id);
     }
-    onClosePanel(); // Close panel after clicking a notification
+    onClosePanel();
     router.push(notification.url);
   };
 
@@ -44,8 +45,8 @@ const NotificationItem = ({ notification, onRead, token, onClosePanel }: Notific
         return <Clock className="w-5 h-5 text-blue-500" />;
       case NotificationType.ADMIN_NOTICE:
         return <Megaphone className="w-5 h-5 text-green-500" />;
-      case NotificationType.FRIEND_REQUEST: // New
-        return <UserPlus className="w-5 h-5 text-indigo-500" />; // New icon for friend request
+      case NotificationType.FRIEND_REQUEST:
+        return <UserPlus className="w-5 h-5 text-indigo-500" />;
       default:
         return <Bell className="w-5 h-5 text-zinc-500" />;
     }
@@ -100,49 +101,12 @@ const NotificationItem = ({ notification, onRead, token, onClosePanel }: Notific
 
 export default function NotificationSidePanel() {
   const { token } = useAuth();
-  const { isSidePanelOpen, toggleSidePanel, markAsRead, markAllAsRead, setUnreadCount } = useNotifications();
+  const { isSidePanelOpen, toggleSidePanel, markAsRead, markAllAsRead } = useNotifications();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dynamicRight, setDynamicRight] = useState<number>(0); // New state for dynamic right position
-  const sidePanelRef = useRef<HTMLDivElement>(null); // New ref for the side panel
-
-  useEffect(() => {
-    const calculateRightOffset = () => {
-      // Find a reference element that defines the main content width, e.g., the Header's inner div
-      // We look for the common `max-w-7xl mx-auto` pattern which exists in Header and Footer
-      const mainContentWrapper = document.querySelector('.max-w-7xl.mx-auto.py-2'); // Use a more specific selector
-      if (mainContentWrapper) {
-        const rect = mainContentWrapper.getBoundingClientRect();
-        const computedStyle = window.getComputedStyle(mainContentWrapper);
-        const paddingRight = parseFloat(computedStyle.paddingRight); // Get dynamic padding
-
-        const viewportWidth = window.innerWidth;
-        // The side panel's right edge should align with the main content's inner right edge.
-        // This is `rect.right - paddingRight` (distance from viewport left).
-        // The `right` CSS property is distance from viewport right.
-        const targetRightFromViewportRight = viewportWidth - (rect.right - paddingRight);
-        
-        setDynamicRight(Math.max(0, targetRightFromViewportRight));
-      } else {
-        // Fallback to 0 (align to viewport right) if the wrapper isn't found
-        setDynamicRight(0);
-      }
-    };
-
-    // Calculate on mount and whenever the window resizes
-    calculateRightOffset();
-    window.addEventListener('resize', calculateRightOffset);
-
-    // Initial calculation if panel is already open
-    if (isSidePanelOpen) {
-      calculateRightOffset();
-    }
-
-    return () => {
-      window.removeEventListener('resize', calculateRightOffset);
-    };
-  }, [isSidePanelOpen]); // Recalculate if side panel opens/closes (might change layout)
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   const fetchNotifications = useCallback(async () => {
     if (!token) return;
@@ -160,7 +124,7 @@ export default function NotificationSidePanel() {
   }, [token]);
 
   useEffect(() => {
-    if (isSidePanelOpen) { // Fetch notifications only when panel is open
+    if (isSidePanelOpen) {
       fetchNotifications();
     }
   }, [isSidePanelOpen, fetchNotifications]);
@@ -189,26 +153,17 @@ export default function NotificationSidePanel() {
     <AnimatePresence>
       {isSidePanelOpen && (
         <>
-          {/* Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black z-40" // Changed bg-black/50 to bg-black
-            onClick={() => toggleSidePanel(false)}
-          />
+
 
           {/* Side Panel */}
           <motion.div
-            ref={sidePanelRef}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.2 }}
-            style={{ right: `${dynamicRight}px` }} // Apply dynamic right position
-            className="fixed top-0 h-full w-full max-w-sm bg-card shadow-lg z-50 flex flex-col"
+            className={`fixed top-0 right-0 h-full w-full max-w-xs ${isDarkMode ? "bg-black" : "bg-white"} shadow-lg z-50 flex flex-col`}
           >
-            <div className="p-4 border-b border-border">
+            <div className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-bold text-foreground">알림</h2>
                 <button
@@ -222,12 +177,12 @@ export default function NotificationSidePanel() {
               <div className="flex justify-between items-center text-sm">
                 <Link
                   href="/notifications"
-                  onClick={() => toggleSidePanel(false)} // Close panel when navigating
+                  onClick={() => toggleSidePanel(false)}
                   className="text-primary hover:underline"
                 >
                   전체 보기
                 </Link>
-                {notifications.length > 0 && ( // Only show if there are notifications
+                {notifications.length > 0 && (
                   <button
                     onClick={handleMarkAllAsRead}
                     className="text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
@@ -238,6 +193,9 @@ export default function NotificationSidePanel() {
                 )}
               </div>
             </div>
+
+            {/* Separate dividing line for alignment */}
+            <div className={`absolute top-[var(--header-height)] left-0 right-0 h-[1px] ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} z-50`}></div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {loading && <p className="text-center text-zinc-500">알림을 불러오는 중...</p>}

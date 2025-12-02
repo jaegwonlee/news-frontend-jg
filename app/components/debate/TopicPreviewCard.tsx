@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Clock } from 'lucide-react';
+import { useTheme } from "next-themes";
 
 // Define the type based on the user's provided structure
 interface TopicPreview {
@@ -19,6 +20,8 @@ interface TopicPreviewCardProps {
 }
 
 export default function TopicPreviewCard({ topic }: TopicPreviewCardProps) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
   const totalVotes = topic.left_count + topic.right_count;
   const leftPercent = totalVotes > 0 ? (topic.left_count / totalVotes) * 100 : 50;
   const rightPercent = 100 - leftPercent;
@@ -28,7 +31,7 @@ export default function TopicPreviewCard({ topic }: TopicPreviewCardProps) {
       e.dataTransfer.setData("text/plain", `${window.location.origin}/debate/${topic.id}`);
       e.dataTransfer.setData("application/json", JSON.stringify({ type: 'topic', data: topic }));
     }}>
-      <div className="w-full rounded-lg border border-gray-800 bg-black p-4 transition-all hover:border-gray-700 hover:shadow-primary/10 hover:shadow-lg">
+      <div className={`w-full rounded-lg ${isDarkMode ? "border border-gray-800 bg-black" : "border border-gray-200 bg-white"} p-4 transition-all hover:border-gray-700 hover:shadow-primary/10 hover:shadow-lg`}>
         {/* Header */}
         <div className="flex justify-between items-start mb-3">
           <h4 className="font-bold text-lg text-foreground line-clamp-2 leading-tight">{topic.display_name}</h4>

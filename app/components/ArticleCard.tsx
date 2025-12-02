@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCategoryTheme } from "@/lib/categoryColors";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 import ArticleSaveButton from "./ArticleSaveButton";
 import ClientOnlyTime from "./common/ClientOnlyTime";
 import Favicon from "./common/Favicon";
@@ -33,6 +34,8 @@ export default function ArticleCard({
   rel = "noopener noreferrer", // Default rel to noopener noreferrer
 
 }: ArticleCardProps) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
   // Determine hover colors dynamically
   let finalHoverColorClass = hoverColorClass;
 
@@ -587,7 +590,12 @@ export default function ArticleCard({
   // --- Variant: Chat (Compact Image Left, Title Right) ---
   if (variant === "chat") {
     return (
-      <Link href={article.url} target="_blank" rel={rel} className={`group flex items-center rounded-lg border border-gray-800 bg-black hover:bg-gray-900 transition-colors text-white ${className}`}>
+      <Link
+        href={article.url}
+        target="_blank"
+        rel={rel}
+        className={`group flex items-center rounded-lg ${isDarkMode ? "border border-gray-800 bg-black text-white" : "border border-gray-200 bg-white text-black"} hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors ${className}`}
+      >
         <div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-l-lg">
           <Image
             src={article.thumbnail_url || "/placeholder.png"}

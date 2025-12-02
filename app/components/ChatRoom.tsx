@@ -344,7 +344,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
         className={`absolute left-0 right-0 z-[-1] overflow-hidden`}
         style={{
           top: "64px",
-          bottom: "80px",
+          bottom: "72px",
           backgroundImage: `url('/ground.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "center",

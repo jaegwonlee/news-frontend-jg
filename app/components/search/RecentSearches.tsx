@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, X } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const MAX_RECENT_SEARCHES = 7;
 const LOCAL_STORAGE_KEY = "recentSearches";
@@ -13,13 +13,12 @@ interface RecentSearchesProps {
 }
 
 export const getRecentSearches = (): string[] => {
-  if (typeof window === "undefined") return [];
   const storedSearches = localStorage.getItem(LOCAL_STORAGE_KEY);
   return storedSearches ? JSON.parse(storedSearches) : [];
 };
 
 export const addRecentSearch = (query: string) => {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") return; // Keep this check for addRecentSearch
   const searches = getRecentSearches();
   const updatedSearches = [query, ...searches.filter((s) => s.toLowerCase() !== query.toLowerCase())].slice(
     0,
@@ -29,8 +28,16 @@ export const addRecentSearch = (query: string) => {
 };
 
 export default function RecentSearches({ onSearch }: RecentSearchesProps) {
-  const [searches, setSearches] = useState<string[]>(getRecentSearches());
+  const [searches, setSearches] = useState<string[]>([]); // Initialize with empty array
   const { resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    // This effect runs only on the client side after hydration
+    if (typeof window !== "undefined") {
+      setSearches(getRecentSearches());
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
 
   const handleRemove = (e: React.MouseEvent, searchToRemove: string) => {
     e.stopPropagation(); // Prevent triggering onSearch when clicking the 'x'

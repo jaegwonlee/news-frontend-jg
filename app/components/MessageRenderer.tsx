@@ -2,6 +2,7 @@ import { SearchResult } from "@/hooks/useChatSearch";
 import { MEDIA_EXTENSIONS, S3_URL_PREFIX } from "@/lib/constants";
 import { Message } from "@/lib/types/shared";
 import React from "react";
+import { useTheme } from "next-themes"; // Import useTheme
 import ArticleCard from "./ArticleCard";
 import MediaRenderer from "./common/MediaRenderer";
 import TopicPreviewCard from "./debate/TopicPreviewCard";
@@ -60,6 +61,8 @@ export default function MessageRenderer({
   searchQuery,
   isMyMessage,
 }: MessageRendererProps) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
   const trimmedMessage = msg.message.trim();
 
   // --- 1. Handle media-only messages (these don't have text + card) ---
@@ -141,7 +144,7 @@ export default function MessageRenderer({
 
   const bubbleClass = isMyMessage
     ? "bg-blue-500 text-white rounded-2xl shadow-sm"
-    : "bg-card text-foreground rounded-2xl shadow-sm border border-border";
+    : `text-foreground rounded-2xl shadow-sm ${isDarkMode ? "bg-zinc-700" : "bg-gray-300"}`;
 
   return (
     <>
