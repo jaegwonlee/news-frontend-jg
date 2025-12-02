@@ -160,7 +160,7 @@ export default function NotificationSidePanel() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.2 }}
-            className="fixed right-0 top-0 h-full w-full max-w-md bg-background shadow-lg z-50 flex flex-col"
+            className="fixed right-0 top-0 h-full w-full max-w-md bg-card shadow-lg z-50 flex flex-col"
           >
             <div className="flex items-center justify-between p-4 border-b border-border">
               <h2 className="text-xl font-bold text-foreground">알림</h2>
