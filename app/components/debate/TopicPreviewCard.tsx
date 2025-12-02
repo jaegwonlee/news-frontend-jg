@@ -50,12 +50,12 @@ export default function TopicPreviewCard({ topic }: TopicPreviewCardProps) {
         {/* Vote details with glove icons */}
         <div className="flex justify-between items-center text-sm text-muted-foreground px-1">
             <div className="flex items-center gap-2">
-                <Image src="/avatars/blue--glove.svg" width={18} height={18} alt="Pro" />
+                <Image src="/blue--glove.svg" width={18} height={18} alt="Pro" />
                 <span className="font-semibold text-foreground">{topic.left_count.toLocaleString()}</span>
             </div>
             <div className="flex items-center gap-2">
                 <span className="font-semibold text-foreground">{topic.right_count.toLocaleString()}</span>
-                <Image src="/avatars/red--glove.svg" width={18} height={18} alt="Con" />
+                <Image src="/red--glove.svg" width={18} height={18} alt="Con" />
             </div>
         </div>
         

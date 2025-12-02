@@ -31,7 +31,7 @@ export default function ScrollToTopButton() {
     });
   };
 
-  const gloveSrc = theme === 'light' ? '/avatars/red--glove.svg' : '/avatars/blue--glove.svg';
+  const gloveSrc = theme === 'light' ? '/red--glove.svg' : '/blue--glove.svg';
   const rotationClass = theme === 'light' ? 'rotate-90' : '-rotate-90'; // Red glove needs +90deg, Blue glove needs -90deg to point left
 
   return (

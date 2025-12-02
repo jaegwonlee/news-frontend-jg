@@ -334,7 +334,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
 
   const isDarkMode = theme === "dark";
   const containerClasses = isDarkMode
-    ? "relative flex flex-col h-full rounded-2xl overflow-hidden border border-white/10 bg-card backdrop-blur-xl shadow-2xl"
+    ? "relative flex flex-col h-full rounded-2xl overflow-hidden border border-white/10 bg-card shadow-2xl"
     : "relative flex flex-col h-full rounded-2xl overflow-hidden border border-border bg-card shadow-lg";
 
   // --- Render ---
@@ -345,10 +345,10 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
         style={{
           top: "64px",
           bottom: "80px",
-          backgroundImage: `url('/360_F_948079407_7qSn6DZAT9njgxFGhumiviPQyur2ThqV.jpg')`,
+          backgroundImage: `url('/ground.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          opacity: isDarkMode ? "0" : "0.4",
+          opacity: "0.7",
           transition: "all 300ms",
         }}
       ></div>

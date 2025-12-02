@@ -25,7 +25,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = "def
             )}
           >
             <div className="relative w-40 h-40 md:w-52 md:h-52 drop-shadow-2xl">
-              <Image src="/avatars/blue--glove.svg" alt="Blue Glove" fill className="object-contain" priority />
+              <Image src="/blue--glove.svg" alt="Blue Glove" fill className="object-contain" priority />
             </div>
           </div>
 
@@ -39,7 +39,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = "def
             style={{ animationDelay: "1s" }}
           >
             <div className="relative w-40 h-40 md:w-52 md:h-52 drop-shadow-2xl">
-              <Image src="/avatars/red--glove.svg" alt="Red Glove" fill className="object-contain" priority />
+              <Image src="/red--glove.svg" alt="Red Glove" fill className="object-contain" priority />
             </div>
           </div>
         </>
