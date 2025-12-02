@@ -18,6 +18,8 @@ interface NotificationContextType {
   markAsRead: (id: number) => void;
   markAllAsRead: () => void;
   setUnreadCount: (count: number) => void; // Added for initial fetch
+  isSidePanelOpen: boolean; // New
+  toggleSidePanel: (isOpen?: boolean) => void; // New
 }
 
 // 2. Create the context with default values
@@ -33,6 +35,7 @@ interface NotificationProviderProps {
 export function NotificationProvider({ children }: NotificationProviderProps) {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false); // New
 
   // Placeholder for adding a new notification (e.g., from Socket.IO)
   const addNotification = (newNotification: Notification) => {
@@ -57,6 +60,11 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     setUnreadCount(0);
   };
 
+  // New
+  const toggleSidePanel = (isOpen?: boolean) => {
+    setIsSidePanelOpen((prev) => (isOpen !== undefined ? isOpen : !prev));
+  };
+
   const value = {
     unreadCount,
     notifications,
@@ -64,6 +72,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     markAsRead,
     markAllAsRead,
     setUnreadCount,
+    isSidePanelOpen, // New
+    toggleSidePanel, // New
   };
 
   return (

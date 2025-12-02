@@ -10,6 +10,7 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { useNotifications } from "@/app/context/NotificationContext"; // New import
 import AuthStatus from "./header/AuthStatus";
 import SearchBar from "./header/SearchBar";
 
@@ -25,6 +26,7 @@ const navLinks = [
 export default function Header() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const { toggleSidePanel } = useNotifications(); // New
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -76,12 +78,14 @@ export default function Header() {
               >
                 <Headset className="w-5 h-5 text-[var(--icon-adaptive)] cursor-pointer hover:text-foreground transition-transform group-hover:scale-125" />
               </Link>
-              <Link
-                href="/notifications"
+              {/* Changed to button to open side panel */}
+              <button
+                onClick={() => toggleSidePanel(true)} // Open side panel
                 className="p-1 rounded-full hover:bg-accent transition-colors hidden sm:block group"
+                aria-label="알림"
               >
                 <NotificationBadge />
-              </Link>
+              </button>
               <div className="hidden sm:block">
                 <SearchBar />
               </div>

@@ -7,6 +7,7 @@ import ScrollToTopButton from "./components/common/ScrollToTopButton";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import NotificationToast from "./components/notifications/NotificationToast";
+import NotificationSidePanel from "./components/notifications/NotificationSidePanel"; // New import
 import { ThemeProvider } from "./components/ThemeProvider";
 import "./globals.css";
 
@@ -43,6 +44,7 @@ export default function RootLayout({
                 <ScrollToTopButton />
                 <NotificationToast />
               </SocketProvider>
+              <NotificationSidePanel /> {/* New */}
             </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
