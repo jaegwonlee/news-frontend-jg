@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { getPopularTopicsAll } from '@/lib/api/topics';
+import { getPopularTopicsAll, getAllTopics } from '@/lib/api/topics';
 import { Topic } from "@/lib/types/topic";
 import DebateCard from '@/app/components/debate/DebateCard';
 import { PenSquare } from "lucide-react";
