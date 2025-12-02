@@ -9,7 +9,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { Bell, AlertCircle, Star, Clock, Zap, Megaphone, X, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react"; // Added useRef
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -104,6 +104,45 @@ export default function NotificationSidePanel() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dynamicRight, setDynamicRight] = useState<number>(0); // New state for dynamic right position
+  const sidePanelRef = useRef<HTMLDivElement>(null); // New ref for the side panel
+
+  useEffect(() => {
+    const calculateRightOffset = () => {
+      // Find a reference element that defines the main content width, e.g., the Header's inner div
+      // We look for the common `max-w-7xl mx-auto` pattern which exists in Header and Footer
+      const mainContentWrapper = document.querySelector('.max-w-7xl.mx-auto.py-2'); // Use a more specific selector
+      if (mainContentWrapper) {
+        const rect = mainContentWrapper.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(mainContentWrapper);
+        const paddingRight = parseFloat(computedStyle.paddingRight); // Get dynamic padding
+
+        const viewportWidth = window.innerWidth;
+        // The side panel's right edge should align with the main content's inner right edge.
+        // This is `rect.right - paddingRight` (distance from viewport left).
+        // The `right` CSS property is distance from viewport right.
+        const targetRightFromViewportRight = viewportWidth - (rect.right - paddingRight);
+        
+        setDynamicRight(Math.max(0, targetRightFromViewportRight));
+      } else {
+        // Fallback to 0 (align to viewport right) if the wrapper isn't found
+        setDynamicRight(0);
+      }
+    };
+
+    // Calculate on mount and whenever the window resizes
+    calculateRightOffset();
+    window.addEventListener('resize', calculateRightOffset);
+
+    // Initial calculation if panel is already open
+    if (isSidePanelOpen) {
+      calculateRightOffset();
+    }
+
+    return () => {
+      window.removeEventListener('resize', calculateRightOffset);
+    };
+  }, [isSidePanelOpen]); // Recalculate if side panel opens/closes (might change layout)
 
   const fetchNotifications = useCallback(async () => {
     if (!token) return;
@@ -161,11 +200,13 @@ export default function NotificationSidePanel() {
 
           {/* Side Panel */}
           <motion.div
+            ref={sidePanelRef}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.2 }}
-            className="fixed right-0 top-0 h-full w-full max-w-sm bg-card shadow-lg z-50 flex flex-col"
+            style={{ right: `${dynamicRight}px` }} // Apply dynamic right position
+            className="fixed top-0 h-full w-full max-w-sm bg-card shadow-lg z-50 flex flex-col"
           >
             <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between mb-2">
