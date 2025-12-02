@@ -5,7 +5,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useNotifications } from "@/app/context/NotificationContext";
 import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "@/lib/api/notifications";
 import { Notification, NotificationType } from "@/lib/types/notification";
-import { formatTimeAgo } from "@/lib/utils";
+import { formatRelativeTime } from "@/lib/utils";
 import { Bell, AlertCircle, Star, Clock, Zap, MessageSquare, Megaphone } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -83,7 +83,7 @@ const NotificationItem = ({ notification, onRead, token }: NotificationItemProps
             />
           )}
           {notification.metadata?.source && <span>{notification.metadata.source}</span>}
-          <span>{formatTimeAgo(notification.created_at)}</span>
+          <span>{formatRelativeTime(notification.created_at)}</span>
         </div>
       </div>
     </div>
