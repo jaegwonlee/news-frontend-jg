@@ -7,10 +7,10 @@ import { Bell } from "lucide-react";
 import { useEffect } from "react";
 
 interface NotificationBadgeProps {
-  onClick?: () => void;
+  // onClick?: () => void; // Removed onClick prop
 }
 
-export default function NotificationBadge({ onClick }: NotificationBadgeProps) {
+export default function NotificationBadge() { // Removed onClick from props
   const { unreadCount, setUnreadCount } = useNotifications(); // Use useNotifications
   const { token } = useAuth();
 
@@ -24,15 +24,13 @@ export default function NotificationBadge({ onClick }: NotificationBadgeProps) {
   }, [token, setUnreadCount]);
 
   return (
-    <button
-      onClick={onClick}
-      className="relative p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-      aria-label="알림"
+    <div // Changed from button to div
+      className="relative" // Simplified class, parent button will handle interactivity styling
     >
       <Bell className="w-5 h-5 text-[var(--icon-adaptive)] hover:text-foreground transition-transform group-hover:scale-125" />
       {unreadCount > 0 && (
         <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-zinc-950 animate-pulse" />
       )}
-    </button>
+    </div>
   );
 }
