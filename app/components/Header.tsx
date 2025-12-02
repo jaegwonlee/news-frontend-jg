@@ -31,9 +31,10 @@ export default function Header() {
     setMounted(true);
   }, []);
 
-  const isDarkMode = theme === "dark"; // Re-added this line
-  const headerBorderColor = isDarkMode ? "#27272a" : "#e5e5e5"; // neutral-800 vs neutral-200
-  const separatorColor = isDarkMode ? "#4a4a4a" : "#d4d4d4"; // neutral-700 vs neutral-300
+  const isDarkMode = theme === "dark";
+  // Use a default color for SSR, and theme-dependent colors only after client-side mount
+  const headerBorderColor = mounted ? (isDarkMode ? "#27272a" : "#e5e5e5") : "#e5e5e5"; // Default to light mode border for SSR
+  const separatorColor = mounted ? (isDarkMode ? "#4a4a4a" : "#d4d4d4") : "#d4d4d4"; // Default to light mode separator for SSR
 
   return (
     <header
