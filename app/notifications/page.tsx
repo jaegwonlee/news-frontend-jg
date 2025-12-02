@@ -3,7 +3,7 @@
 
 import { useAuth } from "@/app/context/AuthContext";
 import { useNotifications } from "@/app/context/NotificationContext";
-import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } from "@/lib/api/notifications";
+import { getNotifications, markAllAsRead, markNotificationAsRead } from "@/lib/api/notifications";
 import { Notification, NotificationType } from "@/lib/types/notification";
 import { formatRelativeTime } from "@/lib/utils";
 import { Bell, AlertCircle, Star, Clock, Zap, MessageSquare, Megaphone } from "lucide-react";
@@ -119,7 +119,7 @@ export default function NotificationsPage() {
   const handleMarkAllAsRead = async () => {
     if (!token) return;
     try {
-      await markAllNotificationsAsRead(token);
+      await markAllAsRead(token);
       setNotifications((prev) => prev.map((notif) => ({ ...notif, is_read: true })));
       markAllAsRead(); // Update context
     } catch (err: any) {
