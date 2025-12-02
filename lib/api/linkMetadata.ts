@@ -1,5 +1,5 @@
 import { fetchWrapper } from "./fetchWrapper";
-import { LinkMetadata } from "@/types";
+import { LinkMetadata } from "@/lib/types/shared";
 
 export async function getLinkMetadata(url: string): Promise<LinkMetadata> {
   const response = await fetchWrapper(`/api/metadata?url=${encodeURIComponent(url)}`);

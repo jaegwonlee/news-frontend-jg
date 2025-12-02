@@ -18,27 +18,23 @@ export default function ArticleImageWithFallback({
   style,
   fill,
 }: ArticleImageWithFallbackProps) {
-  const [imgSrc, setImgSrc] = useState(src);
-
-  useEffect(() => {
-    if (!src) {
-      setImgSrc('/user-placeholder.svg');
-      return;
-    }
-
-    // Optimistically set the new src. If it fails, the onerror will correct it.
-    setImgSrc(src);
-
-    const image = new window.Image();
-    image.src = src;
-    image.onerror = () => {
-      setImgSrc('/user-placeholder.svg');
-    };
-  }, [src]);
+    const [hasError, setHasError] = useState(!src);
+  
+    useEffect(() => {
+      if (!src) {
+        return; // Already handled by initial state
+      }
+  
+      const image = new window.Image();
+      image.src = src;
+      image.onerror = () => {
+        Promise.resolve().then(() => setHasError(true)); // Defer state update
+      };
+    }, [src]);
 
   const finalStyle = {
     ...style,
-    backgroundImage: `url(${imgSrc})`,
+    backgroundImage: `url(${hasError ? '/user-placeholder.svg' : src})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
   };

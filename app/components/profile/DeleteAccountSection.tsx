@@ -41,7 +41,7 @@ export default function DeleteAccountSection() {
       alert("계정이 성공적으로 비활성화되었습니다. 이용해주셔서 감사합니다.");
       logout();
       router.push("/");
-    } catch (err: any) {
+    } catch (err: Error) {
       console.error("Account deletion error:", err);
       const errorMessage = String(err.message);
 

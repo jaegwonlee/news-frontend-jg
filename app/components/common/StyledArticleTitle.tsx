@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 
@@ -36,7 +36,7 @@ const StyledArticleTitle: React.FC<StyledArticleTitleProps> = ({ title, classNam
     return title;
   };
 
-  const tooltipId = `article-title-tooltip-${Math.random()}`;
+  const tooltipId = useId();
 
   return (
     <div 

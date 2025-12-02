@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { User, UserUpdate } from '@/types';
+import { User, UserUpdate } from '@/lib/types/user';
 import { getUserProfile, getAvatars, updateUserProfile } from '@/lib/api';
 import { BACKEND_BASE_URL } from "@/lib/constants";
 
@@ -42,7 +42,7 @@ export const useUserProfile = () => {
         const avatarList = await getAvatars(token);
         console.log("Fetched avatar list:", avatarList);
         setAvatars(avatarList);
-      } catch (err: any) {
+      } catch (err: Error) {
         console.error("Error fetching profile or avatars:", err);
         setError(err.message || "프로필 정보를 불러오는데 실패했습니다.");
         if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
@@ -88,7 +88,7 @@ export const useUserProfile = () => {
       setSelectedAvatar(updatedUser.profile_image_url || undefined);
       login(token, updatedUser);
       setIsEditing(false);
-    } catch (err: any) {
+    } catch (err: Error) {
       console.error("Profile update error:", err);
       if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
         alert("세션이 만료되었습니다. 다시 로그인해주세요.");

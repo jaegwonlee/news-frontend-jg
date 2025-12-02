@@ -3,8 +3,7 @@
 import ReportModal from "@/app/components/common/ReportModal";
 import ToastNotification, { ToastType } from "@/app/components/common/ToastNotification";
 import { useAuth } from "@/app/context/AuthContext";
-import { reactToComment } from "@/lib/api/comments";
-import { Comment, CommentReactionUpdate } from "@/types";
+import { Comment } from "@/lib/types/comment";
 import { format, formatDistanceToNow, isBefore, subHours } from "date-fns";
 import { ko } from "date-fns/locale";
 import {
@@ -15,8 +14,6 @@ import {
   MessageSquare,
   MoreVertical,
   Pencil,
-  ThumbsDown,
-  ThumbsUp,
   Trash2,
   X,
 } from "lucide-react";
@@ -49,7 +46,6 @@ interface CommentHandlers {
   onUpdate: (commentId: number, text: string) => Promise<void>;
   onDelete: (commentId: number) => Promise<void>;
   onSetReplyTarget: (target: { id: number; nickname: string } | null) => void;
-  onCommentReaction: (commentId: number, updatedReaction: CommentReactionUpdate) => void;
 }
 
 interface CommentItemProps {
@@ -59,7 +55,7 @@ interface CommentItemProps {
 }
 
 export default function CommentItem({ comment, handlers, depth }: CommentItemProps) {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [areChildrenVisible, setAreChildrenVisible] = useState(true);
   const [editText, setEditText] = useState(comment.content);
@@ -106,32 +102,6 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
   const handleDelete = async () => {
     if (window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
       await handlers.onDelete(comment.id);
-    }
-  };
-
-  const handleReportSuccess = (message: string, type: ToastType) => {
-    setToast({ message, type });
-    if (type === "success" || message.includes("이미 신고")) {
-      setIsReported(true);
-    }
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const handleReaction = async (newReactionType: "LIKE" | "DISLIKE") => {
-    if (!token || !user) {
-      alert("로그인 후 반응을 남길 수 있습니다.");
-      return;
-    }
-
-    const reactionToSend = comment.currentUserReaction === newReactionType ? "NONE" : newReactionType;
-
-    try {
-      const response = await reactToComment(comment.id, reactionToSend, token);
-      console.log("API Response from reactToComment:", response); // DEBUG
-      handlers.onCommentReaction(comment.id, response);
-    } catch (error) {
-      console.error("Failed to react to comment:", error);
-      setToast({ message: "반응 업데이트에 실패했습니다.", type: "error" });
     }
   };
 
@@ -247,38 +217,6 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
               </button>
             )}
 
-            {/* 👈 좋아요 버튼 */}
-            <button
-              onClick={() => handleReaction("LIKE")}
-              disabled={!user || isSubmitting}
-              className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-                ${
-                  comment.currentUserReaction === "LIKE"
-                    ? "text-red-500 hover:text-red-600"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              title="좋아요"
-            >
-              <ThumbsUp size={14} className={comment.currentUserReaction === "LIKE" ? "fill-current" : ""} />
-              <span>{comment.like_count}</span>
-            </button>
-
-            {/* 👈 싫어요 버튼 */}
-            <button
-              onClick={() => handleReaction("DISLIKE")}
-              disabled={!user || isSubmitting}
-              className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-                ${
-                  comment.currentUserReaction === "DISLIKE"
-                    ? "text-blue-500 hover:text-blue-600"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              title="싫어요"
-            >
-              <ThumbsDown size={14} className={comment.currentUserReaction === "DISLIKE" ? "fill-current" : ""} />
-              <span>{comment.dislike_count}</span>
-            </button>
-
             {isAuthor && (
               <div className="relative" ref={menuRef}>
                 <button onClick={() => setIsMenuOpen((prev) => !prev)} className="p-1 text-muted-foreground hover:text-foreground">
@@ -336,7 +274,14 @@ export default function CommentItem({ comment, handlers, depth }: CommentItemPro
           onClose={() => setIsReportModalOpen(false)}
           reportType="comment"
           targetId={comment.id}
-          onReportSuccess={(message, type) => handleReportSuccess(message, type)}
+          onReportSuccess={(message) => {
+            const toastType: ToastType = message.includes('이미') ? 'info' : 'success';
+            setToast({ message, type: toastType });
+            if (toastType === "success" || message.includes("이미 신고")) {
+              setIsReported(true);
+            }
+            setTimeout(() => setToast(null), 3000);
+          }}
         />
       )}
 

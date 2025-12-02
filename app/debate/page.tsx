@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { getPopularTopicsAll, getAllTopics } from "@/lib/api";
-import { Topic } from "@/types";
-import { cn } from "@/lib/utils";
-import DebateCard from "../components/debate/DebateCard";
+import { getPopularTopicsAll } from '@/lib/api/topics';
+import { Topic } from "@/lib/types/topic";
+import DebateCard from '@/app/components/debate/DebateCard';
 import { PenSquare } from "lucide-react";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 

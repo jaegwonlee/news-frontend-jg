@@ -1,10 +1,12 @@
 import { AuthProvider } from "@/app/context/AuthContext";
 import { SocketProvider } from "@/app/context/SocketContext";
+import { NotificationProvider } from "@/app/context/NotificationContext";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import ScrollToTopButton from "./components/common/ScrollToTopButton";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
-import ScrollToTopButton from "./components/common/ScrollToTopButton";
+import NotificationToast from "./components/notifications/NotificationToast";
 import { ThemeProvider } from "./components/ThemeProvider";
 import "./globals.css";
 
@@ -30,18 +32,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
             <SocketProvider>
-              <Header />
-              <main className="flex-1 w-full">
-                {children}
-              </main>
-              <Footer />
-              <ScrollToTopButton />
+              <NotificationProvider>
+                <Header />
+                <main className="flex-1 w-full">{children}</main>
+                <Footer />
+                <ScrollToTopButton />
+                <NotificationToast />
+              </NotificationProvider>
             </SocketProvider>
           </AuthProvider>
         </ThemeProvider>

@@ -2,18 +2,12 @@
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 const Footer = () => {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDarkMode = mounted && theme === "dark"; // Re-added this line
+  const isDarkMode = theme === "dark"; // Re-added this line
   const footerTextColor = isDarkMode ? "#ffffff" : "#000000";
   const footerBorderColor = isDarkMode ? "#27272a" : "#e5e5e5"; // neutral-800 vs neutral-200
 

@@ -2,8 +2,9 @@
 
 import { useState, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
-import { addComment, deleteComment, updateComment, getComments } from '@/lib/api/comments';
-import { Comment, CommentReactionUpdate, Article } from '@/types';
+import { addComment, deleteComment, updateComment } from '@/lib/api/comments';
+import { Comment } from '@/lib/types/comment';
+import { Article } from '@/lib/types/article';
 import { Send, Loader2, MessageSquare, X } from 'lucide-react';
 import CommentItem from './CommentItem';
 
@@ -15,21 +16,17 @@ interface ReplyTarget {
 interface CommentSectionProps {
   articleId: number;
   article: Article; // Add article to props
-  onCommentCountUpdate: (articleId: number, newCount: number) => void;
   comments: Comment[];
   isLoading: boolean;
   refetchComments: (article: Article) => void; // Add refetch to props
-  onCommentReaction: (commentId: number, updatedReaction: CommentReactionUpdate) => void;
 }
 
 export default function CommentSection({
   articleId,
   article,
-  onCommentCountUpdate,
   comments,
   isLoading,
   refetchComments,
-  onCommentReaction,
 }: CommentSectionProps) {
   const { user, token } = useAuth();
   const [newComment, setNewComment] = useState('');
@@ -41,7 +38,7 @@ export default function CommentSection({
 
   // Sorting is now done on the props
   const sortedComments = useMemo(() => {
-    let sorted = [...comments];
+    const sorted = [...comments];
     if (sortBy === 'oldest') {
       sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     } else { // 'latest'
@@ -70,7 +67,7 @@ export default function CommentSection({
       setNewComment('');
       setReplyTarget(null);
       refetchComments(article); // Refetch comments
-    } catch (err) {
+    } catch {
       setError('댓글 작성에 실패했습니다.');
     } finally {
       setIsSubmitting(false);
@@ -88,7 +85,6 @@ export default function CommentSection({
       await deleteComment(commentId, token);
       refetchComments(article); // Refetch comments
     },
-    onCommentReaction, // Pass down the handler
     onSetReplyTarget: handleSetReplyTarget,
   };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { getCategoryTheme } from '@/lib/categoryColors';
-import { Article } from '@/types';
+import { Article } from '@/lib/types/article';
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';

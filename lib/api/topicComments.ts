@@ -1,4 +1,4 @@
-import { Comment, CommentReactionUpdate } from "@/types";
+import { Comment } from "@/lib/types/comment";
 import { fetchWrapper } from "./fetchWrapper";
 
 /**
@@ -19,17 +19,14 @@ export async function getTopicComments(topicId: string, token?: string): Promise
     const rawData = await response.json();
     const rawComments = Array.isArray(rawData) ? rawData : (rawData.comments || []);
 
-    const mappedComments: Comment[] = rawComments.map((c: any) => ({
+    const mappedComments: Comment[] = rawComments.map((c: ApiComment) => ({
         id: c.id,
         parent_id: c.parent_comment_id,
         content: c.content,
         created_at: c.created_at,
-        like_count: c.like_count,
-        dislike_count: c.dislike_count,
         author_id: c.user_id,
         author_name: c.nickname,
         profile_image_url: c.profile_image_url,
-        currentUserReaction: c.my_reaction,
         stance: c.user_vote_side, // Assuming user_vote_side is the stance
         children: c.replies || [],
         status: c.status
@@ -55,7 +52,7 @@ export async function postTopicComment(
         body: JSON.stringify({ content, parent_comment_id: parentId, stance }),
     });
     if (!response.ok) {
-        const err = await response.json().catch(() => ({ message: "댓글 작성에 실패했습니다." }));
+        const err: { message: string } = await response.json().catch(() => ({ message: "댓글 작성에 실패했습니다." }));
         throw new Error(err.message);
     }
     return response.json();
@@ -71,7 +68,7 @@ export async function updateTopicComment(commentId: number, content: string, tok
         body: JSON.stringify({ content }),
     });
     if (!response.ok) {
-        const err = await response.json().catch(() => ({ message: "댓글 수정에 실패했습니다." }));
+        const err: { message: string } = await response.json().catch(() => ({ message: "댓글 수정에 실패했습니다." }));
         throw new Error(err.message);
     }
     return response.json();
@@ -86,29 +83,9 @@ export async function deleteTopicComment(commentId: number, token: string): Prom
         headers: { 'Authorization': `Bearer ${token}` },
     });
     if (!response.ok && response.status !== 204) {
-        const err = await response.json().catch(() => ({ message: "댓글 삭제에 실패했습니다." }));
+        const err: { message: string } = await response.json().catch(() => ({ message: "댓글 삭제에 실패했습니다." }));
         throw new Error(err.message);
     }
-}
-
-/**
- * Submits a reaction to a comment.
- */
-export async function reactToTopicComment(
-    commentId: number, 
-    reactionType: 'LIKE' | 'DISLIKE', 
-    token: string
-): Promise<CommentReactionUpdate> {
-    const response = await fetchWrapper(`/api/comments/${commentId}/reactions`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: reactionType }),
-    });
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({ message: "댓글 반응에 실패했습니다." }));
-        throw new Error(err.message);
-    }
-    return response.json();
 }
 
 /**
@@ -121,7 +98,7 @@ export async function reportTopicComment(commentId: number, reason: string, toke
         body: JSON.stringify({ reason }),
     });
     if (!response.ok) {
-        const err = await response.json().catch(() => ({ message: "댓글 신고에 실패했습니다." }));
+        const err: { message: string } = await response.json().catch(() => ({ message: "댓글 신고에 실패했습니다." }));
         throw new Error(err.message);
     }
     return response.json();

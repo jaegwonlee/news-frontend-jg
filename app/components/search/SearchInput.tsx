@@ -2,35 +2,31 @@
 
 import { motion } from "framer-motion";
 import { Search, X } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface SearchInputProps {
   onSearch: (query: string) => void;
   initialQuery?: string;
 }
 
-export default function SearchInput({ onSearch, initialQuery = "" }: SearchInputProps) {
-  const [query, setQuery] = useState(initialQuery);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+export default function SearchInput({ onSearch }: SearchInputProps) {
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
-    setMounted(true);
+    // setMounted(true);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       onSearch(query.trim());
-      inputRef.current?.blur();
+      // inputRef.current?.blur();
     }
   };
 
   const handleClear = () => {
     setQuery("");
-    inputRef.current?.focus();
+    // inputRef.current?.focus();
   };
 
   return (
@@ -43,7 +39,7 @@ export default function SearchInput({ onSearch, initialQuery = "" }: SearchInput
     >
       <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground" size={24} />
       <input
-        ref={inputRef}
+        // ref={inputRef}
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}

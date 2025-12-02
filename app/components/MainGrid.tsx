@@ -1,6 +1,6 @@
 "use client";
 
-import { Topic } from "@/types";
+import { Topic } from "@/lib/types/topic";
 import { useState } from "react";
 import ChatRoom from "./ChatRoom";
 import TrendingTopics from "./TrendingTopics";

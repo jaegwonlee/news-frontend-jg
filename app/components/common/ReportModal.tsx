@@ -5,14 +5,13 @@ import { X, Loader2 } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import { reportComment } from '@/lib/api/comments';
 import { reportChatMessage } from '@/lib/api/topics';
-import ToastNotification, { ToastType } from './ToastNotification'; // Assuming ToastNotification is in the same common folder
 
 interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   reportType: 'comment' | 'chat';
   targetId: number;
-  onReportSuccess: (message: string, type: ToastType, reportedId: number) => void;
+  onReportSuccess: (message: string, reportedId: number) => void;
 }
 
 const reportReasons = [
@@ -42,12 +41,11 @@ export default function ReportModal({ isOpen, onClose, reportType, targetId, onR
         response = await reportChatMessage(targetId, selectedReason, token);
       }
       
-      const toastType: ToastType = response.message.includes('이미') ? 'info' : 'success';
-      onReportSuccess(response.message, toastType, targetId);
+      onReportSuccess(response.message, targetId);
       onClose();
     } catch (error) {
       console.error(`Failed to report ${reportType}:`, error);
-      onReportSuccess(`신고 처리 중 오류가 발생했습니다: ${(error as Error).message}`, 'error', targetId);
+      onReportSuccess(`신고 처리 중 오류가 발생했습니다: ${(error as Error).message}`, targetId);
     } finally {
       setIsSubmitting(false);
     }

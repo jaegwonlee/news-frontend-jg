@@ -1,13 +1,10 @@
-// app/components/profile/ProfileEditForm.tsx
-'use client';
-
 import { useState } from 'react';
 import Image from 'next/image';
-import { User } from '@/types';
+import { User } from '@/lib/types/user';
 import FormField from '@/app/components/auth/FormField';
 import { useSavedArticlesManager } from '@/hooks/useSavedArticles';
-import { useLikedArticles } from '@/hooks/useLikedArticles';
-import { Bookmark, Heart, User as UserIcon, Phone, Edit3 } from 'lucide-react';
+import { Bookmark, User as UserIcon, Phone, Edit3 } from 'lucide-react';
+import ProfileTabButton from './TabButton'; // Import the new ProfileTabButton
 
 interface ProfileEditFormProps {
   profile: User;
@@ -37,19 +34,6 @@ export default function ProfileEditForm({
   const [showAvatarOptions, setShowAvatarOptions] = useState(false);
   const [innerTab, setInnerTab] = useState<InnerTab>('info');
   const { articles: savedArticles } = useSavedArticlesManager();
-  const { articles: likedArticles } = useLikedArticles();
-
-  const TabButton = ({ tab, label }: { tab: InnerTab; label: string }) => (
-    <button
-      type="button"
-      onClick={() => setInnerTab(tab)}
-      className={`px-6 py-2.5 text-sm font-bold rounded-full transition-all duration-300 ${
-        innerTab === tab ? 'bg-red-600 text-white' : 'bg-card text-muted-foreground hover:bg-muted'
-      }`}
-    >
-      {label}
-    </button>
-  );
 
   return (
     <div className="bg-card/50 border border-border rounded-2xl shadow-2xl p-6 md:p-8">
@@ -101,8 +85,8 @@ export default function ProfileEditForm({
 
       {/* Inner Tab Switcher */}
       <div className="flex justify-center my-8 p-1 bg-card rounded-full">
-        <TabButton tab="info" label="프로필 정보" />
-        <TabButton tab="activity" label="나의 활동" />
+        <ProfileTabButton tab="info" label="프로필 정보" activeTab={innerTab} onClick={setInnerTab} />
+        <ProfileTabButton tab="activity" label="나의 활동" activeTab={innerTab} onClick={setInnerTab} />
       </div>
 
       {/* Tab Content */}
@@ -150,13 +134,6 @@ export default function ProfileEditForm({
                 <span className="font-semibold text-white text-lg">저장한 기사</span>
               </div>
               <span className="font-bold text-2xl text-blue-400">{savedArticles.length}</span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-card/70 rounded-lg border border-border">
-              <div className="flex items-center gap-4">
-                <Heart className="w-6 h-6 text-red-400" />
-                <span className="font-semibold text-white text-lg">좋아요한 기사</span>
-              </div>
-              <span className="font-bold text-2xl text-red-400">{likedArticles.length}</span>
             </div>
           </div>
         )}

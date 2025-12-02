@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import CommentSection from './CommentSection';
-import { Article, Comment } from '@/types';
+import { Article } from '@/lib/types/article';
+import { Comment } from '@/lib/types/comment';
 
 interface CommentSidePanelProps {
   isOpen: boolean;
@@ -14,7 +15,6 @@ interface CommentSidePanelProps {
   comments: Comment[];
   isCommentsLoading: boolean;
   refetchComments: (article: Article) => void;
-  onCommentReaction: (commentId: number, updatedReaction: any) => void;
 }
 
 export default function CommentSidePanel({ 
@@ -26,7 +26,6 @@ export default function CommentSidePanel({
   comments,
   isCommentsLoading,
   refetchComments,
-  onCommentReaction
 }: CommentSidePanelProps) {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -70,7 +69,6 @@ export default function CommentSidePanel({
               comments={comments}
               isLoading={isCommentsLoading}
               refetchComments={refetchComments}
-              onCommentReaction={onCommentReaction}
             />
           </div>
         </>

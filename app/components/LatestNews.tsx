@@ -1,6 +1,6 @@
 'use client';
 
-import { Article } from '@/types';
+import { Article } from "@/lib/types/article";
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';

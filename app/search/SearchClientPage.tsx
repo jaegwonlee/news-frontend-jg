@@ -3,7 +3,8 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSearchArticles } from "@/lib/api";
-import { Article, Topic } from "@/types";
+import { Article } from "@/lib/types/article";
+import { Topic } from "@/lib/types/topic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/app/context/AuthContext";
 import { AlertTriangle, SearchX } from "lucide-react";
@@ -49,7 +50,7 @@ function SearchClientPageContent() {
       try {
         const results = await getSearchArticles(searchQuery, token || undefined);
         setSearchResults(results);
-      } catch (err: any) {
+      } catch (err: Error) {
         setError(err.message || "검색 결과를 불러오는데 실패했습니다.");
       } finally {
         setIsLoading(false);
@@ -134,7 +135,7 @@ function SearchClientPageContent() {
             ) : (
               <>
                 <h2 className="text-xl text-foreground font-semibold mt-10 mb-6">
-                  <span className="font-bold text-red-500">'{searchQuery}'</span>
+                  <span className="font-bold text-red-500">&apos;{searchQuery}&apos;</span>
                   <span className="text-muted-foreground">에 대한 {searchResults.length}개의 검색 결과</span>
                 </h2>
                 {searchResults.length > 0 ? (

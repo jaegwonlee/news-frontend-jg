@@ -1,9 +1,9 @@
 "use client";
 
-import { Article } from "@/lib/types";
+import { Article } from "@/lib/types/article";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
-import ModernArticleCard from "../cards/ModernArticleCard";
+import ArticleCard from "../ArticleCard";
 import ClientPaginationControls from "../common/ClientPaginationControls";
 import Favicon from "../common/Favicon";
 
@@ -105,7 +105,7 @@ export default function MediaOutletSection({ articles, className }: MediaOutletS
       {/* Articles Grid for Selected Outlet */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-h-[400px]">
         {paginatedArticles.map((article) => (
-          <ModernArticleCard key={article.id} article={article} variant="standard" className="h-full" />
+          <ArticleCard key={article.id} article={article} variant="standard" className="h-full" />
         ))}
       </div>
 

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, X } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const MAX_RECENT_SEARCHES = 7;
 const LOCAL_STORAGE_KEY = "recentSearches";
@@ -29,14 +29,8 @@ export const addRecentSearch = (query: string) => {
 };
 
 export default function RecentSearches({ onSearch }: RecentSearchesProps) {
-  const [searches, setSearches] = useState<string[]>([]);
+  const [searches, setSearches] = useState<string[]>(getRecentSearches());
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    setSearches(getRecentSearches());
-  }, []);
 
   const handleRemove = (e: React.MouseEvent, searchToRemove: string) => {
     e.stopPropagation(); // Prevent triggering onSearch when clicking the 'x'
@@ -55,11 +49,11 @@ export default function RecentSearches({ onSearch }: RecentSearchesProps) {
   }
 
   // Force colors based on theme
-  const isDark = mounted && resolvedTheme === "dark";
+  const isDark = resolvedTheme === "dark";
   const bgColor = isDark ? "#18181b" : "#f4f4f5"; // zinc-900 : zinc-100
   const textColor = isDark ? "#e4e4e7" : "#52525b"; // zinc-200 : zinc-600
   const borderColor = isDark ? "#27272a" : "#e4e4e7"; // zinc-800 : zinc-200
-  const hoverBgColor = isDark ? "#27272a" : "#e4e4e7"; // zinc-800 : zinc-200
+
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-6">

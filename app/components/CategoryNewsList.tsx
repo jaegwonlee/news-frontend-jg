@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { DEFAULT_FAVICON_URL, FAVICON_URLS } from "@/lib/constants";
 import { formatRelativeTime } from "@/lib/utils";
-import { Article } from "@/types";
+import { Article } from "@/lib/types/article";
 import Image from "next/image";
 import Link from "next/link";
 import ClientPaginationControls from './common/ClientPaginationControls';
@@ -41,7 +41,6 @@ export default function CategoryNewsList({
   }, [newsList]);
 
   const filteredNews = useMemo(() => {
-    setCurrentPage(1); // Reset to first page when filter changes
     if (selectedSource === 'all') {
       return newsList;
     }
@@ -77,7 +76,10 @@ export default function CategoryNewsList({
             {sources.map(source => (
               <button
                 key={source}
-                onClick={() => setSelectedSource(source)}
+                onClick={() => {
+                  setSelectedSource(source);
+                  setCurrentPage(1);
+                }}
                 className={`px-3 py-1 text-sm rounded-full whitespace-nowrap transition-colors ${
                   selectedSource === source
                     ? 'bg-red-600 text-white'

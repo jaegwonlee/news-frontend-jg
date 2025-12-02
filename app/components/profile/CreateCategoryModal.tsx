@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Article } from '@/types';
+import { SavedArticle } from "@/lib/types/article";
 import Image from 'next/image';
 import { X } from 'lucide-react';
 
 interface CreateCategoryModalProps {
-  uncategorizedArticles: Article[];
+  uncategorizedArticles: SavedArticle[];
   onClose: () => void;
   onCreate: (categoryName: string, articleIds: number[]) => Promise<void>;
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import { useLinkMetadata } from "@/hooks/useLinkMetadata";
-import { Skeleton } from "./Skeleton";
+import Skeleton from "./Skeleton";
 import ArticleCard from "../ArticleCard";
-import { Article } from "@/types";
+import { Article } from "@/lib/types/article";
 
 export default function UrlRenderer({ url }: { url: string }) {
     const { metadata, isLoading, error } = useLinkMetadata(url);
@@ -39,7 +39,6 @@ export default function UrlRenderer({ url }: { url: string }) {
         published_at: new Date().toISOString(), // No real date from generic metadata
         description: metadata.description,
         comment_count: 0,
-        like_count: 0,
     };
 
     return (

@@ -47,8 +47,6 @@ export default function RegisterPage() {
   });
   // 필드별 에러 메시지 상태
   const [errors, setErrors] = useState<Record<string, string>>({});
-  // 필드 터치(blur) 여부 상태
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
   // 서버 에러 메시지 상태
   const [serverError, setServerError] = useState<string | null>(null);
   // 로딩 상태
@@ -74,7 +72,6 @@ export default function RegisterPage() {
   // 포커스 아웃(blur) 시 유효성 검사 핸들러
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setTouched((prev) => ({ ...prev, [name]: true })); // 터치 상태 업데이트
     setFocusedField(null); // 포커스 해제
 
     const rule = VALIDATION_RULES[name];
@@ -109,15 +106,6 @@ export default function RegisterPage() {
       }
     }
     setErrors(newErrors);
-    // 모든 필드를 터치한 것으로 간주하여 에러 메시지 표시
-    setTouched({
-      name: true,
-      nickname: true,
-      email: true,
-      password: true,
-      passwordConfirm: true,
-      phone: true,
-    });
 
     // 유효성 검사 실패 시 중단
     if (!formIsValid) {

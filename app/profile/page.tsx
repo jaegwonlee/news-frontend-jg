@@ -6,7 +6,6 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import ProfileSidebar from '@/app/components/profile/ProfileSidebar';
 import ProfileHeader from '@/app/components/profile/ProfileHeader';
 import ProfileEditForm from '@/app/components/profile/ProfileEditForm';
-import LikedArticles from '@/app/components/profile/LikedArticles';
 import SavedArticles from '@/app/components/profile/SavedArticles';
 import NotificationSettings from '@/app/components/profile/NotificationSettings';
 import InquiryForm from '@/app/components/profile/InquiryForm';
@@ -69,8 +68,6 @@ function ProfilePageContent() {
     switch (activeTab) {
       case 'profile':
         return <ProfileHeader profile={profile} onEditClick={() => setIsEditing(true)} />;
-      case 'liked':
-        return <LikedArticles />;
       case 'saved':
         return <SavedArticles />;
       case 'notifications':

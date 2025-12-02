@@ -1,6 +1,6 @@
 "use client";
 
-import { Article } from "@/types";
+import { Article } from "@/lib/types/article";
 import ArticleCard from "./ArticleCard";
 
 interface SectionGridProps {
@@ -8,7 +8,6 @@ interface SectionGridProps {
   variant?: "1+4" | "3-col" | "4-col" | "1+2" | "list";
   className?: string;
   title?: string;
-  onLikeToggle?: (article: Article) => void;
   onSaveToggle?: (article: Article) => void;
   onCommentIconClick?: (article: Article) => void;
 }
@@ -18,14 +17,12 @@ export default function SectionGrid({
   variant = "3-col",
   className = "",
   title,
-  onLikeToggle,
   onSaveToggle,
   onCommentIconClick,
 }: SectionGridProps) {
   if (!articles || articles.length === 0) return null;
 
   const commonProps = {
-    onLikeToggle,
     onSaveToggle,
     onCommentIconClick,
   };

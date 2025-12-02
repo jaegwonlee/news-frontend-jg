@@ -1,7 +1,7 @@
 'use client';
 
 import ArticleCard from './ArticleCard';
-import { Article } from '@/types';
+import { Article } from '@/lib/types/article';
 
 interface CategoryNewsSectionProps {
   categoryName: string;

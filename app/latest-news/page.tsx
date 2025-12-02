@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { getCategoryNews } from '@/lib/api';
-import { Article } from '@/types';
+import { Article } from '@/lib/types/article';
 import ArticleCard from '@/app/components/ArticleCard';
 import { Newspaper } from 'lucide-react';
 import ClientPaginationControls from '@/app/components/common/ClientPaginationControls';

@@ -2,19 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
-import { getInquiryDetail, downloadInquiryAttachment, Inquiry } from '@/lib/api/inquiry';
+import { getInquiryDetail, downloadInquiryAttachment } from '@/lib/api/inquiry';
+import { Inquiry } from '@/lib/types/inquiry';
 import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
 import { DownloadCloud, Loader2 } from 'lucide-react';
 
 interface InquiryDetailProps {
-  inquiryId: number;
-  onBack: () => void;
+  inquiry: Inquiry;
 }
 
-export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps) {
+export default function InquiryDetail({ inquiry: initialInquiry }: InquiryDetailProps) {
   const { token, logout } = useAuth();
-  const [inquiry, setInquiry] = useState<Inquiry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +29,9 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
       setIsLoading(true);
       setError(null);
       try {
-        const fetchedDetail = await getInquiryDetail(token, inquiryId);
-        setInquiry(fetchedDetail);
-      } catch (err: any) {
+        await getInquiryDetail(token, initialInquiry.id);
+        // setInquiry(fetchedDetail); // No longer needed as we use the prop
+      } catch (err: Error) {
         console.error("Failed to fetch inquiry detail:", err);
         if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
           alert("세션이 만료되었습니다. 다시 로그인해주세요.");
@@ -46,18 +45,18 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
     };
 
     fetchDetail();
-  }, [token, inquiryId, logout]);
+  }, [token, initialInquiry.id, logout]);
 
   const handleDownload = async () => {
-    if (!inquiry?.file_path || !token) return;
+    if (!initialInquiry?.file_path || !token) return;
 
     setIsDownloading(true);
     try {
-      const blob = await downloadInquiryAttachment(token, inquiry.file_path);
+      const blob = await downloadInquiryAttachment(token, initialInquiry.file_path);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', inquiry.file_originalname || 'download');
+      link.setAttribute('download', initialInquiry.file_originalname || 'download');
       document.body.appendChild(link);
       link.click();
       
@@ -78,7 +77,7 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
       ANSWERED: { text: '답변 완료', className: 'bg-green-500/10 text-green-600 dark:text-green-400' },
       CLOSED: { text: '종료됨', className: 'bg-secondary text-muted-foreground' },
     };
-    const currentStatus = statusMap[status] || statusMap.CLOSED;
+    const currentStatus = statusMap[status as keyof typeof statusMap] || statusMap.CLOSED;
     return (
       <span className={`px-3 py-1 text-xs font-semibold rounded-full ${currentStatus.className}`}>
         {currentStatus.text}
@@ -99,7 +98,7 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
     return <ErrorMessage message={error} />;
   }
 
-  if (!inquiry) {
+  if (!initialInquiry) {
     return <ErrorMessage message="문의 정보를 찾을 수 없습니다." />;
   }
 
@@ -107,17 +106,17 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
     <div className="space-y-6">
         <div className="bg-background p-6 rounded-lg border border-border">
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4 pb-4 border-b border-border">
-                <h3 className="text-xl font-semibold text-foreground">{inquiry.subject}</h3>
+                <h3 className="text-xl font-semibold text-foreground">{initialInquiry.subject}</h3>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <StatusBadge status={inquiry.status} />
-                    <span>{new Date(inquiry.created_at).toLocaleString()}</span>
+                    <StatusBadge status={initialInquiry.status} />
+                    <span>{new Date(initialInquiry.created_at).toLocaleString()}</span>
                 </div>
             </div>
             <div className="text-foreground/90 whitespace-pre-wrap mb-6 min-h-[100px]">
-              {inquiry.content}
+              {initialInquiry.content}
             </div>
 
-            {inquiry.file_path && (
+            {initialInquiry.file_path && (
             <div className="mt-4">
                 <h4 className="font-semibold text-muted-foreground mb-2">첨부 파일</h4>
                 <button
@@ -130,21 +129,21 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
                 ) : (
                     <DownloadCloud className="w-4 h-4" />
                 )}
-                {isDownloading ? '다운로드 중...' : (inquiry.file_originalname || '파일 다운로드')}
+                {isDownloading ? '다운로드 중...' : (initialInquiry.file_originalname || '파일 다운로드')}
                 </button>
             </div>
             )}
         </div>
 
-        {inquiry.reply && (
+        {initialInquiry.reply && (
             <div className="bg-accent/50 p-6 rounded-lg border border-border">
                 <h4 className="text-lg font-semibold text-foreground mb-3">운영자 답변</h4>
                 <div className="text-foreground/90 whitespace-pre-wrap">
-                {inquiry.reply.content}
+                {initialInquiry.reply.content}
                 </div>
-                {inquiry.reply.created_at && (
+                {initialInquiry.reply.created_at && (
                 <p className="text-xs text-muted-foreground mt-3 text-right">
-                    {new Date(inquiry.reply.created_at).toLocaleString()}
+                    {new Date(initialInquiry.reply.created_at).toLocaleString()}
                 </p>
                 )}
             </div>

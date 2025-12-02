@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   User,
-  Heart,
   Bookmark,
   Bell,
   MessageSquare,
@@ -15,7 +14,6 @@ import {
 
 const tabs = [
   { id: 'profile', label: '프로필', icon: User },
-  { id: 'liked', label: '좋아요한 기사', icon: Heart },
   { id: 'saved', label: '저장된 기사', icon: Bookmark },
   { id: 'notifications', label: '알림 설정', icon: Bell },
   { id: 'inquiry', label: '문의하기', icon: MessageSquare },

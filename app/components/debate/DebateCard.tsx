@@ -1,20 +1,13 @@
 "use client";
 
-import { Topic } from "@/types";
+import { Topic } from "@/lib/types/topic";
 import Link from "next/link";
 import { Users, Crown, Swords, Vote, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
-// Extent Topic type for this component's needs
-interface EnrichedTopic extends Topic {
-    pro_votes?: number;
-    con_votes?: number;
-    category?: string;
-}
-
 interface DebateCardProps {
-  topic: EnrichedTopic;
+  topic: Topic;
   status: 'ongoing' | 'past';
   isFeatured?: boolean;
 }

@@ -12,7 +12,8 @@ import {
   sendChatMessage,
 } from "@/lib/api/topics";
 import { getFullImageUrl } from "@/lib/utils";
-import { Message, Topic } from "@/types";
+import { Message } from "@/lib/types/shared";
+import { Topic } from "@/lib/types/topic";
 import { format } from "date-fns";
 import {
   AlertTriangle,
@@ -49,7 +50,7 @@ type ToastState = {
 const formatTimestamp = (dateString: string) => {
   try {
     return format(new Date(dateString), "a h:mm");
-  } catch (_e) {
+  } catch {
     return "--:--";
   }
 };
@@ -211,7 +212,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
         if ((['localhost', '127.0.0.1'].includes(url.hostname) || url.hostname.endsWith('vercel.app')) && url.pathname.startsWith('/debate/')) {
           messageToSend = url.pathname;
         }
-      } catch (e) {
+      } catch {
         // Not a valid URL, send as is
       }
       
@@ -323,20 +324,6 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const handleReportSuccess = (message: string, type: ToastType, reportedId: number) => {
-    setToast({
-      message,
-      type,
-      top: 50,
-      left: (chatContainerRef.current?.getBoundingClientRect()?.right ?? window.innerWidth) - 350,
-      alignment: "right",
-    });
-    if (type === "success" || message.includes("이미 신고")) {
-      setReportedMessageIds((prev) => new Set(prev).add(reportedId));
-    }
-    setTimeout(() => setToast(null), 3000);
-  };
-
   const getPlaceholderText = () => {
     if (!topic) return "토픽 정보를 불러오는 중입니다...";
     if (socketError) return "실시간 채팅 서버에 연결할 수 없습니다.";
@@ -377,7 +364,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
           </h2>
           <div className="flex items-center text-sm text-muted-foreground">
             <Users className="w-4 h-4 mr-1" />
-            <span>{topic ? "12" : "..."}</span>
+            <span>{userCount}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -480,7 +467,13 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
           }}
           reportType="chat"
           targetId={reportTargetMessageId}
-          onReportSuccess={handleReportSuccess}
+          onReportSuccess={(message, reportedId) => {
+            const toastType: ToastType = message.includes('이미') ? 'info' : 'success';
+            showToast(reportedId, message, toastType);
+            if (toastType === 'success' || message.includes('이미')) {
+              setReportedMessageIds((prev) => new Set(prev).add(reportedId));
+            }
+          }}
         />
       )}
       {zoomedImageUrl &&
@@ -497,10 +490,13 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
               <X size={32} />
             </button>
             <div className="relative max-w-full max-h-full" onClick={(e) => e.stopPropagation()}>
-              <img
+              <Image
                 src={zoomedImageUrl}
                 alt="Zoomed content"
+                layout="fill"
+                objectFit="contain"
                 className="block max-w-full max-h-full object-contain animate-zoom-in opacity-100"
+                unoptimized
               />
             </div>
           </div>,
@@ -569,7 +565,6 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
                                 searchResult={activeResult}
                                 searchQuery={searchQuery}
                                 isMyMessage={true}
-                                isDarkMode={isDarkMode}
                               />
                             )}
                           </div>
@@ -601,7 +596,6 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
                                   searchResult={activeResult}
                                   searchQuery={searchQuery}
                                   isMyMessage={false}
-                                  isDarkMode={isDarkMode}
                                 />
                               )}
                             </div>

@@ -50,7 +50,7 @@ const InquiryForm: React.FC = () => {
       setPrivacyAgreement(false);
       setAttachment(null);
       (document.getElementById('attachment') as HTMLInputElement).value = ''; // Clear file input
-    } catch (err: any) {
+    } catch (err: Error) {
       setIsError(true);
       setMessage(err.message || '문의 제출 중 오류가 발생했습니다.');
       console.error('Inquiry submission failed:', err);

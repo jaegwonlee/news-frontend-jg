@@ -1,6 +1,6 @@
 "use client";
 
-import { Article } from "@/types";
+import { Article } from "@/lib/types/article";
 import SectionGrid from "../SectionGrid";
 
 interface TopHeadlinesSectionProps {

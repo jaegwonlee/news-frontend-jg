@@ -1,7 +1,7 @@
 // app/components/profile/ProfileInfoForm.tsx
 'use client';
 
-import { User } from '@/lib/types';
+import { User } from '@/lib/types/user';
 import FormField from '@/app/components/auth/FormField';
 import { User as UserIcon, Phone } from 'lucide-react';
 

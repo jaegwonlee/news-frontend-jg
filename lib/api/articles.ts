@@ -5,11 +5,9 @@
  * 모든 함수는 중앙 집중식 에러 처리 및 요청 관리를 위해 `fetchWrapper`를 사용합니다.
  */
 
-import { Article, ToggleSaveResponse } from "@/types";
+import { Article } from "@/lib/types/article";
+import { ToggleSaveResponse } from "@/lib/types/shared";
 import { fetchWrapper } from "./fetchWrapper";
-import { mockBreakingNews, mockExclusiveNews, mockAllCategoryNews } from "@/app/mocks/articles";
-
-const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
 
 /**
  * @function getBreakingNews
@@ -19,9 +17,7 @@ const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true t
  *        이를 통해 빌드 시점에 정적으로 페이지를 생성하고, 주기적으로 최신 데이터로 업데이트할 수 있습니다.
  */
 export async function getBreakingNews(): Promise<Article[]> {
-  if (USE_MOCKS) {
-    return Promise.resolve(mockBreakingNews);
-  }
+
   try {
     const res = await fetchWrapper(`/api/articles/breaking?limit=10&offset=0`, {
       next: { revalidate: 300 } // 5분마다 캐시 갱신
@@ -43,9 +39,7 @@ export async function getBreakingNews(): Promise<Article[]> {
  * @cache 5분(300초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getExclusiveNews(): Promise<Article[]> {
-  if (USE_MOCKS) {
-    return Promise.resolve(mockExclusiveNews);
-  }
+
   try {
     const res = await fetchWrapper(`/api/articles/exclusives?limit=10&offset=0`, { 
       next: { revalidate: 300 } // 5분마다 캐시 갱신
@@ -71,10 +65,7 @@ export async function getExclusiveNews(): Promise<Article[]> {
  * @returns {Promise<Article[]>} - 해당 카테고리의 기사 객체 배열을 반환하는 프로미스.
  */
 export async function getCategoryNews(categoryName: string, limit?: number, token?: string): Promise<Article[]> {
-  if (USE_MOCKS) {
-    const news = mockAllCategoryNews[categoryName] || [];
-    return Promise.resolve(limit ? news.slice(0, limit) : news);
-  }
+
   // 프로덕션 환경에서는 실제 API를 호출합니다.
   const encodedCategoryName = encodeURIComponent(categoryName);
   let apiUrl = `/api/articles/by-category?name=${encodedCategoryName}`;
@@ -184,16 +175,7 @@ export async function getAllLatestNews(): Promise<Article[]> {
  * @cache 1분(60초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getSearchArticles(q: string, token?: string): Promise<Article[]> {
-  if (USE_MOCKS) {
-    const allMockArticles = Object.values(mockAllCategoryNews).flat();
-    const lowerCaseQuery = q.toLowerCase();
-    const results = allMockArticles.filter(article => 
-        article.title.toLowerCase().includes(lowerCaseQuery) ||
-        article.summary?.toLowerCase().includes(lowerCaseQuery)
-    );
-    return Promise.resolve(results);
-  }
-  const encodedQuery = encodeURIComponent(q);
+    const encodedQuery = encodeURIComponent(q);
   const headers: HeadersInit = {};
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -212,43 +194,6 @@ export async function getSearchArticles(q: string, token?: string): Promise<Arti
 }
 
 /**
- * @function toggleArticleLike
- * @description 사용자가 특정 기사에 '좋아요'를 누르거나 취소하는 기능을 처리합니다.
- * @param {string} token - 사용자 인증 토큰 (필수).
- * @param {number} articleId - '좋아요'를 적용할 기사의 ID.
- * @param {boolean} currentIsLiked - 현재 '좋아요' 상태. true이면 '좋아요'를 취소(DELETE)하고, false이면 '좋아요'를 추가(POST)합니다.
- * @returns {Promise<{ data: { articleId: number; likes: number; isLiked: boolean } }>} - 업데이트된 '좋아요' 정보(기사 ID, 총 좋아요 수, 새로운 '좋아요' 상태)를 포함하는 객체.
- * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
- */
-export async function toggleArticleLike(token: string, articleId: number, currentIsLiked: boolean): Promise<{ data: { articleId: number; likes: number; isLiked: boolean } }> {
-  if (USE_MOCKS) {
-    console.log(`Mock toggling like for article ${articleId}. CurrentIsLiked: ${currentIsLiked}`);
-    const mockResponse = {
-        data: {
-            articleId,
-            likes: Math.floor(Math.random() * 100), // return a random like count
-            isLiked: !currentIsLiked
-        }
-    };
-    return Promise.resolve(mockResponse);
-  }
-  const method = currentIsLiked ? 'DELETE' : 'POST'; // 현재 상태에 따라 HTTP 메소드 결정
-  const response = await fetchWrapper(`/api/articles/${articleId}/like`, {
-    method: method,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(errorData.message || '좋아요 상태 업데이트에 실패했습니다.');
-  }
-
-  return response.json();
-}
-
-/**
  * @function getPopularNews
  * @description '좋아요'가 많은 인기 기사 목록을 가져옵니다.
  * @param {string} [category] - 특정 카테고리의 인기 기사를 가져올 경우 카테고리 이름. 제공되지 않으면 전체 카테고리를 대상으로 합니다.
@@ -260,15 +205,7 @@ export async function toggleArticleLike(token: string, articleId: number, curren
  *   중복을 제거하고 '좋아요' 수(`like_count`) 기준으로 내림차순 정렬하여 상위 20개를 반환합니다.
  */
 export async function getPopularNews(category?: string, token?: string): Promise<Article[]> {
-    if (USE_MOCKS) {
-        let articles: Article[] = [];
-        if (category) {
-            articles = mockAllCategoryNews[category] || [];
-        } else {
-            articles = Object.values(mockAllCategoryNews).flat();
-        }
-        return Promise.resolve([...articles].sort((a,b) => (b.like_count || 0) - (a.like_count || 0)).slice(0, 20));
-    }
+
   // 단일 카테고리에 대한 인기 기사를 가져오는 내부 함수
   const fetchByCategory = async (cat: string): Promise<Article[]> => {
     const url = `/api/articles/popular?category=${encodeURIComponent(cat)}`;
@@ -313,8 +250,8 @@ export async function getPopularNews(category?: string, token?: string): Promise
 
     const uniqueArticles = Array.from(uniqueArticlesMap.values());
 
-    // '좋아요'가 많은 순서대로 정렬
-    uniqueArticles.sort((a, b) => (b.like_count || 0) - (a.like_count || 0));
+    // '조회수'가 많은 순서대로 정렬
+    uniqueArticles.sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
 
     return uniqueArticles.slice(0, 20); // 상위 20개 반환
 
@@ -335,10 +272,7 @@ export async function getPopularNews(category?: string, token?: string): Promise
  * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  */
 export async function toggleArticleSave(token: string, articleId: number, currentIsSaved: boolean): Promise<ToggleSaveResponse> {
-  if (USE_MOCKS) {
-    console.log(`Mock toggling save for article ${articleId}. currentIsSaved: ${currentIsSaved}`);
-    return Promise.resolve({ success: true });
-  }
+
   const method = currentIsSaved ? 'DELETE' : 'POST';
   const response = await fetchWrapper(`/api/articles/${articleId}/save`, {
     method: method,

@@ -18,7 +18,7 @@ function getInitialMediaType(url: string): 'image' | 'video' | 'unknown' {
         const extension = pathname.substring(pathname.lastIndexOf("."));
         if (IMAGE_EXTENSIONS.includes(extension)) return 'image';
         if (VIDEO_EXTENSIONS.includes(extension)) return 'video';
-    } catch (e) {
+    } catch {
         // Not a valid URL, but might be a base64 string or something else renderable.
     }
     return 'unknown';

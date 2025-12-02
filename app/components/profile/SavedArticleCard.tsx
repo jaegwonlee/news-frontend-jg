@@ -3,16 +3,16 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Article, SavedArticleCategory } from '@/types';
+import { SavedArticle } from '@/lib/types/article';
+import { SavedArticleCategory } from '@/lib/types/shared';
 import { formatRelativeTime } from '@/lib/utils';
 import { MoreHorizontal, Tag, Folder, Trash2, Check, ExternalLink } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface SavedArticleCardProps {
-  article: Article;
+  article: SavedArticle;
   categories: SavedArticleCategory[];
-  onMove: (article: Article, categoryId: number | null) => void;
-  onUnsave: (article: Article) => void;
+  onMove: (article: SavedArticle, categoryId: number | null) => void;
+  onUnsave: (article: SavedArticle) => void;
 }
 
 export default function SavedArticleCard({ article, categories, onMove, onUnsave }: SavedArticleCardProps) {

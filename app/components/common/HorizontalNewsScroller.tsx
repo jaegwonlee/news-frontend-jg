@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 // 1번에서 만든 StyledArticleTitle 컴포넌트를 import합니다.
 import StyledArticleTitle from "@/app/components/common/StyledArticleTitle"; 
-import { Article } from '@/types'; // 'news' 프로젝트의 Article 타입을 사용합니다.
+import { Article } from '@/lib/types/article'; // 'news' 프로젝트의 Article 타입을 사용합니다.
 
 interface HorizontalNewsScrollerProps {
   news: Article[];

@@ -1,10 +1,8 @@
 import React from "react";
 import Image from "next/image";
-import { LinkMetadata } from "@/types";
+import { LinkMetadata } from "@/lib/types/shared";
 
-interface LinkPreviewCardProps extends LinkMetadata {}
-
-const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, title, description, image, favicon }) => {
+const LinkPreviewCard: React.FC<LinkMetadata> = ({ url, title, description, image, favicon }) => {
   return (
     <a
       href={url}

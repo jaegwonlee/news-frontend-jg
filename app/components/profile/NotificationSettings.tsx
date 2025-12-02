@@ -1,5 +1,5 @@
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
-import { NotificationType } from '@/types';
+import { NotificationType } from '@/lib/types/shared';
 
 const NOTIFICATION_TYPE_NAMES: Record<NotificationType, string> = {
   NEW_TOPIC: "새 토픽 알림",

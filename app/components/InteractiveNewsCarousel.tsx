@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Article } from '@/types';
+import { useState } from 'react';
+import { Article } from '@/lib/types/article';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -10,13 +10,7 @@ interface InteractiveNewsCarouselProps {
 }
 
 export default function InteractiveNewsCarousel({ articles }: InteractiveNewsCarouselProps) {
-  const [featuredArticle, setFeaturedArticle] = useState<Article | null>(null);
-
-  useEffect(() => {
-    if (articles && articles.length > 0) {
-      setFeaturedArticle(articles[0]);
-    }
-  }, [articles]);
+  const [featuredArticle, setFeaturedArticle] = useState<Article | null>(articles && articles.length > 0 ? articles[0] : null);
 
   if (!articles || articles.length === 0) {
     return null;

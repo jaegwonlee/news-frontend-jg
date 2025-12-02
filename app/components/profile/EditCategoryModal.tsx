@@ -1,14 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Article, SavedArticleCategory } from '@/types';
+import { SavedArticle } from '@/lib/types/article';
+import { SavedArticleCategory } from '@/lib/types/shared';
 import { X, PlusCircle, MinusCircle, Trash2 } from 'lucide-react';
 import ConfirmationPopover from '@/app/components/common/ConfirmationPopover';
 
 interface EditCategoryModalProps {
   category: SavedArticleCategory;
-  articlesInCategory: Article[];
-  uncategorizedArticles: Article[];
+  articlesInCategory: SavedArticle[];
+  uncategorizedArticles: SavedArticle[];
   onClose: () => void;
   onSave: (categoryId: number, newName: string, articlesToAdd: number[], articlesToRemove: number[]) => Promise<void>;
   onDelete: () => void;
@@ -16,7 +17,7 @@ interface EditCategoryModalProps {
 
 import Image from 'next/image';
 
-const ArticleItem = ({ article, onToggle, isSelected, action }: { article: Article; onToggle: (id: number) => void; isSelected: boolean; action: 'add' | 'remove' }) => (
+const ArticleItem = ({ article, onToggle, isSelected, action }: { article: SavedArticle; onToggle: (id: number) => void; isSelected: boolean; action: 'add' | 'remove' }) => (
   <div 
     className={`flex items-center gap-4 p-2 rounded-lg transition-colors ${isSelected ? (action === 'add' ? 'bg-green-500/20' : 'bg-red-500/20') : 'hover:bg-muted/50'}`}
   >

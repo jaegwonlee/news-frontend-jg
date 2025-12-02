@@ -2,12 +2,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { getNotificationSettings, updateNotificationSettings } from '@/lib/api';
-import { NotificationSetting, NotificationType } from '@/types';
+import { NotificationSetting, NotificationType } from '@/lib/types/shared';
 
 const ALL_NOTIFICATION_TYPES: NotificationType[] = [
   "NEW_TOPIC",
   "BREAKING_NEWS",
   "EXCLUSIVE_NEWS",
+  "VOTE_REMINDER",
+  "ADMIN_NOTICE",
 ];
 
 export const useNotificationSettings = () => {
@@ -33,7 +35,7 @@ export const useNotificationSettings = () => {
           return existingSetting || { notification_type: type, is_enabled: true }; // Default to true if not set
         });
         setSettings(mergedSettings);
-      } catch (err: any) {
+      } catch (err: Error) {
         setError(err.message || "알림 설정을 불러오는데 실패했습니다.");
         // If error, initialize with all types enabled by default
         setSettings(ALL_NOTIFICATION_TYPES.map(type => ({ notification_type: type, is_enabled: true })));
@@ -61,7 +63,7 @@ export const useNotificationSettings = () => {
 
     try {
       await updateNotificationSettings(token, newSettings);
-    } catch (err: any) {
+    } catch (err: Error) {
       // Revert on error
       setSettings(originalSettings);
       setError(err.message || "알림 설정 업데이트에 실패했습니다.");

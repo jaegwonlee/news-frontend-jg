@@ -2,7 +2,7 @@
 
 import { getCategoryTheme } from "@/lib/categoryColors";
 import { cn } from "@/lib/utils";
-import { Article } from "@/types";
+import { Article } from "@/lib/types/article";
 import { ChevronRight, Newspaper } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

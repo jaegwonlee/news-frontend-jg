@@ -1,8 +1,7 @@
 export const dynamic = "force-dynamic";
 import { getPopularTopics, getLatestTopics, getTopicDetail } from "@/lib/api/topics";
-import { Topic, TopicDetail } from "@/types";
+import { Topic } from "@/lib/types/topic";
 import MainGrid from "./components/MainGrid";
-import InteractiveCategoryGrid from "./components/InteractiveCategoryGrid";
 
 export default async function Home() {
   const topicDetailPromise = getTopicDetail("1").catch((err) => {

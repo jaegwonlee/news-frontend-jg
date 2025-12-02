@@ -2,15 +2,16 @@
 
 "use client";
 
-import React from "react";
+import { getCategoryTheme } from "@/lib/categoryColors";
+import { cn } from "@/lib/utils";
 import { Bell, Headset, Moon, Sun } from "lucide-react";
+import NotificationBadge from "./notifications/NotificationBadge";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { getCategoryTheme } from "@/lib/categoryColors";
 import { usePathname } from "next/navigation";
+import React from "react";
 import AuthStatus from "./header/AuthStatus";
 import SearchBar from "./header/SearchBar";
-import { cn } from "@/lib/utils";
 
 const navLinks = [
   { title: "정치", href: "/politics" },
@@ -68,14 +69,17 @@ export default function Header() {
                   <div className="w-5 h-5" /> // Render an empty div or a default icon placeholder
                 )}
               </button>
-              <Link href="/inquiry" className="p-1 rounded-full hover:bg-accent transition-colors hidden sm:block group">
+              <Link
+                href="/inquiry"
+                className="p-1 rounded-full hover:bg-accent transition-colors hidden sm:block group"
+              >
                 <Headset className="w-5 h-5 text-[var(--icon-adaptive)] cursor-pointer hover:text-foreground transition-transform group-hover:scale-125" />
               </Link>
               <Link
                 href="/notifications"
                 className="p-1 rounded-full hover:bg-accent transition-colors hidden sm:block group"
               >
-                <Bell className="w-5 h-5 text-[var(--icon-adaptive)] cursor-pointer hover:text-foreground transition-transform group-hover:scale-125" />
+                <NotificationBadge />
               </Link>
               <div className="hidden sm:block">
                 <SearchBar />
@@ -85,7 +89,10 @@ export default function Header() {
           </div>
 
           {/* Bottom Row: Navigation (Centered) */}
-          <nav className="flex justify-center items-center gap-4 border-t pt-2" style={{borderColor: headerBorderColor}}>
+          <nav
+            className="flex justify-center items-center gap-4 border-t pt-2"
+            style={{ borderColor: headerBorderColor }}
+          >
             {navLinks.map((link, index) => {
               const isActive = pathname === link.href;
               const theme = getCategoryTheme(link.title);
@@ -109,9 +116,7 @@ export default function Header() {
                   >
                     {link.title}
                   </Link>
-                  {index < navLinks.length - 1 && (
-                    <span style={{color: separatorColor}}>|</span>
-                  )}
+                  {index < navLinks.length - 1 && <span style={{ color: separatorColor }}>|</span>}
                 </React.Fragment>
               );
             })}

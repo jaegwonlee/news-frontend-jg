@@ -1,6 +1,6 @@
-import { Article, Topic, TopicDetail, TopicPreview } from "@/types";
+import { Article } from "@/lib/types/article";
+import { Topic, TopicDetail, TopicPreview } from "@/lib/types/topic";
 import { fetchWrapper } from "./fetchWrapper";
-import { mockMainTopicDetail, mockPopularTopics, mockLatestTopics } from "@/app/mocks/topics";
 
 // Define the type for a single chat message from the API
 export interface ApiChatMessage {
@@ -13,16 +13,12 @@ export interface ApiChatMessage {
   topic_preview?: TopicPreview | null;
 }
 
-const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data
-
 /**
  * 가장 최근에 발행된 토픽 10개를 가져옵니다.
  * @returns 최신 토픽 목록 (Topic[] 타입)
  */
 export async function getLatestTopics(): Promise<Topic[]> {
-  if (USE_MOCKS) {
-    return Promise.resolve(mockLatestTopics);
-  }
+
   try {
     const response = await fetchWrapper(`/api/topics/latest`, {
       method: "GET",
@@ -46,9 +42,7 @@ export async function getLatestTopics(): Promise<Topic[]> {
  */
 export async function getAllTopics(): Promise<Topic[]> {
   // This function is not used on the main page, so we can leave it or mock it simply
-  if (USE_MOCKS) {
-    return Promise.resolve([...mockLatestTopics, ...mockPopularTopics]);
-  }
+
   try {
     const response = await fetchWrapper(`/api/topics`, {
       method: "GET",
@@ -70,10 +64,7 @@ export async function getAllTopics(): Promise<Topic[]> {
  * @returns 모든 토픽 목록 (Topic[] 타입)
  */
 export async function getPopularTopicsAll(): Promise<Topic[]> {
-    // This function is not used on the main page, so we can leave it or mock it simply
-  if (USE_MOCKS) {
-    return Promise.resolve(mockPopularTopics);
-  }
+
   try {
     const response = await fetchWrapper(`/api/topics/popular-all`, {
       method: "GET",
@@ -91,17 +82,7 @@ export async function getPopularTopicsAll(): Promise<Topic[]> {
 }
 
 export async function getTopicDetail(topicId: string, token?: string): Promise<TopicDetail> {
-  if (USE_MOCKS && topicId === "1") {
-    return Promise.resolve(mockMainTopicDetail);
-  }
-  // Fallback for other topic IDs if needed
-  if (USE_MOCKS) {
-    const topic = [...mockPopularTopics, ...mockLatestTopics].find(t => t.id.toString() === topicId);
-    return Promise.resolve({
-        topic: topic || mockMainTopicDetail.topic,
-        articles: mockMainTopicDetail.articles
-    });
-  }
+
 
   const headers: HeadersInit = {};
   if (token) {
@@ -119,10 +100,7 @@ export async function getTopicDetail(topicId: string, token?: string): Promise<T
 }
 
 export async function incrementTopicView(topicId: string): Promise<void> {
-  if (USE_MOCKS) {
-    console.log(`Mock incrementing view for topic ${topicId}`);
-    return Promise.resolve();
-  }
+
   try {
     const response = await fetchWrapper(`/api/topics/${topicId}/view`, {
       method: "POST",
@@ -137,9 +115,7 @@ export async function incrementTopicView(topicId: string): Promise<void> {
 }
 
 export async function getPopularTopics(): Promise<Topic[]> {
-  if (USE_MOCKS) {
-    return Promise.resolve(mockPopularTopics);
-  }
+
   try {
     const response = await fetchWrapper(`/api/topics/popular-ranking`, { next: { revalidate: 0 } });
     if (!response.ok) {
@@ -164,11 +140,7 @@ export async function getChatHistory(
   limit: number = 50,
   offset: number = 0
 ): Promise<ApiChatMessage[]> {
-  if (USE_MOCKS) {
-    // For now, return an empty history. A full mock would require a mock message store.
-    console.log(`Mock fetching chat history for topic ${topicId}`);
-    return Promise.resolve([]);
-  }
+
   try {
     const response = await fetchWrapper(`/api/topics/${topicId}/chat?limit=${limit}&offset=${offset}`, {
       method: "GET",
@@ -182,9 +154,9 @@ export async function getChatHistory(
       throw new Error(errorData.message || "Failed to fetch chat history");
     }
 
-    const rawMessages: any[] = await response.json();
+    const rawMessages: ApiChatMessage[] = await response.json();
     
-    return rawMessages.map((rawMsg: any) => ({
+    return rawMessages.map((rawMsg: ApiChatMessage) => ({
         id: rawMsg.id,
         message: rawMsg.content, // 'content' from backend maps to 'message' here
         created_at: rawMsg.created_at,
@@ -208,19 +180,7 @@ export async function getChatHistory(
  * @returns The newly created message object.
  */
 export async function sendChatMessage(topicId: number, content: string, token: string): Promise<ApiChatMessage> {
-    if (USE_MOCKS) {
-        console.log(`Mock sending message to topic ${topicId}: ${content}`);
-        const mockResponse: ApiChatMessage = {
-            id: Math.floor(Math.random() * 10000),
-            message: content,
-            created_at: new Date().toISOString(),
-            author: "목업맨", // Mock user from auth mock
-            profile_image_url: '/user-placeholder.svg',
-        };
-        // In a real mock, this would also trigger a socket event.
-        // For now, we just resolve the promise. The UI will update optimistically.
-        return Promise.resolve(mockResponse);
-    }
+
 
   const response = await fetchWrapper(`/api/topics/${topicId}/chat`, {
     method: "POST",
@@ -244,10 +204,7 @@ export async function sendChatMessage(topicId: number, content: string, token: s
  * @param token The user's authentication token.
  */
 export async function deleteChatMessage(messageId: number, token: string): Promise<void> {
-  if (USE_MOCKS) {
-    console.log(`Mock deleting message ${messageId}`);
-    return Promise.resolve();
-  }
+
   const response = await fetchWrapper(`/api/chat/${messageId}`, {
     method: "DELETE",
     headers: {
@@ -274,15 +231,7 @@ export async function getPresignedUrlForChat(
   fileName: string,
   fileType: string
 ): Promise<{ uploadUrl: string; fileUrl: string }> {
-  if (USE_MOCKS) {
-      console.log("Mock generating presigned URL");
-      // This is tricky to mock. We'll return a placeholder that will fail to upload
-      // but allows the UI to proceed. A more advanced mock would use a local blob URL.
-      return Promise.resolve({
-          uploadUrl: `mock-upload-url-for/${fileName}`,
-          fileUrl: `https://via.placeholder.com/300.png` // Return a placeholder image
-      });
-  }
+
   const response = await fetchWrapper(`/api/chat/presigned-url`, {
     method: "POST",
     headers: {
@@ -298,7 +247,7 @@ export async function getPresignedUrlForChat(
       if (errorData && errorData.message) {
         errorMessage = errorData.message;
       }
-    } catch (e) {
+    } catch {
       // If JSON parsing fails, use the raw text response for better debugging
       const textResponse = await response.text();
       errorMessage = `서버 오류 (${response.status} ${response.statusText}): ${textResponse}`;
@@ -321,10 +270,7 @@ export async function reportChatMessage(
   reason: string,
   token: string
 ): Promise<{ message: string }> {
-  if (USE_MOCKS) {
-    console.log(`Mock reporting message ${messageId} for reason: ${reason}`);
-    return Promise.resolve({ message: "신고가 접수되었습니다. (목업)" });
-  }
+
   const response = await fetchWrapper(`/api/chat/${messageId}/report`, {
     method: "POST",
     headers: {
@@ -354,10 +300,7 @@ export async function castTopicVote(
   stance: 'LEFT' | 'RIGHT',
   token: string
 ): Promise<{ message: string; voteCountLeft?: number; voteCountRight?: number }> {
-  if (USE_MOCKS) {
-    console.log(`Mock voting for topic ${topicId} with stance ${stance}`);
-    return Promise.resolve({ message: "Vote cast successfully (mock)", voteCountLeft: 10, voteCountRight: 5 });
-  }
+
   try {
     const response = await fetchWrapper(`/api/topics/${topicId}/${stance}/vote`, {
       method: "POST",
@@ -371,7 +314,7 @@ export async function castTopicVote(
       throw new Error(errorData.message || "투표에 실패했습니다.");
     }
     return response.json();
-  } catch (error) {
+  } catch (error: Error) {
     console.error("Error in castTopicVote:", error);
     throw error;
   }

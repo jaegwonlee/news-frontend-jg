@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Swords, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 // Define the type based on the user's provided structure
 interface TopicPreview {

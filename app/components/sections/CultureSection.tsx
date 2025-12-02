@@ -1,6 +1,6 @@
 "use client";
 
-import { Article } from "@/types";
+import { Article } from "@/lib/types/article";
 import { ArrowRight, Palette } from "lucide-react";
 import Link from "next/link";
 import ArticleCard from "../ArticleCard";

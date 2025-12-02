@@ -1,6 +1,6 @@
 import { SearchResult } from "@/hooks/useChatSearch";
 import { MEDIA_EXTENSIONS, S3_URL_PREFIX } from "@/lib/constants";
-import { Message } from "@/types";
+import { Message } from "@/lib/types/shared";
 import React from "react";
 import ArticleCard from "./ArticleCard";
 import MediaRenderer from "./common/MediaRenderer";
@@ -15,7 +15,6 @@ interface MessageRendererProps {
   searchResult: SearchResult | null;
   searchQuery: string;
   isMyMessage: boolean; // Added
-  isDarkMode: boolean; // Added
 }
 
 function highlightText(text: string, query: string, searchResult: SearchResult | null) {
@@ -60,7 +59,6 @@ export default function MessageRenderer({
   searchResult,
   searchQuery,
   isMyMessage,
-  isDarkMode,
 }: MessageRendererProps) {
   const trimmedMessage = msg.message.trim();
 
@@ -91,7 +89,7 @@ export default function MessageRenderer({
     ) {
       isMediaUrl = true;
     }
-  } catch (_e) { /* Not a valid URL format */ }
+  } catch { /* Not a valid URL format */ }
 
   if (isMediaUrl) {
     return (
@@ -119,7 +117,7 @@ export default function MessageRenderer({
         if (!url.hostname.endsWith('vercel.app') && !['localhost', '127.0.0.1'].includes(url.hostname)) {
           return trimmedMessage;
         }
-      } catch (e) {
+      } catch {
         return null;
       }
     }

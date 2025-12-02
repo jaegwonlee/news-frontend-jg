@@ -15,7 +15,7 @@ const Favicon = ({ src, alt, size = 16, className }: FaviconProps) => {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    setError(false);
+    // setError(false); // Removed to avoid set-state-in-effect
   }, [src]);
 
   if (error || !src) {

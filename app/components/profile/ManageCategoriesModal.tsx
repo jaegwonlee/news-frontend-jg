@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SavedArticleCategory } from '@/types';
+import { SavedArticleCategory } from "@/lib/types/shared";
 import { X, Trash2, Edit, Check, Loader, Plus } from 'lucide-react';
 
 interface ManageCategoriesModalProps {
@@ -112,7 +112,7 @@ export default function ManageCategoriesModal({ categories, onClose, onCreate, o
           ))}
         </div>
         <footer className="p-5 border-t border-zinc-700">
-            <p className="text-xs text-muted-foreground text-center">카테고리를 삭제하면 해당 카테고리의 기사들은 '미분류' 상태가 됩니다.</p>
+            <p className="text-xs text-muted-foreground text-center">카테고리를 삭제하면 해당 카테고리의 기사들은 &apos;미분류&apos; 상태가 됩니다.</p>
         </footer>
       </div>
     </div>

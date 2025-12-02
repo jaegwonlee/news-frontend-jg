@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
-import { Comment, CommentReactionUpdate } from "@/types";
+import { Comment } from "@/lib/types/comment";
 import { 
     getTopicComments, 
     postTopicComment,
     updateTopicComment,
     deleteTopicComment,
-    reactToTopicComment,
 } from "@/lib/api";
 import LoadingSpinner from "@/app/components/common/LoadingSpinner";
 import TopicCommentItem from "./TopicCommentItem";
@@ -111,18 +110,6 @@ export default function TopicCommentSection({ topicId }: TopicCommentSectionProp
     }
   };
   
-  const handleReactToComment = async (commentId: number, reaction: 'LIKE' | 'DISLIKE') => {
-      if (!token) { alert("로그인이 필요합니다."); return; }
-      try {
-          const updatedReaction: CommentReactionUpdate = await reactToTopicComment(commentId, reaction, token);
-          const tempUpdatedComment = {id: commentId, ...updatedReaction} as Comment;
-          updateLocalComment(tempUpdatedComment);
-      } catch(error) {
-          console.error("Failed to react to comment:", error);
-          alert((error as Error).message);
-      }
-  };
-  
   const filteredComments = comments.filter(c => stance === 'NEUTRAL' || c.stance === stance);
 
   return (
@@ -160,7 +147,6 @@ export default function TopicCommentSection({ topicId }: TopicCommentSectionProp
                 onPostReply={handlePostComment}
                 onEdit={handleEditComment}
                 onDelete={handleDeleteComment}
-                onReact={handleReactToComment}
               />
             ))}
             {filteredComments.length === 0 && <p className="text-muted-foreground text-center py-8">아직 의견이 없습니다.</p>}

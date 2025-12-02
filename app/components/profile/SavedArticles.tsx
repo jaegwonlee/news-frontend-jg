@@ -11,7 +11,6 @@ import { Bookmark, ServerCrash } from 'lucide-react';
 
 export default function SavedArticles() {
   const {
-    articles,
     categories,
     filteredArticles,
     totalCount,

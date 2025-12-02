@@ -2,17 +2,15 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
-import { Article } from '@/types';
+import { SavedArticle } from '@/lib/types/article';
+import { SavedArticleCategory } from '@/lib/types/shared';
 import { getSavedArticles } from '@/lib/api/user';
-import { toggleArticleSave } from '@/lib/api/articles'; // Import toggleArticleSave
 import { getCategories, createCategory, deleteCategory, updateCategory, updateArticleCategory } from '@/lib/api/categories';
-import { SavedArticleCategory } from '@/types';
-import { useRouter } from "next/navigation";
+import { toggleArticleSave } from '@/lib/api/articles';
 
 export const useSavedArticlesManager = () => {
-  const { token, logout } = useAuth();
-  const router = useRouter();
-  const [articles, setArticles] = useState<Article[]>([]);
+  const { token } = useAuth();
+  const [articles, setArticles] = useState<SavedArticle[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [categories, setCategories] = useState<SavedArticleCategory[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -36,20 +34,20 @@ export const useSavedArticlesManager = () => {
       setTotalCount(savedArticlesResponse.totalCount);
       setCategories(fetchedCategories);
 
-      const counts = fetchedCategories.reduce((acc, category) => {
+      const counts = fetchedCategories.reduce((acc: Record<string, number>, category: SavedArticleCategory) => {
         acc[category.id] = category.article_count ?? 0;
         return acc;
       }, {} as Record<string, number>);
       setCategoryCounts(counts);
 
-    } catch (err: any) {
+    } catch (err: Error) {
       if ((err as Error).message !== 'Session expired') {
         setError(err.message || "데이터를 불러오는 데 실패했습니다.");
       }
     } finally {
       setIsLoading(false);
     }
-  }, [token, logout, router]);
+  }, [token]);
 
   useEffect(() => {
     fetchData();
@@ -69,7 +67,7 @@ export const useSavedArticlesManager = () => {
       const newCategory = await createCategory(token, name);
       setCategories(prev => [...prev, { ...newCategory, article_count: 0 }]);
       return newCategory;
-    } catch (error: any) {
+    } catch (error: Error) {
       console.error("Failed to create category:", error);
       return undefined;
     }
@@ -84,7 +82,7 @@ export const useSavedArticlesManager = () => {
       if (selectedCategoryId === categoryId) {
         setSelectedCategoryId(null);
       }
-    } catch (error: any) {
+    } catch (error: Error) {
       console.error("Failed to delete category:", error);
     }
   }, [token, selectedCategoryId]);
@@ -94,12 +92,12 @@ export const useSavedArticlesManager = () => {
     try {
       const updated = await updateCategory(token, categoryId, newName);
       setCategories(prev => prev.map(c => c.id === categoryId ? { ...c, name: updated.name } : c));
-    } catch (error: any) {
+    } catch (error: Error) {
       console.error("Failed to rename category:", error);
     }
   }, [token]);
 
-  const handleUpdateArticleCategory = useCallback(async (articleToUpdate: Article, newCategoryId: number | null) => {
+  const handleUpdateArticleCategory = useCallback(async (articleToUpdate: SavedArticle, newCategoryId: number | null) => {
     if (!token || articleToUpdate.saved_article_id === undefined) return;
     const oldCategoryId = articleToUpdate.category_id;
 
@@ -122,12 +120,12 @@ export const useSavedArticlesManager = () => {
         return c;
       }));
 
-    } catch (error: any) {
+    } catch (error: Error) {
       console.error("Failed to update article category:", error);
     }
   }, [token]);
 
-  const handleUnsaveArticle = useCallback(async (articleToUnsave: Article) => {
+  const handleUnsaveArticle = useCallback(async (articleToUnsave: SavedArticle) => {
     if (!token) return;
 
     const { id: articleId, category_id: categoryId } = articleToUnsave;

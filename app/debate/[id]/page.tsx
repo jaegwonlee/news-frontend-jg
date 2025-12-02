@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { getTopicDetail } from "@/lib/api";
-import { Topic, Article, TopicDetail } from "@/types";
+import { TopicDetail } from "@/lib/types/topic";
 import { useAuth } from "@/app/context/AuthContext";
 import LoadingSpinner from "@/app/components/common/LoadingSpinner";
 import TopicCommentSection from "@/app/components/debate/comments/TopicCommentSection";

@@ -1,10 +1,10 @@
 "use client";
 
-import { Topic } from "@/types"; // Assuming Topic has at least 'id' and 'display_name'
+import { Topic } from "@/lib/types/topic"; // Assuming Topic has at least 'id' and 'display_name'
 import { motion } from "framer-motion";
 import { Flame } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+
 
 interface TrendingSearchesProps {
   topics: Topic[];
@@ -13,18 +13,13 @@ interface TrendingSearchesProps {
 
 export default function TrendingSearches({ topics, onSearch }: TrendingSearchesProps) {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!topics || topics.length === 0) {
     return null;
   }
 
   // Force colors based on theme
-  const isDark = mounted && resolvedTheme === "dark";
+  const isDark = resolvedTheme === "dark";
   const bgColor = isDark ? "#18181b" : "#f4f4f5"; // zinc-900 : zinc-100
   const textColor = isDark ? "#e4e4e7" : "#52525b"; // zinc-200 : zinc-600
   const borderColor = isDark ? "#27272a" : "#e4e4e7"; // zinc-800 : zinc-200

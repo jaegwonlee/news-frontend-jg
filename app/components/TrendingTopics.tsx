@@ -1,5 +1,5 @@
 import { formatRelativeTime } from "@/lib/utils";
-import { Topic } from "@/types";
+import { Topic } from "@/lib/types/topic";
 import { ArrowRight, Eye } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";

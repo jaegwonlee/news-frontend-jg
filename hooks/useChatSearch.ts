@@ -5,7 +5,7 @@ export type SearchResult = {
     matchIndex: number;
 };
 
-import { Message } from '@/types';
+import { Message } from '@/lib/types/shared';
 
 export function useChatSearch(messages: Message[], messageRefs: React.RefObject<Map<number, HTMLDivElement>>) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);

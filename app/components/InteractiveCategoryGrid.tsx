@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Article } from '@/types';
+import { Article } from '@/lib/types/article';
 import { getCategoryNews } from '@/lib/api/articles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -35,8 +35,6 @@ export default function InteractiveCategoryGrid() {
         };
         fetchArticles();
     }, [selectedCategory]);
-
-    const activeStyle = categoryStyles[selectedCategory];
 
     return (
         <section className="py-12">

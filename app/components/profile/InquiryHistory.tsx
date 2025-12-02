@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
-import { getInquiries, Inquiry } from '@/lib/api/inquiry';
+import { getInquiries } from '@/lib/api/inquiry';
+import { Inquiry } from '@/lib/types/inquiry';
 import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
 import InquiryDetail from './InquiryDetail'; // Will create this component
@@ -26,7 +27,7 @@ export default function InquiryHistory() {
     try {
       const fetchedInquiries = await getInquiries(token);
       setInquiries(fetchedInquiries);
-    } catch (err: any) {
+    } catch (err: Error) {
       console.error("Failed to fetch inquiries:", err);
       if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
         alert("세션이 만료되었습니다. 다시 로그인해주세요.");
@@ -50,7 +51,7 @@ export default function InquiryHistory() {
       ANSWERED: { text: '답변 완료', className: 'bg-green-500/10 text-green-600 dark:text-green-400' },
       CLOSED: { text: '종료됨', className: 'bg-secondary text-muted-foreground' },
     };
-    const currentStatus = statusMap[status] || statusMap.CLOSED;
+    const currentStatus = statusMap[status as keyof typeof statusMap] || statusMap.CLOSED;
     return (
       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${currentStatus.className}`}>
         {currentStatus.text}

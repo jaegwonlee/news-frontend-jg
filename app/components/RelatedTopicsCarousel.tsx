@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Topic } from '@/types';
+import { Topic } from "@/lib/types/topic";
 import { getAllTopics } from '@/lib/api/topics';
 import { formatRelativeTime } from '@/lib/utils';
 

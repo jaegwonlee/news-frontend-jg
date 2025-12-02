@@ -1,10 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { User } from '@/types';
+import { User } from '@/lib/types/user';
 import { useSavedArticlesManager } from '@/hooks/useSavedArticles';
-import { useLikedArticles } from '@/hooks/useLikedArticles';
-import { Bookmark, Heart } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
 
 interface ProfileHeaderProps {
   profile: User;
@@ -13,7 +12,6 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderProps) {
   const { articles: savedArticles } = useSavedArticlesManager();
-  const { articles: likedArticles } = useLikedArticles();
 
   const activityStats = [
     {
@@ -21,12 +19,6 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
       label: '저장한 기사',
       value: savedArticles.length,
       color: 'text-blue-400',
-    },
-    {
-      icon: <Heart className="w-7 h-7 text-red-400" />,
-      label: '좋아요한 기사',
-      value: likedArticles.length,
-      color: 'text-red-400',
     },
   ];
 

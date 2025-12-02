@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LinkMetadata } from "@/types";
+import { LinkMetadata } from "@/lib/types/shared";
 import { getLinkMetadata } from "@/lib/api";
 
 interface UseLinkMetadataResult {
@@ -30,7 +30,7 @@ export function useLinkMetadata(url: string | undefined): UseLinkMetadataResult 
         setIsLoading(false);
         return;
       }
-    } catch (e) {
+    } catch {
       // If URL is invalid, let it fail in getLinkMetadata
     }
 
@@ -40,9 +40,8 @@ export function useLinkMetadata(url: string | undefined): UseLinkMetadataResult 
       try {
         const data = await getLinkMetadata(url);
         setMetadata(data);
-      } catch (err) {
-        setError(err as Error);
-        setMetadata(null); // Clear metadata on error
+      } catch {
+        setError("메타데이터를 가져오는 데 실패했습니다.");
       } finally {
         setIsLoading(false);
       }

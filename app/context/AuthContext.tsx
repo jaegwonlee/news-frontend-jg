@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { User } from '@/types';
+import { User } from '@/lib/types/user';
 import { addSessionExpiredListener } from '@/lib/api/fetchWrapper';
 
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data in AuthContext
@@ -10,7 +10,7 @@ const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true t
 const parseJwt = (token: string) => {
   try {
     return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
+  } catch {
     return null;
   }
 };

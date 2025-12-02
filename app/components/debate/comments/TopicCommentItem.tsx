@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Comment } from '@/types';
+import { Comment } from '@/lib/types/comment';
 import { useAuth } from '@/app/context/AuthContext';
 import { formatRelativeTime, getFullImageUrl } from '@/lib/utils';
-import { ThumbsUp, ThumbsDown, Reply, Edit, Trash } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Reply, Edit, Trash } from 'lucide-react';
 import CommentInput from './CommentInput';
 import { Button } from '@/app/components/common/Button';
 
@@ -15,10 +14,9 @@ interface TopicCommentItemProps {
     onPostReply: (content: string, parentId: number | null) => Promise<void>;
     onEdit: (commentId: number, content: string) => Promise<void>;
     onDelete: (commentId: number) => Promise<void>;
-    onReact: (commentId: number, reaction: 'LIKE' | 'DISLIKE') => Promise<void>;
 }
 
-export default function TopicCommentItem({ comment, onPostReply, onEdit, onDelete, onReact }: TopicCommentItemProps) {
+export default function TopicCommentItem({ comment, onPostReply, onEdit, onDelete }: TopicCommentItemProps) {
     const { user } = useAuth();
     const [isReplying, setIsReplying] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -64,14 +62,6 @@ export default function TopicCommentItem({ comment, onPostReply, onEdit, onDelet
 
                 {!isEditing && (
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <Button onClick={() => onReact(comment.id, 'LIKE')} variant="ghost" size="sm" className="flex items-center gap-1.5 px-2">
-                            <ThumbsUp size={14} className={cn(comment.currentUserReaction === 'LIKE' && 'text-primary fill-primary/20')} />
-                            <span>{comment.like_count || 0}</span>
-                        </Button>
-                        <Button onClick={() => onReact(comment.id, 'DISLIKE')} variant="ghost" size="sm" className="flex items-center gap-1.5 px-2">
-                            <ThumbsDown size={14} className={cn(comment.currentUserReaction === 'DISLIKE' && 'text-destructive fill-destructive/20')} />
-                            <span>{comment.dislike_count || 0}</span>
-                        </Button>
                         <Button onClick={() => setIsReplying(!isReplying)} variant="ghost" size="sm" className="flex items-center gap-1.5 px-2">
                             <Reply size={14} />
                             <span>답글</span>
@@ -111,7 +101,6 @@ export default function TopicCommentItem({ comment, onPostReply, onEdit, onDelet
                                 onPostReply={onPostReply}
                                 onEdit={onEdit}
                                 onDelete={onDelete}
-                                onReact={onReact}
                             />
                         ))}
                     </div>
