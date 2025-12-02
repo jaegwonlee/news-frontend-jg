@@ -60,7 +60,7 @@ interface ChatRoomProps {
 }
 
 export default function ChatRoom({ topic }: ChatRoomProps) {
-  const { socket, isConnected, error: socketError } = useSocket();
+  const { socket, isConnected, error: socketError, userCount } = useSocket();
   const { user, token } = useAuth();
   const { theme } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
