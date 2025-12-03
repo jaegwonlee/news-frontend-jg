@@ -8,7 +8,7 @@ import ProfileHeader from '@/app/components/profile/ProfileHeader';
 import ProfileEditForm from '@/app/components/profile/ProfileEditForm';
 import SavedArticles from '@/app/components/profile/SavedArticles';
 import NotificationSettings from '@/app/components/profile/NotificationSettings';
-import InquiryForm from '@/app/components/profile/InquiryForm';
+import InquiryForm from '@/app/components/inquiry/InquiryForm';
 import ChangePasswordForm from '@/app/components/profile/ChangePasswordForm';
 import DeleteAccountSection from '@/app/components/profile/DeleteAccountSection';
 import InquiryHistory from '@/app/components/profile/InquiryHistory';

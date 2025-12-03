@@ -45,7 +45,7 @@
 
   .dark {
     /* Base colors for Dark Mode (Layered Grays) */
-    --background-hsl: 0 0% 12%; /* VSCode-like dark gray */
+    --background-hsl: 0 0% 15%; /* VSCode-like dark gray, #1E1E1E */
     --foreground-hsl: 0 0% 98%; /* zinc-50 */
     --carbon-bg-color: #000000; /* Pure black for header/footer in dark mode */
     --carbon-pattern:

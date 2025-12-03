@@ -1,9 +1,12 @@
-import InquiryForm from "@/app/components/profile/InquiryForm";
+import React, { Suspense } from 'react';
+import InquiryClientPage from "./InquiryClientPage";
+import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 
 export default function InquiryPage() {
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <InquiryForm />
-    </div>
+    // Wrap with Suspense because InquiryClientPage uses useSearchParams
+    <Suspense fallback={<div className="flex items-center justify-center h-screen"><LoadingSpinner /></div>}>
+      <InquiryClientPage />
+    </Suspense>
   );
 }

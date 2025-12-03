@@ -348,14 +348,14 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
           backgroundImage: `url('/ground.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          opacity: "0.7",
+          opacity: "0.9",
           transition: "all 300ms",
         }}
       ></div>
       {/* Header */}
       <div
         className={`flex justify-between items-center p-3 h-16 shrink-0 ${
-          isDarkMode ? "border-b border-white/10 bg-background" : "border-b border-border bg-white"
+          isDarkMode ? "border-b border-white/10 bg-black" : "border-b border-border bg-white"
         }`}
       >
         <div className="flex items-center gap-3">
@@ -630,7 +630,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
       {/* Footer Input */}
       <div
         className={`shrink-0 px-4 py-4 ${
-          isDarkMode ? "border-t border-white/10 bg-background" : "border-t border-border bg-white"
+          isDarkMode ? "border-t border-white/10 bg-black" : "border-t border-border bg-white"
         }`}
       >
         {socketError && (
@@ -656,15 +656,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
           >
             {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
           </button>
-          <button
-            type="button"
-            onClick={handlePaste}
-            className="p-2 h-10 w-10 flex justify-center items-center bg-secondary hover:bg-accent rounded-md text-muted-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!isConnected || !user || !!socketError || isSending || isUploading}
-            title="붙여넣기"
-          >
-            <Clipboard className="w-5 h-5" />
-          </button>
+
           <input
             type="text"
             placeholder={getPlaceholderText()}

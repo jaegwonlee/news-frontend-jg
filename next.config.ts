@@ -71,11 +71,15 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "www.yna.co.kr", // 연합뉴스 파비콘
+        hostname: "*.yna.co.kr", // 연합뉴스 이미지 (와일드카드 서브도메인)
       },
       {
         protocol: "https",
         hostname: "www.newsis.com", // 뉴시스 파비콘
+      },
+      {
+        protocol: "https",
+        hostname: "image.newsis.com", // 뉴시스 이미지
       },
       {
         protocol: "https",

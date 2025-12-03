@@ -6,8 +6,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import ScrollToTopButton from "./components/common/ScrollToTopButton";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
-import NotificationToast from "./components/notifications/NotificationToast";
 import NotificationSidePanel from "./components/notifications/NotificationSidePanel";
+import NotificationToastManager from "./components/NotificationToastManager"; // Import the new component
 
 import { ThemeProvider } from "./components/ThemeProvider";
 import "./globals.css";
@@ -43,10 +43,9 @@ export default function RootLayout({
                 <main className="flex-1 w-full">{children}</main>
                 <Footer />
                 <ScrollToTopButton />
-                <NotificationToast />
+                <NotificationToastManager />
               </SocketProvider>
               <NotificationSidePanel />
-
             </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>

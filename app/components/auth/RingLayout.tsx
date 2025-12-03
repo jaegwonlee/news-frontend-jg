@@ -51,11 +51,11 @@ const RingLayout: React.FC<RingLayoutProps> = ({ children, title }) => {
         </div>
 
         {/* --- CANVAS (Content Box) --- */}
-        <div className="relative bg-card border-4 border-border rounded-xl shadow-2xl overflow-hidden">
+        <div className="relative bg-white dark:bg-black border-4 border-border rounded-xl shadow-2xl overflow-hidden">
           {/* Canvas Texture Overlay - REMOVED FOR PURE BLACK */}
           {/* <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] dark:invert pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/concrete-wall.png')]"></div> */}
 
-          <div className="relative z-10 p-6">
+          <div className="relative z-10 p-6 bg-background">
             {/* Header */}
             <div className="text-center mb-4">
               <h1 className="text-3xl font-black text-foreground uppercase tracking-tighter">{title}</h1>

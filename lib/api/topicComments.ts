@@ -103,3 +103,23 @@ export async function reportTopicComment(commentId: number, reason: string, toke
     }
     return response.json();
 }
+
+/**
+ * Posts a reaction to a specific comment.
+ * @param commentId - The ID of the comment to react to.
+ * @param reactionType - The type of reaction (e.g., 'like', 'dislike').
+ * @param token - User authentication token.
+ * @returns A promise that resolves to an object indicating success or a message.
+ */
+export async function postCommentReaction(commentId: number, reactionType: string, token: string): Promise<{ message: string }> {
+    const response = await fetchWrapper(`/api/comments/${commentId}/reactions`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reaction_type: reactionType }), // Assuming the backend expects 'reaction_type'
+    });
+    if (!response.ok) {
+        const err: { message: string } = await response.json().catch(() => ({ message: "댓글 반응 추가에 실패했습니다." }));
+        throw new Error(err.message);
+    }
+    return response.json();
+}

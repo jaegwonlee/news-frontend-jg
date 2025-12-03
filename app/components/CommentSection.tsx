@@ -16,6 +16,7 @@ interface ReplyTarget {
 interface CommentSectionProps {
   articleId: number;
   article: Article; // Add article to props
+  onCommentCountUpdate: (articleId: number, newCount: number) => void; // Add the missing prop
   comments: Comment[];
   isLoading: boolean;
   refetchComments: (article: Article) => void; // Add refetch to props

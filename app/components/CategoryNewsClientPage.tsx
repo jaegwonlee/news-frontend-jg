@@ -6,24 +6,71 @@ import { Article } from "@/lib/types/article";
 import { ChevronRight, Newspaper } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import ClientOnlyTime from "./common/ClientOnlyTime";
 import ClientPaginationControls from "./common/ClientPaginationControls";
 import { EmptyState } from "./common/EmptyState";
 import Favicon from "./common/Favicon";
+import { useAuth } from "@/app/context/AuthContext";
+import { getCategoryNews, toggleArticleSave } from "@/lib/api";
+import LoadingSpinner from "./common/LoadingSpinner";
+import ArticleSaveButton from "./ArticleSaveButton";
 
 interface CategoryNewsClientPageProps {
-  articles: Article[];
   categoryName: string;
 }
 
-const ARTICLES_PER_PAGE = 20; // Changed to 20 for more diverse layout options
+const ARTICLES_PER_PAGE = 20;
 
-export default function CategoryNewsClientPage({ articles, categoryName }: CategoryNewsClientPageProps) {
+export default function CategoryNewsClientPage({ categoryName }: CategoryNewsClientPageProps) {
+  const { token, isLoggedIn } = useAuth();
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [selectedSource, setSelectedSource] = useState("전체");
   const [currentPage, setCurrentPage] = useState(1);
 
   const theme = getCategoryTheme(categoryName);
+
+  const fetchNews = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const fetchedArticles = await getCategoryNews(categoryName, 100, isLoggedIn ? token : undefined);
+      setArticles(fetchedArticles);
+    } catch (err) {
+      setError("뉴스를 불러오는 데 실패했습니다.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [categoryName, token, isLoggedIn]);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
+
+  const handleSaveToggle = async (articleToToggle: Article) => {
+    if (!isLoggedIn || !token) {
+      alert('로그인이 필요한 기능입니다.');
+      return;
+    }
+
+    const originalArticles = articles;
+    const newArticles = articles.map((a) =>
+      a.id === articleToToggle.id ? { ...a, isSaved: !a.isSaved } : a
+    );
+    setArticles(newArticles);
+
+    try {
+      await toggleArticleSave(token, articleToToggle.id, !!articleToToggle.isSaved);
+    } catch (err) {
+      setArticles(originalArticles);
+      alert('기사 저장 상태 변경에 실패했습니다.');
+      console.error(err);
+    }
+  };
 
   const sources = useMemo(() => {
     const allSources = articles.map((article) => article.source);
@@ -33,11 +80,6 @@ export default function CategoryNewsClientPage({ articles, categoryName }: Categ
   const filteredArticles = useMemo(() => {
     return selectedSource === "전체" ? articles : articles.filter((article) => article.source === selectedSource);
   }, [articles, selectedSource]);
-
-  // Reset to page 1 whenever filters change - Removed useEffect to avoid cascading renders
-  // useEffect(() => {
-  //   setCurrentPage(1);
-  // }, [selectedSource]);
 
   const totalPages = Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE);
   const paginatedArticles = useMemo(() => {
@@ -58,11 +100,22 @@ export default function CategoryNewsClientPage({ articles, categoryName }: Categ
 
     const hoverAccentClasses = theme.hoverText;
     const hoverBorderClasses = theme.hoverBorder;
+    
+    const handleSaveClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSaveToggle(article);
+    };
 
     switch (type) {
       case "hero":
         return (
           <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
+            <div className="absolute top-4 right-4 z-10">
+              {isLoggedIn && article.isSaved !== undefined && (
+                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
+              )}
+            </div>
             <div className="relative w-full h-2/3 md:h-3/5 overflow-hidden">
               <Image
                 src={article.thumbnail_url || "/placeholder.png"}
@@ -99,6 +152,11 @@ export default function CategoryNewsClientPage({ articles, categoryName }: Categ
       case "standard":
         return (
           <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
+            <div className="absolute top-2 right-2 z-10">
+              {isLoggedIn && article.isSaved !== undefined && (
+                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
+              )}
+            </div>
             <div className="relative w-full aspect-video overflow-hidden rounded-t-xl">
               <Image
                 src={article.thumbnail_url || "/placeholder.png"}
@@ -128,68 +186,89 @@ export default function CategoryNewsClientPage({ articles, categoryName }: Categ
         );
       case "compact":
         return (
-          <Link
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              "block p-4 rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-md hover:translate-x-1",
-              hoverBorderClasses
-            )}
-          >
-            <h3 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
-              {article.title}
-            </h3>
-            <div className="flex items-center text-xs text-muted-foreground mt-2">
-              <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
-              <span className="ml-1">{article.source}</span>
+          <div className="relative">
+            <div className="absolute top-2 right-2 z-10">
+              {isLoggedIn && article.isSaved !== undefined && (
+                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
+              )}
             </div>
-          </Link>
-        );
-      case "horizontal":
-        return (
-          <Link
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(commonClasses, "flex flex-row items-start gap-4 p-4")}
-          >
-            <div className="relative w-24 h-16 shrink-0 overflow-hidden rounded-lg">
-              <Image
-                src={article.thumbnail_url || "/placeholder.png"}
-                alt={article.title}
-                fill
-                className="object-cover"
-                sizes="96px"
-                unoptimized
-              />
-            </div>
-            <div className="flex flex-col grow">
-              <h3 className={cn("font-bold text-base leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
+            <Link
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "block p-4 rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-md hover:translate-x-1",
+                hoverBorderClasses
+              )}
+            >
+              <h3 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
                 {article.title}
               </h3>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
+              <div className="flex items-center text-xs text-muted-foreground mt-2">
                 <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
                 <span className="ml-1">{article.source}</span>
               </div>
+            </Link>
+          </div>
+        );
+      case "horizontal":
+        return (
+          <div className="relative">
+             <div className="absolute top-2 right-2 z-10">
+              {isLoggedIn && article.isSaved !== undefined && (
+                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
+              )}
             </div>
-          </Link>
+            <Link
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(commonClasses, "flex flex-row items-start gap-4 p-4")}
+            >
+              <div className="relative w-24 h-16 shrink-0 overflow-hidden rounded-lg">
+                <Image
+                  src={article.thumbnail_url || "/placeholder.png"}
+                  alt={article.title}
+                  fill
+                  className="object-cover"
+                  sizes="96px"
+                  unoptimized
+                />
+              </div>
+              <div className="flex flex-col grow">
+                <h3 className={cn("font-bold text-base leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
+                  {article.title}
+                </h3>
+                <div className="flex items-center text-xs text-muted-foreground mt-1">
+                  <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
+                  <span className="ml-1">{article.source}</span>
+                </div>
+              </div>
+            </Link>
+          </div>
         );
       case "title-only":
         return (
-          <Link
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              "block p-3 rounded-lg bg-card border border-border transition-all duration-300 hover:shadow-sm",
-              hoverBorderClasses
-            )}
-          >
-            <h3 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
-              {article.title}
-            </h3>
-          </Link>
+          <div className="relative">
+            <div className="absolute top-2 right-2 z-10">
+              {isLoggedIn && article.isSaved !== undefined && (
+                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
+              )}
+            </div>
+            <Link
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "block p-3 rounded-lg bg-card border border-border transition-all duration-300 hover:shadow-sm",
+                hoverBorderClasses
+              )}
+            >
+              <h3 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
+                {article.title}
+              </h3>
+            </Link>
+          </div>
         );
       default:
         return null;
@@ -220,22 +299,22 @@ export default function CategoryNewsClientPage({ articles, categoryName }: Categ
               }`}
             >
               {source === "전체" ? "전체 언론사" : source}
-              {/* Added a small arrow for selected source for visual flair */}
               {selectedSource === source && <ChevronRight size={16} className="ml-2" />}
             </button>
           ))}
         </div>
       </div>
-
-      {filteredArticles.length === 0 ? (
+      {isLoading ? (
+        <div className="h-96 flex items-center justify-center"><LoadingSpinner size="large" /></div>
+      ) : error ? (
+        <div className="h-96 flex items-center justify-center"><EmptyState Icon={Newspaper} title="오류 발생" description="뉴스를 불러오는 데 실패했습니다." /></div>
+      ) : filteredArticles.length === 0 ? (
         <div className="py-20">
           <EmptyState Icon={Newspaper} title="기사 없음" description="해당 언론사의 뉴스가 없습니다." />
         </div>
       ) : (
         <div className="space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-[minmax(180px,fr)]">
-            {" "}
-            {/* Main Grid */}
             {paginatedArticles.map((article, index) => {
               // Decide layout based on index and overall design vision
               if (index === 0) {

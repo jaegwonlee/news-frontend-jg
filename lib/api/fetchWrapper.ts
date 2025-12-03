@@ -44,26 +44,34 @@ const SESSION_EXPIRED_EVENT = 'sessionExpired';
  * });
  */
 export async function fetchWrapper(url: string, options: RequestInit & { skipAuthCheckFor401?: boolean } = {}): Promise<Response> {
-  // 1. 기본 헤더 설정
-  const defaultHeaders: HeadersInit = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  const method = options.method?.toUpperCase() || 'GET';
+
+  // 1. 헤더 설정
+  const headers = new Headers(options.headers);
+  if (!headers.has('Accept')) {
+    headers.set('Accept', 'application/json');
+  }
+
+  // POST, PUT, PATCH 요청이면서 FormData가 아닐 경우에만 Content-Type을 설정합니다.
+  if (['POST', 'PUT', 'PATCH'].includes(method) && !(options.body instanceof FormData)) {
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
+  }
 
   // 2. 요청 URL 조합
   const fullUrl = url.startsWith('http') ? url : `${BACKEND_BASE_URL}${url}`;
 
-  // 3. 캐시 옵션 설정: GET 요청에 대해 캐시를 사용하지 않도록 설정 (단, 이미 캐시 옵션이 명시된 경우는 제외)
-  const isGetRequest = !options.method || options.method.toUpperCase() === 'GET';
+  // 3. 캐시 옵션 설정
+  const isGetRequest = method === 'GET';
   const cacheOption: RequestInit = (isGetRequest && !options.cache && !options.next) ? { cache: 'no-store' } : {};
 
-  // 4. fetch 요청 실행 및 예외 처리
+  // 4. fetch 요청 실행
   try {
     const response = await fetch(fullUrl, {
       ...options,
-      headers: defaultHeaders,
-      ...cacheOption, // 캐시 옵션 적용
+      headers: headers, // 수정된 헤더 사용
+      ...cacheOption,
     });
 
     // 5. 401 Unauthorized 에러 처리

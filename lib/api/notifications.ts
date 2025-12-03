@@ -5,34 +5,26 @@
  */
 
 import { fetchWrapper } from "./fetchWrapper";
+import { Notification as NotificationItem, NotificationType } from "@/lib/types/notification"; // Import from single source of truth
 
-// 알림 타입 정의
-export type NotificationType = "NEW_TOPIC" | "BREAKING_NEWS" | "EXCLUSIVE_NEWS" | "VOTE_REMINDER" | "ADMIN_NOTICE";
-
-export interface NotificationItem {
-  id: number;
-  type: NotificationType;
-  message: string;
-  url: string;
-  is_read: boolean;
-  created_at: string;
-  metadata?: {
-    source?: string;
-    source_domain?: string;
-    thumbnail_url?: string;
-    published_at?: string;
-    [key: string]: any;
-  };
+export interface PaginatedNotifications {
+  notifications: NotificationItem[];
+  total: number;
+  unread_count: number;
+  page: number;
+  limit: number;
 }
 
 /**
  * @function getNotifications
  * @description 사용자의 알림 목록을 조회합니다.
  * @param {string} token - 사용자 인증 토큰
- * @returns {Promise<NotificationItem[]>} 알림 목록
+ * @param {number} [page=1] - 조회할 페이지 번호
+ * @param {number} [limit=10] - 페이지당 알림 개수
+ * @returns {Promise<PaginatedNotifications>} 알림 목록과 페이지 정보
  */
-export async function getNotifications(token: string): Promise<NotificationItem[]> {
-  const response = await fetchWrapper("/api/notifications", {
+export async function getNotifications(token: string, page: number = 1, limit: number = 10): Promise<PaginatedNotifications> {
+  const response = await fetchWrapper(`/api/notifications?page=${page}&limit=${limit}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -44,7 +36,21 @@ export async function getNotifications(token: string): Promise<NotificationItem[
     throw new Error("알림 목록을 불러오는데 실패했습니다.");
   }
 
-  return response.json();
+  const data = await response.json();
+  
+  // Map the API response to the frontend Notification type
+  const mappedNotifications = (data.notifications || []).map((notif: any) => ({
+    ...notif,
+    url: notif.related_url, // Map related_url to url
+  }));
+
+  return {
+    notifications: mappedNotifications,
+    total: data.total || 0,
+    unread_count: data.unread_count || 0,
+    page: data.page || page,
+    limit: data.limit || limit,
+  };
 }
 
 /**
@@ -83,14 +89,15 @@ export async function getUnreadCount(token: string): Promise<number> {
  */
 export async function markAsRead(token: string, id: number): Promise<void> {
   const response = await fetchWrapper(`/api/notifications/${id}/read`, {
-    method: "PATCH",
+    method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
   if (!response.ok) {
-    throw new Error("알림 읽음 처리에 실패했습니다.");
+    const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
+    throw new Error(errorData.message || `알림 읽음 처리에 실패했습니다. Status: ${response.status}`);
   }
 }
 
@@ -109,5 +116,25 @@ export async function markAllAsRead(token: string): Promise<void> {
 
   if (!response.ok) {
     throw new Error("전체 읽음 처리에 실패했습니다.");
+  }
+}
+
+/**
+ * @function deleteNotification
+ * @description 특정 알림을 삭제합니다.
+ * @param {string} token - 사용자 인증 토큰
+ * @param {number} id - 알림 ID
+ */
+export async function deleteNotification(token: string, id: number): Promise<void> {
+  const response = await fetchWrapper(`/api/notifications/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
+    throw new Error(errorData.message || `알림 삭제에 실패했습니다. Status: ${response.status}`);
   }
 }

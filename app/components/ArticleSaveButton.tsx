@@ -6,9 +6,10 @@ interface ArticleSaveButtonProps {
   isSaved: boolean;
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
+  light?: boolean; // Add the new prop
 }
 
-export default function ArticleSaveButton({ isSaved, onClick, disabled = false }: ArticleSaveButtonProps) {
+export default function ArticleSaveButton({ isSaved, onClick, disabled = false, light }: ArticleSaveButtonProps) {
   return (
     <button
       onClick={onClick}

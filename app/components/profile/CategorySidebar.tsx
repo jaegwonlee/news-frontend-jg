@@ -48,7 +48,6 @@ export default function CategorySidebar({
       <h2 className="text-lg font-bold text-foreground px-3">분류</h2>
       <div className="space-y-1">
         <CategoryItem
-          id="all"
           name="모든 기사"
           count={totalCount}
           isSelected={selectedCategoryId === 'all'}
@@ -56,7 +55,6 @@ export default function CategorySidebar({
           Icon={Menu}
         />
         <CategoryItem
-          id={null}
           name="미분류"
           count={unclassifiedCount}
           isSelected={selectedCategoryId === null}
@@ -66,7 +64,6 @@ export default function CategorySidebar({
         {categories.map((category) => (
           <CategoryItem
             key={category.id}
-            id={category.id}
             name={category.name}
             count={category.article_count ?? 0}
             isSelected={selectedCategoryId === category.id}

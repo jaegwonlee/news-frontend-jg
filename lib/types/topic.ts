@@ -1,3 +1,4 @@
+// lib/types/topic.ts
 import { Article } from './article';
 
 export interface TopicPreview {
@@ -40,5 +41,12 @@ export interface Topic {
  */
 export interface TopicDetail {
   topic: Topic;
+  articles: Article[];
+}
+
+export interface TrendingKeyword {
+  keyword: string;
+  article_count: number;
+  source_count: number;
   articles: Article[];
 }

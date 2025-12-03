@@ -5,29 +5,27 @@ import React, {
   createContext,
   useContext,
   useState,
-  useEffect,
   ReactNode,
 } from "react";
-import { Notification, NotificationType } from "@/lib/types/notification";
+import { Notification } from "@/lib/types/notification";
 
-// 1. Define the context type
 interface NotificationContextType {
   unreadCount: number;
   notifications: Notification[];
+  latestNotification: Notification | null; // For the toast
   addNotification: (notification: Notification) => void;
   markAsRead: (id: number) => void;
   markAllAsRead: () => void;
-  setUnreadCount: (count: number) => void; // Added for initial fetch
+  setUnreadCount: (count: number) => void;
+  clearLatestNotification: () => void; // To dismiss the toast
   isSidePanelOpen: boolean;
   toggleSidePanel: (isOpen?: boolean) => void;
 }
 
-// 2. Create the context with default values
 const NotificationContext = createContext<NotificationContextType | undefined>(
   undefined
 );
 
-// 3. Create the provider component
 interface NotificationProviderProps {
   children: ReactNode;
 }
@@ -35,29 +33,35 @@ interface NotificationProviderProps {
 export function NotificationProvider({ children }: NotificationProviderProps) {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [latestNotification, setLatestNotification] = useState<Notification | null>(null);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 
-  // Placeholder for adding a new notification (e.g., from Socket.IO)
   const addNotification = (newNotification: Notification) => {
     setNotifications((prev) => [newNotification, ...prev]);
     if (!newNotification.is_read) {
       setUnreadCount((prev) => prev + 1);
     }
+    // Set this new notification to be displayed as a toast
+    setLatestNotification(newNotification);
   };
 
-  // Placeholder for marking a single notification as read
   const markAsRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, is_read: true } : notif))
-    );
-    // Potentially decrement unreadCount if the notification was unread
-    setUnreadCount((prev) => Math.max(0, prev - 1));
+    const notification = notifications.find(n => n.id === id);
+    if (notification && !notification.is_read) {
+        setNotifications((prev) =>
+            prev.map((notif) => (notif.id === id ? { ...notif, is_read: true } : notif))
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
   };
 
-  // Placeholder for marking all notifications as read
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((notif) => ({ ...notif, is_read: true })));
     setUnreadCount(0);
+  };
+  
+  const clearLatestNotification = () => {
+    setLatestNotification(null);
   };
 
   const toggleSidePanel = (isOpen?: boolean) => {
@@ -67,10 +71,12 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const value = {
     unreadCount,
     notifications,
+    latestNotification,
     addNotification,
     markAsRead,
     markAllAsRead,
     setUnreadCount,
+    clearLatestNotification,
     isSidePanelOpen,
     toggleSidePanel,
   };
@@ -82,7 +88,6 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   );
 }
 
-// 4. Create a custom hook to use the context
 export function useNotifications() {
   const context = useContext(NotificationContext);
   if (context === undefined) {
