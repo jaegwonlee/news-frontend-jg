@@ -15,6 +15,11 @@ interface MainGridProps {
 
 export default function MainGrid({ mainTopic, popularTopics = [], latestTopics = [], trendingKeywords = [] }: MainGridProps) {
   const [topicTab, setTopicTab] = useState<"popular" | "latest">("popular");
+  const [selectedTopic, setSelectedTopic] = useState<Topic | undefined>(mainTopic);
+
+  const handleTopicSelect = (topic: Topic) => {
+    setSelectedTopic(topic);
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
@@ -23,7 +28,7 @@ export default function MainGrid({ mainTopic, popularTopics = [], latestTopics =
         {/* ChatRoom Section - Takes remaining space */}
         <div className="relative z-20 rounded-2xl flex-1 min-h-0 flex flex-col">
           <div className="flex-1 min-h-0">
-            <ChatRoom topic={mainTopic} />
+            <ChatRoom topic={selectedTopic} />
           </div>
         </div>
       </div>
@@ -63,7 +68,11 @@ export default function MainGrid({ mainTopic, popularTopics = [], latestTopics =
           </div>
           <hr className="border-gray-700" />
           <div className="flex-1 min-h-0 p-4">
-            <TrendingTopics displayMode={topicTab} topics={topicTab === "popular" ? popularTopics : latestTopics} />
+            <TrendingTopics 
+              displayMode={topicTab} 
+              topics={topicTab === "popular" ? popularTopics : latestTopics}
+              onTopicSelect={handleTopicSelect}
+            />
           </div>
         </div>
 

@@ -1,15 +1,15 @@
 import { formatRelativeTime } from "@/lib/utils";
 import { Topic } from "@/lib/types/topic";
 import { ArrowRight, Eye } from "lucide-react";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface TrendingTopicsProps {
   topics: Topic[];
   displayMode: "popular" | "latest";
+  onTopicSelect: (topic: Topic) => void;
 }
 
-export default function TrendingTopics({ topics, displayMode }: TrendingTopicsProps) {
+export default function TrendingTopics({ topics, displayMode, onTopicSelect }: TrendingTopicsProps) {
   return (
     <div className="h-full overflow-y-auto pr-1">
       {topics.length === 0 ? (
@@ -46,7 +46,7 @@ export default function TrendingTopics({ topics, displayMode }: TrendingTopicsPr
             ];
 
             const cardClasses = cn(
-              "group flex items-center gap-3 p-3 rounded-lg border transition-all duration-300 ease-in-out transform hover:-translate-y-1",
+              "group flex items-center gap-3 p-3 rounded-lg border transition-all duration-300 ease-in-out transform hover:-translate-y-1 w-full text-left",
               "bg-card/50 backdrop-blur-sm",
               isTopThree
                 ? `${rankClasses[rank - 1].gradient} ${rankClasses[rank - 1].border} ${rankClasses[rank - 1].shadow}`
@@ -59,7 +59,7 @@ export default function TrendingTopics({ topics, displayMode }: TrendingTopicsPr
             );
 
             return (
-              <Link href={`/debate/${topic.id}`} key={topic.id} className="outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
+              <button onClick={() => onTopicSelect(topic)} key={topic.id} className="outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
                 <div className={cardClasses}>
                   <div className="w-8 flex-shrink-0 text-center">
                     <span className={rankTextClasses}>{isPopular ? rank : "•"}</span>
@@ -78,7 +78,7 @@ export default function TrendingTopics({ topics, displayMode }: TrendingTopicsPr
                     <ArrowRight size={20} className="text-muted-foreground group-hover:text-primary" />
                   </div>
                 </div>
-              </Link>
+              </button>
             );
           })}
         </div>

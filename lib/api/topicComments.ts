@@ -1,5 +1,35 @@
 import { Comment } from "@/lib/types/comment";
-import { fetchWrapper } from "./fetchWrapper";
+import { fw } from "./fw";
+
+// Represents the raw comment structure from the API
+interface ApiComment {
+    id: number;
+    parent_comment_id: number | null;
+    content: string;
+    created_at: string;
+    user_id: number;
+    nickname: string;
+    profile_image_url: string;
+    user_vote_side: 'LEFT' | 'RIGHT' | 'NEUTRAL';
+    replies: ApiComment[];
+    status: 'ACTIVE' | 'HIDDEN' | 'DELETED_BY_USER' | 'DELETED_BY_ADMIN';
+}
+
+// Recursively maps an API comment to the frontend Comment type
+const mapApiCommentToComment = (apiComment: ApiComment): Comment => {
+    return {
+        id: apiComment.id,
+        parent_id: apiComment.parent_comment_id,
+        content: apiComment.content,
+        created_at: apiComment.created_at,
+        author_id: apiComment.user_id,
+        author_name: apiComment.nickname,
+        profile_image_url: apiComment.profile_image_url,
+        stance: apiComment.user_vote_side,
+        children: (apiComment.replies || []).map(mapApiCommentToComment), // Recursive call
+        status: apiComment.status,
+    };
+};
 
 /**
  * Fetches comments for a specific topic.
@@ -7,7 +37,7 @@ import { fetchWrapper } from "./fetchWrapper";
  */
 export async function getTopicComments(topicId: string, token?: string): Promise<{ comments: Comment[] }> {
     const headers: HeadersInit = token ? { 'Authorization': `Bearer ${token}` } : {};
-    const response = await fetchWrapper(`/api/comments/topics/${topicId}`, { 
+    const response = await fw(`/api/comments/topics/${topicId}`, { 
         headers,
         cache: 'no-store' 
     });
@@ -17,20 +47,9 @@ export async function getTopicComments(topicId: string, token?: string): Promise
     }
 
     const rawData = await response.json();
-    const rawComments = Array.isArray(rawData) ? rawData : (rawData.comments || []);
+    const rawComments: ApiComment[] = Array.isArray(rawData) ? rawData : (rawData.comments || []);
 
-    const mappedComments: Comment[] = rawComments.map((c: ApiComment) => ({
-        id: c.id,
-        parent_id: c.parent_comment_id,
-        content: c.content,
-        created_at: c.created_at,
-        author_id: c.user_id,
-        author_name: c.nickname,
-        profile_image_url: c.profile_image_url,
-        stance: c.user_vote_side, // Assuming user_vote_side is the stance
-        children: c.replies || [],
-        status: c.status
-    }));
+    const mappedComments: Comment[] = rawComments.map(mapApiCommentToComment);
     
     return { comments: mappedComments };
 }
@@ -46,7 +65,7 @@ export async function postTopicComment(
     stance: 'LEFT' | 'RIGHT' | 'NEUTRAL',
     token: string
 ): Promise<Comment> {
-    const response = await fetchWrapper(`/api/comments/topics/${topicId}`, {
+    const response = await fw(`/api/comments/topics/${topicId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, parent_comment_id: parentId, stance }),
@@ -62,7 +81,7 @@ export async function postTopicComment(
  * Updates (patches) an existing comment.
  */
 export async function updateTopicComment(commentId: number, content: string, token: string): Promise<Comment> {
-    const response = await fetchWrapper(`/api/comments/${commentId}`, {
+    const response = await fw(`/api/comments/${commentId}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
@@ -78,7 +97,7 @@ export async function updateTopicComment(commentId: number, content: string, tok
  * Deletes a comment.
  */
 export async function deleteTopicComment(commentId: number, token: string): Promise<void> {
-    const response = await fetchWrapper(`/api/comments/${commentId}`, {
+    const response = await fw(`/api/comments/${commentId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
     });
@@ -92,7 +111,7 @@ export async function deleteTopicComment(commentId: number, token: string): Prom
  * Reports a comment.
  */
 export async function reportTopicComment(commentId: number, reason: string, token: string): Promise<{ message: string }> {
-    const response = await fetchWrapper(`/api/comments/${commentId}/reports`, {
+    const response = await fw(`/api/comments/${commentId}/reports`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason }),
@@ -112,7 +131,7 @@ export async function reportTopicComment(commentId: number, reason: string, toke
  * @returns A promise that resolves to an object indicating success or a message.
  */
 export async function postCommentReaction(commentId: number, reactionType: string, token: string): Promise<{ message: string }> {
-    const response = await fetchWrapper(`/api/comments/${commentId}/reactions`, {
+    const response = await fw(`/api/comments/${commentId}/reactions`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ reaction_type: reactionType }), // Assuming the backend expects 'reaction_type'
