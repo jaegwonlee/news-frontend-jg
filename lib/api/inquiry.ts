@@ -1,34 +1,74 @@
 import { fetchWrapper } from "./fetchWrapper";
 import { BACKEND_BASE_URL } from "../constants";
-import { Inquiry as InquiryType } from "@/lib/types/inquiry"; // Use an alias to avoid conflict if mockInquiry also defines Inquiry
+import { Inquiry as InquiryType } from "@/lib/types/inquiry";
 
+/**
+ * Fetches a presigned URL from the backend for file uploads.
+ */
+export const getPresignedUrl = async (
+  token: string,
+  filename: string,
+  contentType: string
+): Promise<{ url: string; filePath: string }> => {
+  const response = await fetchWrapper(`/api/inquiry/presigned-url`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ filename, contentType }),
+  });
 
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: '파일 업로드 URL을 받아오는데 실패했습니다.' }));
+    throw new Error(errorData.message || '파일 업로드 URL을 받아오는데 실패했습니다.');
+  }
 
+  return response.json();
+};
 
+/**
+ * Uploads a file to a presigned S3 URL.
+ * Note: This does not use fetchWrapper as it's not hitting our backend.
+ */
+export const uploadFileToS3 = async (url: string, file: File): Promise<Response> => {
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': file.type,
+    },
+    body: file,
+  });
+
+  if (!response.ok) {
+    throw new Error('파일 업로드에 실패했습니다. (S3)');
+  }
+
+  return response;
+};
+
+/**
+ * Submits a new inquiry to the backend.
+ */
 export const submitInquiry = async (
   token: string,
   subject: string,
   content: string,
   privacy_agreement: boolean,
-  attachment: File | null = null
+  filePath: string | null = null
 ) => {
-
-
-  const formData = new FormData();
-  formData.append('subject', subject);
-  formData.append('content', content);
-  formData.append('privacy_agreement', String(privacy_agreement));
-
-  if (attachment) {
-    formData.append('attachment', attachment);
-  }
-
   const response = await fetchWrapper(`/api/inquiry`, {
     method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: formData,
+    body: JSON.stringify({
+      subject,
+      content,
+      privacy_agreement,
+      file_path: filePath,
+    }),
   });
 
   if (!response.ok) {
@@ -45,10 +85,8 @@ export interface InquiryReply {
   created_at: string;
 }
 
-export const getInquiries = async (token: string): Promise<InquiryType[]> => {
-
-
-  const response = await fetchWrapper(`/api/inquiry`, {
+export const getInquiries = async (token:string, page: number, limit: number): Promise<{inquiries: InquiryType[], total: number}> => {
+  const response = await fetchWrapper(`/api/inquiry?page=${page}&limit=${limit}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -61,8 +99,6 @@ export const getInquiries = async (token: string): Promise<InquiryType[]> => {
 
   return response.json();
 };
-
-
 
 export const getInquiryDetail = async (token: string, inquiryId: number): Promise<InquiryType> => {
   const response = await fetchWrapper(`/api/inquiry/${inquiryId}`, {

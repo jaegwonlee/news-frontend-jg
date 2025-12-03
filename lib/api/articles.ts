@@ -16,12 +16,24 @@ import { fetchWrapper } from "./fetchWrapper";
  * @cache Next.js의 Incremental Static Regeneration (ISR)을 사용하여 5분(300초)마다 캐시를 갱신합니다.
  *        이를 통해 빌드 시점에 정적으로 페이지를 생성하고, 주기적으로 최신 데이터로 업데이트할 수 있습니다.
  */
-export async function getBreakingNews(): Promise<Article[]> {
+export async function getBreakingNews(token?: string): Promise<Article[]> {
+  const headers: HeadersInit = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const fetchOptions: RequestInit = {
+    headers,
+  };
+
+  if (token) {
+    fetchOptions.cache = 'no-store';
+  } else {
+    fetchOptions.next = { revalidate: 300 }; // 5분마다 캐시 갱신
+  }
 
   try {
-    const res = await fetchWrapper(`/api/articles/breaking?limit=10&offset=0`, {
-      next: { revalidate: 300 } // 5분마다 캐시 갱신
-    });
+    const res = await fetchWrapper(`/api/articles/breaking?limit=10&offset=0`, fetchOptions);
     if (!res.ok) return []; // API 응답이 실패하면 빈 배열 반환
     return await res.json();
   } catch (error) {

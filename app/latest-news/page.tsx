@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { getCategoryNews } from '@/lib/api';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useAuth } from '@/app/context/AuthContext';
+import { getCategoryNews, toggleArticleSave } from '@/lib/api';
 import { Article } from '@/lib/types/article';
 import ArticleCard from '@/app/components/ArticleCard';
 import { Newspaper } from 'lucide-react';
@@ -10,11 +11,11 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const ARTICLES_PER_PAGE = 20;
 
-async function fetchAllLatestNews() {
+async function fetchAllLatestNews(token?: string) {
   const categories = ["정치", "경제", "사회", "문화"];
   // Fetch 100 articles per category to ensure a large pool
   const newsPromises = categories.map(category => 
-    getCategoryNews(category, 100).catch(err => {
+    getCategoryNews(category, 100, token).catch(err => {
       console.error(`Error fetching latest news for category ${category}:`, err);
       return [];
     })
@@ -36,19 +37,21 @@ async function fetchAllLatestNews() {
 }
 
 export default function LatestNewsPage() {
+  const { token, isLoggedIn } = useAuth();
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const loadNews = useCallback(async () => {
+    setIsLoading(true);
+    const articles = await fetchAllLatestNews(isLoggedIn ? token : undefined);
+    setAllArticles(articles);
+    setIsLoading(false);
+  }, [token, isLoggedIn]);
+
   useEffect(() => {
-    const loadNews = async () => {
-      setIsLoading(true);
-      const articles = await fetchAllLatestNews();
-      setAllArticles(articles);
-      setIsLoading(false);
-    };
     loadNews();
-  }, []);
+  }, [loadNews]);
 
   const totalPages = Math.ceil(allArticles.length / ARTICLES_PER_PAGE);
 
@@ -61,6 +64,28 @@ export default function LatestNewsPage() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo(0, 0);
+  };
+
+  const handleSaveToggle = async (articleToToggle: Article) => {
+    if (!isLoggedIn || !token) {
+      alert('로그인이 필요한 기능입니다.');
+      return;
+    }
+
+    const originalArticles = allArticles;
+    const newArticles = allArticles.map((a) =>
+      a.id === articleToToggle.id ? { ...a, isSaved: !a.isSaved } : a
+    );
+    setAllArticles(newArticles);
+
+    try {
+      await toggleArticleSave(token, articleToToggle.id, !!articleToToggle.isSaved);
+    } catch (err) {
+      // Revert on error
+      setAllArticles(originalArticles);
+      alert('기사 저장 상태 변경에 실패했습니다. 다시 시도해주세요.');
+      console.error(err);
+    }
   };
 
   return (
@@ -78,7 +103,11 @@ export default function LatestNewsPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {paginatedArticles.map(article => (
-                <ArticleCard key={article.id} article={article} />
+                <ArticleCard 
+                  key={article.id} 
+                  article={article} 
+                  onSaveToggle={isLoggedIn ? handleSaveToggle : undefined}
+                />
               ))}
             </div>
             <ClientPaginationControls
