@@ -1,7 +1,9 @@
+import React, { useState, useEffect } from "react";
+import { getTopicDetail } from "@/lib/api/topics";
+import { Topic } from "@/lib/types/topic";
 import { SearchResult } from "@/hooks/useChatSearch";
 import { MEDIA_EXTENSIONS, S3_URL_PREFIX } from "@/lib/constants";
 import { Message } from "@/lib/types/shared";
-import React from "react";
 import { useTheme } from "next-themes"; // Import useTheme
 import ArticleCard from "./ArticleCard";
 import MediaRenderer from "./common/MediaRenderer";
@@ -65,6 +67,34 @@ export default function MessageRenderer({
   const isDarkMode = theme === "dark";
   const trimmedMessage = msg.message.trim();
 
+  const [clientResolvedTopic, setClientResolvedTopic] = useState<Topic | null>(null);
+
+  useEffect(() => {
+    setClientResolvedTopic(null); // Reset when message changes
+    if (msg.topic_preview || msg.article_preview) {
+        return; // Already has a backend-provided preview
+    }
+
+    // Regex to match internal debate URLs, supporting both full and relative paths
+    const match = trimmedMessage.match(/^(https?:\/\/[^\s]+\/debate\/(\d+))|^\/debate\/(\d+)$/);
+    if (match) {
+        // match[2] for full URL, match[3] for relative path
+        const topicId = match[2] || match[3];
+        if (topicId) {
+            const fetchClientTopic = async () => {
+                try {
+                    const topicData = await getTopicDetail(topicId); // getTopicDetail can take string id
+                    setClientResolvedTopic(topicData.topic);
+                } catch (error) {
+                    console.error("Failed to fetch client-side topic preview:", error);
+                    setClientResolvedTopic(null);
+                }
+            };
+            fetchClientTopic();
+        }
+    }
+  }, [msg.message, msg.topic_preview, msg.article_preview]);
+
   // --- 1. Handle media-only messages (these don't have text + card) ---
   const isBareMediaFilename =
     !trimmedMessage.startsWith("http") &&
@@ -110,14 +140,15 @@ export default function MessageRenderer({
   // Helper to determine if we should try a client-side render for a plain URL.
   const getClientRenderUrl = (): string | null => {
     // Don't render if a backend preview already exists
-    if (msg.topic_preview || msg.article_preview) return null;
+    // Also don't render if clientResolvedTopic is available (as it will be rendered separately)
+    if (msg.topic_preview || msg.article_preview || clientResolvedTopic) return null;
 
     const urlRegex = /^(https?:\/\/[^\s]+)$/;
     if (urlRegex.test(trimmedMessage)) {
       try {
         const url = new URL(trimmedMessage);
-        // Only render for external URLs
-        if (!url.hostname.endsWith('vercel.app') && !['localhost', '127.0.0.1'].includes(url.hostname)) {
+        // Only render for external URLs, not our internal debate URLs (which clientResolvedTopic handles)
+        if (!url.hostname.endsWith('vercel.app') && !['localhost', '127.0.0.1'].includes(url.hostname) && !url.pathname.startsWith('/debate/')) {
           return trimmedMessage;
         }
       } catch {
@@ -137,6 +168,8 @@ export default function MessageRenderer({
     urlFromPreview = msg.article_preview.url;
   } else if (clientRenderUrl) {
     urlFromPreview = clientRenderUrl;
+  } else if (clientResolvedTopic) { // Add clientResolvedTopic to the preview check
+    urlFromPreview = `/debate/${clientResolvedTopic.id}`;
   }
 
   // Show the text bubble only if the message content is not identical to a URL being previewed.
@@ -164,7 +197,12 @@ export default function MessageRenderer({
         </div>
       )}
       
-      {/* Part 3: Render client-side preview if no backend preview exists */}
+      {/* Part 3: Render client-side resolved topic preview */}
+      {clientResolvedTopic && !msg.topic_preview && ( // Only render if not already from backend
+        <TopicPreviewCard topic={clientResolvedTopic} />
+      )}
+
+      {/* Part 4: Render client-side external URL preview if no other preview exists */}
       {clientRenderUrl && (
         <UrlRenderer url={clientRenderUrl} />
       )}

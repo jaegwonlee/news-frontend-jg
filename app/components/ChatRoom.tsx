@@ -105,8 +105,8 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
       try {
         const droppedTopic = JSON.parse(data);
         // Format the dropped topic into a message string
-        const topicMessage = `[${droppedTopic.display_name}](${window.location.origin}/debate/${droppedTopic.id})`;
-        setNewMessage((prev) => (prev ? `${prev} ${topicMessage}` : topicMessage));
+        const topicUrl = `${window.location.origin}/debate/${droppedTopic.id}`;
+        setNewMessage((prev) => (prev ? `${prev} ${topicUrl}` : topicUrl));
       } catch (error) {
         console.error("Failed to parse dropped data:", error);
       }
