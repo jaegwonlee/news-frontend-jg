@@ -2,7 +2,7 @@ import { SavedArticleCategory } from "@/lib/types/shared";
 import { fetchWrapper } from "./fetchWrapper";
 
 export async function getCategories(token: string): Promise<SavedArticleCategory[]> {
-  const response = await fetchWrapper(`/api/categories`, {
+  const response = await fetchWrapper(`/categories`, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   if (!response.ok) {
@@ -12,7 +12,7 @@ export async function getCategories(token: string): Promise<SavedArticleCategory
 }
 
 export async function createCategory(token: string, name: string): Promise<SavedArticleCategory> {
-  const response = await fetchWrapper(`/api/categories`, {
+  const response = await fetchWrapper(`/categories`, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ name })

@@ -44,7 +44,7 @@ export default function CategorySidebar({
   onManageCategories,
 }: CategorySidebarProps) {
   return (
-    <aside className="w-full md:w-64 flex-shrink-0 space-y-4">
+    <aside className="w-full md:w-64 shrink-0 space-y-4">
       <h2 className="text-lg font-bold text-foreground px-3">분류</h2>
       <div className="space-y-1">
         <CategoryItem

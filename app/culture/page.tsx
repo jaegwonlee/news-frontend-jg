@@ -1,6 +1,6 @@
-import CategoryNewsClientPage from "@/app/components/CategoryNewsClientPage";
+import CategoryPageLayout from "@/app/components/CategoryPageLayout";
 
 export default function CulturePage() {
   const categoryName = "문화";
-  return <CategoryNewsClientPage categoryName={categoryName} />;
+  return <CategoryPageLayout categoryName={categoryName} />;
 }

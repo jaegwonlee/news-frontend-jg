@@ -1,12 +1,5 @@
-"use client";
-
-import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { SavedArticle } from '@/lib/types/article';
-import { SavedArticleCategory } from '@/lib/types/shared';
-import { formatRelativeTime } from '@/lib/utils';
 import { MoreHorizontal, Tag, Folder, Trash2, Check, ExternalLink } from 'lucide-react';
+import Favicon from '../common/Favicon'; // Import Favicon component
 
 interface SavedArticleCardProps {
   article: SavedArticle;
@@ -49,9 +42,12 @@ export default function SavedArticleCard({ article, categories, onMove, onUnsave
       
       <div className="p-4 flex flex-col flex-grow">
         <h3 className="font-bold text-base leading-tight mb-2 line-clamp-2">{article.title}</h3>
-        <p className="text-xs text-muted-foreground flex-grow">
-          {article.source} · {formatRelativeTime(article.published_at)}
-        </p>
+        <div className="flex items-center text-xs text-muted-foreground flex-grow">
+          <Favicon src={article.favicon_url || ""} alt={article.source} size={12} className="mr-1" />
+          <span>{article.source}</span>
+          <span className="mx-1">·</span>
+          <span>{formatRelativeTime(article.published_at)}</span>
+        </div>
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/80">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -97,3 +93,4 @@ export default function SavedArticleCard({ article, categories, onMove, onUnsave
     </div>
   );
 }
+

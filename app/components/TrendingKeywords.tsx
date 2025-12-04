@@ -20,7 +20,7 @@ const ArticleItem = ({ article }: { article: Article }) => {
       rel="noopener noreferrer"
       className="flex items-center gap-3 group p-2 rounded-lg hover:bg-accent transition-colors"
     >
-      <div className="flex-shrink-0 w-16 h-12 rounded-md overflow-hidden relative">
+      <div className="shrink-0 w-16 h-12 rounded-md overflow-hidden relative">
         <Image
           src={article.thumbnail_url || "/placeholder.png"}
           alt={article.title}
@@ -35,7 +35,7 @@ const ArticleItem = ({ article }: { article: Article }) => {
         </p>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
           <img
-            src={article.favicon_url || `https://www.google.com/s2/favicons?domain=${article.source_domain}`}
+            src={article.favicon_url || "/placeholder.png"}
             alt=""
             className="w-3.5 h-3.5"
           />

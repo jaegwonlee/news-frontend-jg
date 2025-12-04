@@ -19,8 +19,10 @@ export const useChatSearch = (messages: Message[], messageRefs: RefObject<Map<nu
   // Effect to perform search when messages or query change
   useEffect(() => {
     if (!searchQuery) {
-      setSearchResults([]);
-      setCurrentResultIndex(-1);
+      setTimeout(() => {
+        setSearchResults([]);
+        setCurrentResultIndex(-1);
+      }, 0);
       return;
     }
 
@@ -81,8 +83,10 @@ export const useChatSearch = (messages: Message[], messageRefs: RefObject<Map<nu
       }
     });
 
-    setSearchResults(results);
-    setCurrentResultIndex(results.length > 0 ? 0 : -1);
+    setTimeout(() => {
+      setSearchResults(results);
+      setCurrentResultIndex(results.length > 0 ? 0 : -1);
+    }, 0);
     scrollIntoViewRef.current = results.length > 0 ? results[0].messageId : null;
   }, [messages, searchQuery]);
 

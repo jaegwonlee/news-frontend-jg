@@ -30,8 +30,8 @@ export default function ProfileHeader({ profile, onEditClick }: ProfileHeaderPro
           <Image
             src={profile.profile_image_url || '/user-placeholder.svg'}
             alt="Current Avatar"
-            layout="fill"
-            objectFit="cover"
+            fill
+            className="object-cover"
             unoptimized={true}
           />
         </div>

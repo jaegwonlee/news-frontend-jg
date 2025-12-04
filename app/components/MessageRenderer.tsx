@@ -159,7 +159,7 @@ export default function MessageRenderer({
       {msg.topic_preview && <TopicPreviewCard topic={msg.topic_preview} />}
       
       {msg.article_preview && (
-        <div className="mt-2 w-80">
+        <div className="mt-2 max-w-full">
           <ArticleCard article={msg.article_preview} variant="chat" />
         </div>
       )}

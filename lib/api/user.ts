@@ -85,7 +85,7 @@ export async function updateUserProfile(token: string, updatedData: UserUpdate):
 export async function getAvatars(token: string): Promise<string[]> {
 
   try {
-    const response = await fetchWrapper(`/api/avatars`, {
+    const response = await fetchWrapper(`/avatars`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

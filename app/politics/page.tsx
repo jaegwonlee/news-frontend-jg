@@ -1,6 +1,6 @@
-import CategoryNewsClientPage from '@/app/components/CategoryNewsClientPage';
+import CategoryPageLayout from '@/app/components/CategoryPageLayout';
 
 export default function PoliticsPage() {
   const categoryName = "정치";
-  return <CategoryNewsClientPage categoryName={categoryName} />;
+  return <CategoryPageLayout categoryName={categoryName} />;
 }

@@ -13,6 +13,7 @@ export interface Message {
   isHidden?: boolean;
   article_preview?: Article | null;
   topic_preview?: TopicPreview | null;
+  isPending?: boolean;
 }
 
 export interface SavedArticleCategory {

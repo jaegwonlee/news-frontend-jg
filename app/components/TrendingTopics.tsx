@@ -59,7 +59,16 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
             );
 
             return (
-              <button onClick={() => onTopicSelect(topic)} key={topic.id} className="outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
+              <button
+                onClick={() => onTopicSelect(topic)}
+                key={topic.id}
+                className="outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+                draggable="true"
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("application/json", JSON.stringify(topic));
+                  e.dataTransfer.effectAllowed = "copy"; // or "move", "link"
+                }}
+              >
                 <div className={cardClasses}>
                   <div className="w-8 flex-shrink-0 text-center">
                     <span className={rankTextClasses}>{isPopular ? rank : "•"}</span>

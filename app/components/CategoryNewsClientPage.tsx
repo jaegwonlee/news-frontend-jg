@@ -15,12 +15,22 @@ import { useAuth } from "@/app/context/AuthContext";
 import { getCategoryNews, toggleArticleSave } from "@/lib/api";
 import LoadingSpinner from "./common/LoadingSpinner";
 import ArticleSaveButton from "./ArticleSaveButton";
+import ChatRoom from "./ChatRoom";
+import { Topic } from "@/lib/types/topic";
 
 interface CategoryNewsClientPageProps {
   categoryName: string;
 }
 
 const ARTICLES_PER_PAGE = 20;
+
+const categoryTopicMap: { [key: string]: number } = {
+  "정치": 2,
+  "경제": 3,
+  "사회": 4,
+  "문화": 5,
+  "스포츠": 6,
+};
 
 export default function CategoryNewsClientPage({ categoryName }: CategoryNewsClientPageProps) {
   const { token } = useAuth();
@@ -32,6 +42,16 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
   const [currentPage, setCurrentPage] = useState(1);
 
   const theme = getCategoryTheme(categoryName);
+  const topicId = categoryTopicMap[categoryName];
+
+  const mockTopic: Topic = useMemo(() => ({
+    id: topicId,
+    display_name: `${categoryName} 채팅방`,
+    summary: '',
+    published_at: new Date().toISOString(),
+    view_count: 0,
+  }), [topicId, categoryName]);
+
 
   const fetchNews = useCallback(async () => {
     setIsLoading(true);
@@ -368,3 +388,4 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
     </div>
   );
 }
+

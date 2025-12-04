@@ -93,6 +93,26 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
     closeSearch,                                                                                                              
   } = useChatSearch(messages, messageRefs);                                                                                   
                                                                                                                               
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // Allow drop
+    e.dataTransfer.dropEffect = "copy";
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const data = e.dataTransfer.getData("application/json");
+    if (data) {
+      try {
+        const droppedTopic = JSON.parse(data);
+        // Format the dropped topic into a message string
+        const topicMessage = `[${droppedTopic.display_name}](${window.location.origin}/debate/${droppedTopic.id})`;
+        setNewMessage((prev) => (prev ? `${prev} ${topicMessage}` : topicMessage));
+      } catch (error) {
+        console.error("Failed to parse dropped data:", error);
+      }
+    }
+  };
+                                                                                                                              
   // --- Effects ---                                                                                                          
   useEffect(() => {                                                                                                           
     const handleKeyDown = (e: KeyboardEvent) => {                                                                             
@@ -216,17 +236,38 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
         // Not a valid URL, send as is                                                                                        
       }                                                                                                                       
                                                                                                                               
-      setIsSending(true);                                                                                                     
-      try {                                                                                                                   
-        await sendChatMessage(topic.id, messageToSend, token);                                                                
-      } catch (error) {                                                                                                       
-        console.error("Failed to send message:", error);                                                                      
-        alert("메시지 전송에 실패했습니다. 다시 시도해주세요.");                                                                 
-        setNewMessage(messageToSend);                                                                                         
-      } finally {                                                                                                             
-        setIsSending(false);                                                                                                  
-      }                                                                                                                       
-    }                                                                                                                         
+            // Optimistic update: temporarily add message to UI
+            const tempMessageId = Date.now(); // Using Date.now() for a temporary unique ID
+            const optimisticMessage: Message = {
+              id: tempMessageId,
+              author: user.nickname || user.name || "익명", // Use user's name or a fallback
+              message: messageToSend,
+              profile_image_url: user.profile_image_url || "/default_profile.png", // Use user's profile image or a default fallback
+              created_at: new Date().toISOString(), // Client-side timestamp
+              isPending: true, // Custom flag to indicate it's a pending message
+            };
+            setMessages((prev) => [...prev, optimisticMessage]);
+            setTimeout(() => scrollToBottom("smooth"), 0); // Scroll to bottom immediately
+      
+            try {
+              // Send message via API
+              const sentMessage = await sendChatMessage(topic.id, messageToSend, token);
+              
+              // Update the optimistic message with the server's definitive message
+              setMessages((prev) => prev.map((msg) => 
+                msg.id === tempMessageId ? { ...sentMessage, isPending: false } : msg
+              ));
+              // No need to scroll again here as it should already be at the bottom
+      
+            } catch (error) {
+              console.error("Failed to send message:", error);
+              alert("메시지 전송에 실패했습니다. 다시 시도해주세요.");
+              // Rollback optimistic update on failure
+              setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
+              setNewMessage(messageToSend); // Restore message to input for retry
+            } finally {
+              setIsSending(false);
+            }    }                                                                                                                         
   };                                                                                                                          
                                                                                                                               
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {                                                
@@ -557,11 +598,7 @@ city-0 group-hover:opacity-100"
                               </button>                                                                                       
                             </div>                                                                                            
                           )}                                                                                                  
-                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">                              
-                            {formatTimestamp(msg.created_at)}                                                                 
-                          </span>                                                                                             
-                          <div className="text-sm">                                                                           
-                            {msg.isHidden ? (                                                                                 
+                                                    <div className="text-sm min-w-0 w-full">                            {msg.isHidden ? (                                                                                 
                               <span className="italic text-primary-foreground/70">숨겨진 메시지입니다.</span>                 
                             ) : (                                                                                             
                               <MessageRenderer                                                                                
@@ -592,7 +629,7 @@ mt-1">
                         <div className="flex flex-col gap-0.5">                                                               
                           <span className="text-sm text-muted-foreground font-medium">{msg.author}</span>                     
                           <div className="flex items-end gap-1">                                                              
-                            <div className="text-sm">                                                                         
+                            <div className="text-sm min-w-0 w-full">                                                                         
                               {msg.isHidden ? (                                                                               
                                 <span className="italic text-muted-foreground">숨겨진 메시지입니다.</span>                     
                               ) : (                                                                                           
@@ -648,7 +685,7 @@ acity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
             {socketError}                                                                                                     
           </div>                                                                                                              
         )}                                                                                                                    
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2">                                               
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2" onDragOver={handleDragOver} onDrop={handleDrop}>                                               
           <input                                                                                                              
             type="file"                                                                                                       
             ref={fileInputRef}                                                                                                

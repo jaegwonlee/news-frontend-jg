@@ -27,7 +27,7 @@ export default function TopicPreviewCard({ topic }: TopicPreviewCardProps) {
   const rightPercent = 100 - leftPercent;
 
   return (
-    <Link href={`/debate/${topic.id}`} className="block mt-2 w-80" draggable="true" onDragStart={(e) => {
+    <Link href={`/debate/${topic.id}`} className="block mt-2 max-w-full" draggable="true" onDragStart={(e) => {
       e.dataTransfer.setData("text/plain", `${window.location.origin}/debate/${topic.id}`);
       e.dataTransfer.setData("application/json", JSON.stringify({ type: 'topic', data: topic }));
     }}>
