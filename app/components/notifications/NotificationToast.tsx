@@ -4,7 +4,6 @@
 import { Notification, NotificationType } from "@/lib/types/notification";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { AlertCircle, Bell, Clock, Megaphone, Star, UserPlus, X, Zap } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,14 +39,19 @@ export default function NotificationToast({ notification, onDismiss }: Notificat
 
   useEffect(() => {
     if (notification) {
-      setIsVisible(true);
-      const timer = setTimeout(() => {
+      const showTimer = setTimeout(() => setIsVisible(true), 10);
+      let dismissTimer: NodeJS.Timeout;
+      const hideTimer = setTimeout(() => {
         setIsVisible(false);
         // Allow time for the exit animation before calling onDismiss
-        setTimeout(onDismiss, 500);
+        dismissTimer = setTimeout(onDismiss, 500);
       }, 5000); // Disappear after 5 seconds
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(hideTimer);
+        if (dismissTimer) clearTimeout(dismissTimer);
+      };
     }
   }, [notification, onDismiss]);
   
@@ -68,10 +72,10 @@ export default function NotificationToast({ notification, onDismiss }: Notificat
           exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.3 } }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           onClick={handleToastClick}
-          className="fixed bottom-5 right-5 w-full max-w-sm bg-card border border-border shadow-2xl rounded-2xl cursor-pointer z-[100] dark:bg-black"
+          className="fixed bottom-5 right-5 w-full max-w-sm bg-card border border-border shadow-2xl rounded-2xl cursor-pointer z-100 dark:bg-black"
         >
           <div className="p-4 flex items-start gap-4">
-             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-secondary mt-1">
+             <div className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-secondary mt-1">
                 {getIcon(notification.type)}
             </div>
             <div className="flex-1 dark:text-white">

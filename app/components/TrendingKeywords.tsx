@@ -84,7 +84,7 @@ export default function TrendingKeywords({ keywords }: TrendingKeywordsProps) {
         {/* Content */}
         <div className="p-4 flex flex-col flex-1 min-h-0">
             {/* Keyword Tabs */}
-            <div className="flex items-center gap-1 pb-3">
+            <div className="flex items-center gap-1">
                 {keywords.map((kw, index) => (
                 <button
                     key={kw.keyword}
@@ -102,8 +102,8 @@ export default function TrendingKeywords({ keywords }: TrendingKeywordsProps) {
             </div>
 
             {/* Article List */}
-            <div className="flex-1 mt-3 space-y-2 overflow-y-auto -mx-2 pr-2">
-                {selectedKeyword.articles.map((article) => (
+            <div className="flex-1 mt-2 space-y-2 -mx-2 pr-2">
+                {selectedKeyword.articles.slice(0, 3).map((article) => (
                     <ArticleItem key={article.id} article={article} />
                 ))}
             </div>

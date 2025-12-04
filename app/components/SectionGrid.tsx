@@ -33,11 +33,11 @@ export default function SectionGrid({
 
       {/* Variant: 1 Main + 4 Side List (Classic News) */}
       {variant === "1+4" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 overflow-hidden">
           <div className="lg:col-span-2">
             {articles[0] && <ArticleCard article={articles[0]} variant="hero" {...commonProps} />}
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
             {articles.slice(1, 5).map((article) => (
               <ArticleCard key={article.id} article={article} variant="horizontal" hideImage={false} {...commonProps} />
             ))}

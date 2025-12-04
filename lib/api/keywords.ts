@@ -3,7 +3,7 @@ import { TrendingKeyword } from "@/lib/types/topic";
 
 export async function getTrendingKeywords(): Promise<TrendingKeyword[]> {
   try {
-    const response = await fetchWrapper(`/api/keywords/popular-all`, {
+    const response = await fetchWrapper(`/keywords/trending`, {
       next: { revalidate: 300 }, // Cache for 5 minutes
     });
 

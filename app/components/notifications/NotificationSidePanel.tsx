@@ -1,21 +1,27 @@
 // app/components/notifications/NotificationSidePanel.tsx
 "use client";
 
+import ConfirmationPopover from "@/app/components/common/ConfirmationPopover";
 import { useAuth } from "@/app/context/AuthContext";
 import { useNotifications as useNotificationContext } from "@/app/context/NotificationContext";
-import { getNotifications, markAllAsRead, markAsRead, deleteNotification } from "@/lib/api/notifications";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { deleteNotification, getNotifications, markAllAsRead, markAsRead } from "@/lib/api/notifications";
 import { Notification, NotificationType } from "@/lib/types/notification";
-import { AlertCircle, Bell, Clock, Loader2, Megaphone, Star, UserPlus, X, Zap } from "lucide-react";
+import { cn, formatRelativeTime } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, Bell, Clock, Megaphone, Star, UserPlus, X, Zap } from "lucide-react";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useTheme } from "next-themes";
-import ConfirmationPopover from "@/app/components/common/ConfirmationPopover";
 
-const NotificationItem = ({ notification, onRead, onDelete, token, onClosePanel }: {
+const NotificationItem = ({
+  notification,
+  onRead,
+  onDelete,
+  token,
+  onClosePanel,
+}: {
   notification: Notification;
   onRead: (id: number) => void;
   onDelete: (id: number) => void;
@@ -32,7 +38,7 @@ const NotificationItem = ({ notification, onRead, onDelete, token, onClosePanel 
     if (!notification.is_read && token) {
       markAsRead(token, notification.id)
         .then(() => onRead(notification.id))
-        .catch(error => console.error("Failed to mark notification as read in background:", error));
+        .catch((error) => console.error("Failed to mark notification as read in background:", error));
     }
   };
 
@@ -66,8 +72,8 @@ const NotificationItem = ({ notification, onRead, onDelete, token, onClosePanel 
       className={cn(
         "group relative flex items-start gap-3 p-3 rounded-lg cursor-pointer border",
         notification.is_read
-          ? "bg-gray-100 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
-          : "bg-sky-100 dark:bg-sky-900 border-sky-300 dark:border-sky-700"
+          ? "bg-gray-100 dark:bg-zinc-950/50 border-gray-200 dark:border-zinc-800"
+          : "bg-sky-100 dark:bg-zinc-900 border-sky-300 dark:border-zinc-700"
       )}
       onClick={handleNotificationClick}
     >
@@ -80,17 +86,11 @@ const NotificationItem = ({ notification, onRead, onDelete, token, onClosePanel 
       </button>
 
       {notification.metadata?.thumbnail_url ? (
-        <div className="flex-shrink-0 w-12 h-12 rounded-md overflow-hidden relative border border-border">
-          <Image
-            src={notification.metadata.thumbnail_url}
-            alt="Thumbnail"
-            fill
-            sizes="48px"
-            className="object-cover"
-          />
+        <div className="shrink-0 w-12 h-12 rounded-md overflow-hidden relative border border-border">
+          <Image src={notification.metadata.thumbnail_url} alt="Thumbnail" fill sizes="48px" className="object-cover" />
         </div>
       ) : (
-        <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-secondary mt-1">
+        <div className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-secondary mt-1">
           {getIcon(notification.type)}
         </div>
       )}
@@ -104,7 +104,9 @@ const NotificationItem = ({ notification, onRead, onDelete, token, onClosePanel 
               className="w-4 h-4"
             />
           )}
-          {notification.metadata?.source && <span className="truncate max-w-[100px]">{notification.metadata.source}</span>}
+          {notification.metadata?.source && (
+            <span className="truncate max-w-[100px]">{notification.metadata.source}</span>
+          )}
           <span className="font-mono whitespace-nowrap">{formatRelativeTime(notification.created_at)}</span>
         </div>
       </div>
@@ -114,7 +116,12 @@ const NotificationItem = ({ notification, onRead, onDelete, token, onClosePanel 
 
 export default function NotificationSidePanel() {
   const { token } = useAuth();
-  const { isSidePanelOpen, toggleSidePanel, markAsRead: markAsReadInContext, markAllAsRead: markAllAsReadInContext } = useNotificationContext();
+  const {
+    isSidePanelOpen,
+    toggleSidePanel,
+    markAsRead: markAsReadInContext,
+    markAllAsRead: markAllAsReadInContext,
+  } = useNotificationContext();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -151,7 +158,7 @@ export default function NotificationSidePanel() {
     try {
       await markAllAsRead(token);
       setNotifications((prev) => prev.map((notif) => ({ ...notif, is_read: true })));
-      markAllAsReadInContext(); 
+      markAllAsReadInContext();
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error("Failed to mark all as read:", err.message);
@@ -160,17 +167,15 @@ export default function NotificationSidePanel() {
   };
 
   const handleNotificationRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, is_read: true } : notif))
-    );
+    setNotifications((prev) => prev.map((notif) => (notif.id === id ? { ...notif, is_read: true } : notif)));
     markAsReadInContext(id);
   };
-  
+
   const handleConfirmDelete = async () => {
     if (!token || deleteConfirmationId === null) return;
     try {
       await deleteNotification(token, deleteConfirmationId);
-      setNotifications((prev) => prev.filter(n => n.id !== deleteConfirmationId));
+      setNotifications((prev) => prev.filter((n) => n.id !== deleteConfirmationId));
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error("Failed to delete notification:", err.message);
@@ -180,20 +185,20 @@ export default function NotificationSidePanel() {
     }
   };
 
-  const unreadCount = notifications.filter(notif => !notif.is_read).length;
+  const unreadCount = notifications.filter((notif) => !notif.is_read).length;
 
   return (
     <AnimatePresence>
       {isSidePanelOpen && (
         <>
           {deleteConfirmationId !== null && (
-            <ConfirmationPopover 
-                title="알림 삭제"
-                message="이 알림을 삭제하시겠습니까?"
-                confirmText="삭제"
-                cancelText="취소"
-                onConfirm={handleConfirmDelete}
-                onCancel={() => setDeleteConfirmationId(null)}
+            <ConfirmationPopover
+              title="알림 삭제"
+              message="이 알림을 삭제하시겠습니까?"
+              confirmText="삭제"
+              cancelText="취소"
+              onConfirm={handleConfirmDelete}
+              onCancel={() => setDeleteConfirmationId(null)}
             />
           )}
           <motion.div
@@ -201,7 +206,9 @@ export default function NotificationSidePanel() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.2 }}
-            className={`fixed top-0 right-0 h-full w-full max-w-xs ${isDarkMode ? "bg-background" : "bg-white"} shadow-lg z-50 flex flex-col`}
+            className={`fixed top-0 right-0 h-full w-full max-w-xs ${
+              isDarkMode ? "bg-background" : "bg-white"
+            } shadow-lg z-50 flex flex-col`}
           >
             <div className="p-4">
               <div className="flex items-center justify-between mb-2">
@@ -234,7 +241,11 @@ export default function NotificationSidePanel() {
               </div>
             </div>
 
-            <div className={`absolute top-[96px] left-0 right-0 h-[1px] ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} z-50`}></div>
+            <div
+              className={`absolute top-24 left-0 right-0 h-px ${
+                isDarkMode ? "bg-gray-600" : "bg-gray-300"
+              } z-50`}
+            ></div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {loading && <p className="text-center text-zinc-500">알림을 불러오는 중...</p>}
@@ -247,18 +258,18 @@ export default function NotificationSidePanel() {
               )}
 
               {!loading && !error && notifications.length > 0 && (
-                  <div className="space-y-2">
-                    {notifications.map((notification) => (
-                      <NotificationItem
-                        key={notification.id}
-                        notification={notification}
-                        onRead={handleNotificationRead}
-                        onDelete={setDeleteConfirmationId}
-                        token={token}
-                        onClosePanel={() => toggleSidePanel(false)}
-                      />
-                    ))}
-                  </div>
+                <div className="space-y-2">
+                  {notifications.map((notification) => (
+                    <NotificationItem
+                      key={notification.id}
+                      notification={notification}
+                      onRead={handleNotificationRead}
+                      onDelete={setDeleteConfirmationId}
+                      token={token}
+                      onClosePanel={() => toggleSidePanel(false)}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           </motion.div>

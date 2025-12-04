@@ -25,7 +25,7 @@ export default function NotificationBadge() {
 
   return (
     <div className="relative">
-      <Bell className="w-5 h-5 text-[var(--icon-adaptive)] hover:text-foreground transition-transform group-hover:scale-125" />
+      <Bell className="w-5 h-5 text-[--icon-adaptive] hover:text-foreground transition-transform group-hover:scale-125" />
       {unreadCount > 0 && (
         <div className="absolute -top-1 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow-md">
           {unreadCount > 99 ? "99+" : unreadCount}

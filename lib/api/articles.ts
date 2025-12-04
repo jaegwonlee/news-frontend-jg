@@ -201,7 +201,7 @@ export async function getSearchArticles(q: string, token?: string): Promise<Sear
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  const response = await fetchWrapper(`/api/search?q=${encodedQuery}`, {
+  const response = await fetchWrapper(`/articles/search?q=${encodedQuery}`, {
     method: 'GET',
     headers: headers,
     next: { revalidate: 60 } // 1분마다 캐시 갱신
