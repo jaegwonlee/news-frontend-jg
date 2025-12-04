@@ -5,6 +5,9 @@ const NOTIFICATION_TYPE_NAMES: Record<NotificationType, string> = {
   NEW_TOPIC: "새 토픽 알림",
   BREAKING_NEWS: "속보 알림",
   EXCLUSIVE_NEWS: "단독 뉴스 알림",
+  VOTE_REMINDER: "투표 알림",
+  ADMIN_NOTICE: "관리자 공지",
+  FRIEND_REQUEST: "친구 요청",
 };
 
 export default function NotificationSettings() {

@@ -51,17 +51,17 @@ export default function CommentInput({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={placeholder}
-                className="w-full p-3 bg-input border border-border rounded-md text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full p-3 bg-input border border-border rounded-md text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 resize-y"
                 rows={initialContent ? 3 : 2}
                 disabled={isSubmitting}
             />
             <div className="flex justify-end gap-2">
                 {onCancel && (
-                    <Button variant="ghost" onClick={onCancel} disabled={isSubmitting}>
+                    <Button variant="outline" onClick={onCancel} disabled={isSubmitting} className="text-muted-foreground hover:bg-muted-foreground/20">
                         취소
                     </Button>
                 )}
-                <Button type="submit" disabled={!content.trim() || isSubmitting}>
+                <Button type="submit" disabled={!content.trim() || isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white font-bold">
                     {isSubmitting ? "등록 중..." : (initialContent ? "수정" : "등록")}
                 </Button>
             </div>

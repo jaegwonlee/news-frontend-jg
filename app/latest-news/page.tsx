@@ -37,7 +37,8 @@ async function fetchAllLatestNews(token?: string) {
 }
 
 export default function LatestNewsPage() {
-  const { token, isLoggedIn } = useAuth();
+  const { token } = useAuth();
+  const isLoggedIn = !!token;
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);

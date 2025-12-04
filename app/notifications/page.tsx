@@ -62,11 +62,10 @@ const NotificationItem = ({ notification, onRead, onDelete, token }: {
   return (
     <div
       className={cn(
-        "group relative flex items-start gap-4 p-4 rounded-xl transition-all duration-200 cursor-pointer border",
+        "group relative flex items-start gap-4 p-4 rounded-xl cursor-pointer border",
         notification.is_read
-          ? "bg-gray-200 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800"
-          : "bg-gray-300 dark:bg-zinc-800 border-gray-400 dark:border-zinc-700",
-        "hover:bg-accent hover:border-gray-500 dark:hover:border-zinc-600 hover:shadow-md"
+          ? "bg-gray-100 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
+          : "bg-sky-100 dark:bg-sky-900 border-sky-300 dark:border-sky-700"
       )}
       onClick={handleNotificationClick}
     >
@@ -135,8 +134,12 @@ export default function NotificationsPage() {
     try {
       const data = await getNotifications(token, 1, 100);
       setAllNotifications(data.notifications);
-    } catch (err: any) {
-      setError(err.message || "알림을 불러오는데 실패했습니다.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("알림을 불러오는데 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
@@ -172,8 +175,10 @@ export default function NotificationsPage() {
       await markAllAsRead(token);
       setAllNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       markAllAsReadInContext();
-    } catch (err: any) {
-      console.error("Failed to mark all as read:", err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Failed to mark all as read:", err);
+      }
     }
   };
 
@@ -190,8 +195,10 @@ export default function NotificationsPage() {
     try {
       await deleteNotification(token, deleteConfirmationId);
       setAllNotifications((prev) => prev.filter(n => n.id !== deleteConfirmationId));
-    } catch (err: any) {
-      console.error("Failed to delete notification:", err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Failed to delete notification:", err);
+      }
       // Optionally, show a toast notification for the error
     } finally {
       setDeleteConfirmationId(null);

@@ -8,6 +8,8 @@
 import { Article } from "@/lib/types/article";
 import { ToggleSaveResponse } from "@/lib/types/shared";
 import { fetchWrapper } from "./fetchWrapper";
+import { SearchResult } from "@/lib/types/search";
+
 
 /**
  * @function getBreakingNews
@@ -177,16 +179,18 @@ export async function getAllLatestNews(): Promise<Article[]> {
   return sortedArticles;
 }
 
+
+
 /**
  * @function getSearchArticles
  * @description 검색어(query)를 받아 기사 제목과 설명에서 일치하는 기사를 검색하여 최신순으로 반환합니다.
  * @param {string} q - 사용자가 입력한 검색어.
  * @param {string} [token] - 사용자 인증 토큰.
- * @returns {Promise<Article[]>} - 검색 결과에 해당하는 기사 객체 배열.
+ * @returns {Promise<SearchResult>} - 검색 결과에 해당하는 기사 및 관련 토픽 객체.
  * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  * @cache 1분(60초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
-export async function getSearchArticles(q: string, token?: string): Promise<Article[]> {
+export async function getSearchArticles(q: string, token?: string): Promise<SearchResult> {
     const encodedQuery = encodeURIComponent(q);
   const headers: HeadersInit = {};
   if (token) {
@@ -202,7 +206,12 @@ export async function getSearchArticles(q: string, token?: string): Promise<Arti
     throw new Error('검색 결과를 가져오는데 실패했습니다.');
   }
 
-  return response.json();
+  const data = await response.json();
+  
+  return {
+    articles: data.articles || [],
+    relatedTopics: data.relatedTopics || [],
+  };
 }
 
 /**

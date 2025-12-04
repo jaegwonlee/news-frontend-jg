@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import ProfileSidebar from '@/app/components/profile/ProfileSidebar';
 import ProfileHeader from '@/app/components/profile/ProfileHeader';
@@ -15,6 +15,7 @@ import InquiryHistory from '@/app/components/profile/InquiryHistory';
 import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 
 function ProfilePageContent() {
+  const router = useRouter();
   const {
     profile,
     isEditing,
@@ -48,6 +49,10 @@ function ProfilePageContent() {
     return <div className="text-center py-10 text-white">프로필 정보를 불러올 수 없습니다.</div>;
   }
 
+  const handleInquirySuccess = () => {
+    router.push('/profile?tab=inquiryHistory');
+  };
+
   const renderContent = () => {
     if (isEditing && activeTab === 'profile') {
       return (
@@ -73,7 +78,7 @@ function ProfilePageContent() {
       case 'notifications':
         return <NotificationSettings />;
       case 'inquiry':
-        return <InquiryForm />;
+        return <InquiryForm onSuccess={handleInquirySuccess} />;
       case 'inquiryHistory':
         return <InquiryHistory />;
       case 'changePassword':

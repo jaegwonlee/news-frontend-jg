@@ -13,7 +13,7 @@ import InquiryForm from '@/app/components/inquiry/InquiryForm';
 
 
 export default function InquiryClientPage() {
-    const { token, isInitialized } = useAuth();
+    const { token, isLoading: authLoading } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -48,7 +48,7 @@ export default function InquiryClientPage() {
     }, [token, page, limit]);
 
     useEffect(() => {
-        if (isInitialized) {
+        if (!authLoading) { // authLoading becoming false indicates initialization is complete
             if (token) {
                 setIsLoading(true);
                 fetchInquiries();
@@ -56,7 +56,7 @@ export default function InquiryClientPage() {
                 router.push('/login');
             }
         }
-    }, [isInitialized, token, router]); // remove fetchInquiries from deps
+    }, [authLoading, token, router]);
 
     useEffect(() => {
         fetchInquiries();
@@ -73,7 +73,7 @@ export default function InquiryClientPage() {
                 setView('DETAIL');
                 setSelectedInquiryId(numericId);
             }
-        } else if (inquiries.length > 0 && view !== 'NEW') {
+        } else if (Array.isArray(inquiries) && inquiries.length > 0 && view !== 'NEW') {
              // Default to showing the first inquiry if none is selected via URL
             if (!selectedInquiryId && inquiries[0]) {
                 router.replace(`/inquiry?id=${inquiries[0].id}`);
@@ -98,7 +98,7 @@ export default function InquiryClientPage() {
         });
     };
     
-    if (!isInitialized || isLoading) {
+    if (authLoading || isLoading) {
         return (
             <div className="flex items-center justify-center h-[calc(100vh-200px)]">
                 <LoadingSpinner />

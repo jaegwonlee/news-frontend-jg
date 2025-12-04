@@ -22,12 +22,12 @@ const VoteBar = ({ pro, con, isFeatured }: { pro: number; con: number; isFeature
     const conPercent = 100 - proPercent;
 
     return (
-        <div className={cn("w-full flex rounded-full text-white text-xs font-bold overflow-hidden", isFeatured ? "h-4" : "h-3")}>
-            <div className="bg-blue-500 flex items-center justify-center pl-2" style={{ width: `${proPercent}%` }}>
-                {proPercent > 15 && <span>{Math.round(proPercent)}%</span>}
+        <div className={cn("w-full flex rounded-full text-white text-sm font-extrabold overflow-hidden", isFeatured ? "h-4" : "h-3")}>
+            <div className="bg-blue-500 flex items-center justify-center pl-2 transition-all duration-300" style={{ width: `${proPercent}%` }}>
+                {proPercent > 10 && <span>{Math.round(proPercent)}%</span>}
             </div>
-            <div className="bg-red-500 flex items-center justify-center pr-2" style={{ width: `${conPercent}%` }}>
-                {conPercent > 15 && <span>{Math.round(conPercent)}%</span>}
+            <div className="bg-red-500 flex items-center justify-center pr-2 transition-all duration-300" style={{ width: `${conPercent}%` }}>
+                {conPercent > 10 && <span>{Math.round(conPercent)}%</span>}
             </div>
         </div>
     );
@@ -38,7 +38,7 @@ const ParticipantAvatars = ({ side, count }: { side: 'pro' | 'con'; count: numbe
         <h4 className={cn("font-bold text-lg", side === 'pro' ? 'text-blue-400' : 'text-red-400')}>{side === 'pro' ? '찬성' : '반대'}</h4>
         <div className="flex -space-x-3">
             {Array.from({ length: Math.min(count, 5) }).map((_, i) => (
-                 <div key={i} className="w-10 h-10 rounded-full border-2 border-border bg-muted flex items-center justify-center text-xs">
+                 <div key={i} className="w-10 h-10 rounded-full border-2 border-primary ring-2 ring-primary/20 bg-primary-foreground/10 flex items-center justify-center text-sm font-bold text-primary">
                      U{i+1}
                  </div>
             ))}
@@ -98,17 +98,17 @@ export default function DebateCard({ topic, status, isFeatured = false }: Debate
   if (isFeatured) {
     return (
       <Link href={`/debate/${topic.id}`} className="block group">
-        <div className="bg-card/50 border border-red-500/50 rounded-2xl p-8 backdrop-blur-sm shadow-2xl shadow-red-500/10 transition-all duration-300 group-hover:border-red-500 group-hover:scale-105">
+        <div className="bg-card/50 border border-border rounded-2xl p-8 backdrop-blur-sm shadow-lg shadow-blue-500/20 hover:shadow-xl transition-all duration-300 group-hover:border-blue-500 group-hover:scale-102">
           <div className="text-center mb-6">
-            <span className="text-red-500 font-bold text-sm tracking-widest">{topic.category}</span>
-            <h3 className="text-3xl font-bold mt-2">{topic.display_name}</h3>
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300">{topic.category}</span>
+            <h3 className="text-4xl font-extrabold mt-3 line-clamp-2">{topic.display_name}</h3>
           </div>
           <div className="flex justify-around items-center my-8">
             <ParticipantAvatars side="pro" count={proVotes} />
             <div className="text-center">
-                <Swords size={48} className="text-muted-foreground mb-4" />
-                <div className="font-mono text-4xl font-black">{totalVotes.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">총 참여자</div>
+                <Swords size={60} className="text-white mb-2 mx-auto" />
+                <div className="text-5xl font-extrabold text-white">{totalVotes.toLocaleString()}</div>
+                <div className="text-md text-gray-300 mt-1">총 참여자</div>
             </div>
             <ParticipantAvatars side="con" count={conVotes} />
           </div>
@@ -124,17 +124,17 @@ export default function DebateCard({ topic, status, isFeatured = false }: Debate
   // === Standard & Past Card Variants ===
   return (
     <Link href={`/debate/${topic.id}`} className="block h-full group">
-      <div className="h-full bg-card border border-border rounded-lg p-5 flex flex-col transition-all duration-300 group-hover:border-primary group-hover:-translate-y-1">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-xs font-bold text-muted-foreground">{topic.category}</span>
+      <div className="h-full bg-card border border-border rounded-lg p-5 flex flex-col transition-all duration-300 group-hover:border-blue-500 group-hover:shadow-lg group-hover:-translate-y-1">
+        <div className="flex justify-between items-start mb-3">
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-600/20 text-gray-300">{topic.category}</span>
           {status === 'ongoing' ? (
-            <div className="text-xs font-bold px-2 py-1 bg-red-900/50 text-red-400 rounded">진행중</div>
+            <span className="text-xs font-bold px-2 py-1 bg-red-900/50 text-red-400 rounded-full">진행중</span>
           ) : (
-            <div className="text-xs font-bold px-2 py-1 bg-muted text-muted-foreground rounded">종료</div>
+            <span className="text-xs font-bold px-2 py-1 bg-muted text-muted-foreground rounded-full">종료</span>
           )}
         </div>
 
-        <h3 className="font-bold text-foreground flex-grow line-clamp-2 mb-4">{topic.display_name}</h3>
+        <h3 className="font-extrabold text-foreground text-lg flex-grow line-clamp-2 mb-3">{topic.display_name}</h3>
         
         {status === 'ongoing' ? (
             <VoteBar pro={proVotes} con={conVotes} />
@@ -146,16 +146,16 @@ export default function DebateCard({ topic, status, isFeatured = false }: Debate
         )}
 
         <div className="flex justify-between items-center mt-auto text-sm text-muted-foreground pt-4 border-t border-border/50">
-            <div className="flex items-center gap-1.5">
-                <Vote size={14} />
-                <span>{totalVotes.toLocaleString()}</span>
+            <div className="flex items-center gap-2">
+                <Users size={16} className="text-blue-400" />
+                <span>{totalVotes.toLocaleString()} 참여</span>
             </div>
-            <div className="flex items-center gap-1.5">
-                {status === 'ongoing' ? <Clock size={14} /> : <Users size={14} />}
+            <div className="flex items-center gap-2">
+                {status === 'ongoing' ? <Clock size={16} className="text-green-400" /> : <Crown size={16} className="text-yellow-400" />}
                 <span>
                     {status === 'ongoing' 
                         ? `${Math.max(0, getRemainingDays(topic.published_at))}일 남음`
-                        : `${(topic.view_count % 100).toLocaleString()}개의 의견`
+                        : `${(topic.view_count % 100).toLocaleString()} 의견`
                     }
                 </span>
             </div>

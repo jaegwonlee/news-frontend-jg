@@ -10,7 +10,7 @@ import { AlertTriangle } from 'lucide-react';
 import HorizontalNewsScroller from './common/HorizontalNewsScroller';
 
 const BreakingNews = () => {
-  const { token, isLoggedIn } = useAuth();
+  const { token } = useAuth();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,7 @@ const BreakingNews = () => {
     setError(null);
     try {
       // Pass token only if user is logged in
-      const fetchedArticles = await getBreakingNews(isLoggedIn ? token : undefined);
+      const fetchedArticles = await getBreakingNews(token || undefined);
       setArticles(fetchedArticles);
     } catch (err) {
       setError('속보를 불러오는 데 실패했습니다.');
@@ -28,14 +28,14 @@ const BreakingNews = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [token, isLoggedIn]);
+  }, [token]);
 
   useEffect(() => {
     fetchBreakingNews();
   }, [fetchBreakingNews]);
 
   const handleSaveToggle = async (articleToToggle: Article) => {
-    if (!isLoggedIn || !token) {
+    if (!token) {
       // Optionally, prompt user to log in
       alert('로그인이 필요한 기능입니다.');
       return;
@@ -81,18 +81,7 @@ const BreakingNews = () => {
   return (
     <section className="mb-8">
         <h2 className="text-2xl font-bold mb-4 px-4 md:px-0">주요 속보</h2>
-        <HorizontalNewsScroller>
-            {articles.map((article, index) => (
-                <div key={article.id} className="w-80 flex-shrink-0">
-                    <ArticleCard
-                        article={article}
-                        variant="standard"
-                        onSaveToggle={isLoggedIn ? handleSaveToggle : undefined}
-                        priority={index < 2} // Prioritize loading for the first couple of images
-                    />
-                </div>
-            ))}
-      </HorizontalNewsScroller>
+        <HorizontalNewsScroller news={articles} />
     </section>
   );
 };

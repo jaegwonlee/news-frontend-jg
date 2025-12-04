@@ -40,8 +40,8 @@ export const useSavedArticlesManager = () => {
       }, {} as Record<string, number>);
       setCategoryCounts(counts);
 
-    } catch (err: Error) {
-      if ((err as Error).message !== 'Session expired') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message !== 'Session expired') {
         setError(err.message || "데이터를 불러오는 데 실패했습니다.");
       }
     } finally {
@@ -67,8 +67,10 @@ export const useSavedArticlesManager = () => {
       const newCategory = await createCategory(token, name);
       setCategories(prev => [...prev, { ...newCategory, article_count: 0 }]);
       return newCategory;
-    } catch (error: Error) {
-      console.error("Failed to create category:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Failed to create category:", error);
+      }
       return undefined;
     }
   }, [token]);
@@ -82,8 +84,10 @@ export const useSavedArticlesManager = () => {
       if (selectedCategoryId === categoryId) {
         setSelectedCategoryId(null);
       }
-    } catch (error: Error) {
-      console.error("Failed to delete category:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Failed to delete category:", error);
+      }
     }
   }, [token, selectedCategoryId]);
 
@@ -92,8 +96,10 @@ export const useSavedArticlesManager = () => {
     try {
       const updated = await updateCategory(token, categoryId, newName);
       setCategories(prev => prev.map(c => c.id === categoryId ? { ...c, name: updated.name } : c));
-    } catch (error: Error) {
-      console.error("Failed to rename category:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Failed to rename category:", error);
+      }
     }
   }, [token]);
 
@@ -120,8 +126,10 @@ export const useSavedArticlesManager = () => {
         return c;
       }));
 
-    } catch (error: Error) {
-      console.error("Failed to update article category:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Failed to update article category:", error);
+      }
     }
   }, [token]);
 
@@ -144,8 +152,10 @@ export const useSavedArticlesManager = () => {
         ));
       }
 
-    } catch (error) {
-      console.error("Failed to unsave article:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Failed to unsave article:", error);
+      }
     }
   }, [token]);
 

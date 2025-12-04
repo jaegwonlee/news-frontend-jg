@@ -86,7 +86,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       socketRef.current = null;
       Promise.resolve().then(() => setSocket(null)); // Defer state update
       Promise.resolve().then(() => setIsConnected(false));
-    } else if (token && socketRef.current && socketRef.current.auth && socketRef.current.auth.token !== token) {
+    } else if (token && socketRef.current && typeof socketRef.current.auth === 'object' && socketRef.current.auth !== null && 'token' in socketRef.current.auth && socketRef.current.auth.token !== token) {
       // If token changes for an existing socket, update auth token and force reconnect
       socketRef.current.auth.token = token;
       socketRef.current.disconnect(); // Force disconnect to trigger reconnect with new token

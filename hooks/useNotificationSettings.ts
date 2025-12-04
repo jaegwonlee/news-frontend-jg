@@ -36,8 +36,12 @@ export const useNotificationSettings = () => {
           return existingSetting || { notification_type: type, is_enabled: true }; // Default to true if not set
         });
         setSettings(mergedSettings);
-      } catch (err: Error) {
-        setError(err.message || "알림 설정을 불러오는데 실패했습니다.");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("알림 설정을 불러오는데 실패했습니다.");
+        }
         // If error, initialize with all types enabled by default
         setSettings(ALL_NOTIFICATION_TYPES.map(type => ({ notification_type: type, is_enabled: true })));
       } finally {
@@ -64,10 +68,14 @@ export const useNotificationSettings = () => {
 
     try {
       await updateNotificationSettings(token, newSettings);
-    } catch (err: Error) {
+    } catch (err: unknown) {
       // Revert on error
       setSettings(originalSettings);
-      setError(err.message || "알림 설정 업데이트에 실패했습니다.");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("알림 설정 업데이트에 실패했습니다.");
+      }
     }
   }, [token, settings]);
 

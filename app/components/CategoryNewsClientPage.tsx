@@ -23,7 +23,7 @@ interface CategoryNewsClientPageProps {
 const ARTICLES_PER_PAGE = 20;
 
 export default function CategoryNewsClientPage({ categoryName }: CategoryNewsClientPageProps) {
-  const { token, isLoggedIn } = useAuth();
+  const { token } = useAuth();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
     setIsLoading(true);
     setError(null);
     try {
-      const fetchedArticles = await getCategoryNews(categoryName, 100, isLoggedIn ? token : undefined);
+      const fetchedArticles = await getCategoryNews(categoryName, 100, token || undefined);
       setArticles(fetchedArticles);
     } catch (err) {
       setError("뉴스를 불러오는 데 실패했습니다.");
@@ -45,14 +45,14 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
     } finally {
       setIsLoading(false);
     }
-  }, [categoryName, token, isLoggedIn]);
+  }, [categoryName, token]);
 
   useEffect(() => {
     fetchNews();
   }, [fetchNews]);
 
   const handleSaveToggle = async (articleToToggle: Article) => {
-    if (!isLoggedIn || !token) {
+    if (!token) {
       alert('로그인이 필요한 기능입니다.');
       return;
     }
@@ -112,7 +112,7 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
         return (
           <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
             <div className="absolute top-4 right-4 z-10">
-              {isLoggedIn && article.isSaved !== undefined && (
+              {!!token && article.isSaved !== undefined && (
                 <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
               )}
             </div>
@@ -153,7 +153,7 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
         return (
           <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
             <div className="absolute top-2 right-2 z-10">
-              {isLoggedIn && article.isSaved !== undefined && (
+              {!!token && article.isSaved !== undefined && (
                 <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
               )}
             </div>
@@ -184,15 +184,14 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
             </div>
           </Link>
         );
-      case "compact":
-        return (
-          <div className="relative">
-            <div className="absolute top-2 right-2 z-10">
-              {isLoggedIn && article.isSaved !== undefined && (
-                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-              )}
-            </div>
-            <Link
+                case "compact":
+                  return (
+                    <div className="relative">
+                      <div className="absolute top-2 right-2 z-10">
+                        {!!token && article.isSaved !== undefined && (
+                          <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
+                        )}
+                      </div>            <Link
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
@@ -215,7 +214,7 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
         return (
           <div className="relative">
              <div className="absolute top-2 right-2 z-10">
-              {isLoggedIn && article.isSaved !== undefined && (
+              {!!token && article.isSaved !== undefined && (
                 <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
               )}
             </div>
@@ -251,7 +250,7 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
         return (
           <div className="relative">
             <div className="absolute top-2 right-2 z-10">
-              {isLoggedIn && article.isSaved !== undefined && (
+              {!!token && article.isSaved !== undefined && (
                 <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
               )}
             </div>

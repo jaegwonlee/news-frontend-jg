@@ -12,19 +12,10 @@ import { AlertTriangle, SearchX } from "lucide-react";
 // Import new components
 import SearchInput from "@/app/components/search/SearchInput";
 import RecentSearches, { addRecentSearch } from "@/app/components/search/RecentSearches";
-import TrendingSearches from "@/app/components/search/TrendingSearches";
 import SearchResultCard from "@/app/components/search/SearchResultCard";
 import { EmptyState } from "@/app/components/common/EmptyState";
 import LoadingSpinner from "@/app/components/common/LoadingSpinner";
-
-// Mock data for trending topics
-const mockTrendingTopics: Topic[] = [
-  { id: 1, display_name: '인공지능', view_count: 1200, published_at: new Date().toISOString(), summary: '인공지능 관련 최신 동향 및 뉴스' },
-  { id: 2, display_name: '부동산 정책', view_count: 980, published_at: new Date().toISOString(), summary: '새로운 부동산 규제와 시장 분석' },
-  { id: 3, display_name: '전기차 보조금', view_count: 850, published_at: new Date().toISOString(), summary: '정부의 전기차 구매 보조금 정책' },
-  { id: 4, display_name: '코스피', view_count: 760, published_at: new Date().toISOString(), summary: '국내 주식 시장 코스피 지수 정보' },
-  { id: 5, display_name: 'CES 2025', view_count: 600, published_at: new Date().toISOString(), summary: '세계 최대 가전 박람회 CES 2025 주요 소식' },
-];
+import RelatedTopicsSection from "@/app/components/search/RelatedTopicsSection";
 
 function SearchClientPageContent() {
   const router = useRouter();
@@ -33,7 +24,7 @@ function SearchClientPageContent() {
   const { token } = useAuth();
 
   const [searchResults, setSearchResults] = useState<Article[]>([]);
-  const [trendingTopics, setTrendingTopics] = useState<Topic[]>([]);
+  const [relatedTopics, setRelatedTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +32,7 @@ function SearchClientPageContent() {
     const fetchResults = async () => {
       if (!searchQuery) {
         setSearchResults([]);
+        setRelatedTopics([]);
         setIsLoading(false);
         return;
       }
@@ -49,9 +41,14 @@ function SearchClientPageContent() {
       setError(null);
       try {
         const results = await getSearchArticles(searchQuery, token || undefined);
-        setSearchResults(results);
-      } catch (err: Error) {
-        setError(err.message || "검색 결과를 불러오는데 실패했습니다.");
+        setSearchResults(results.articles);
+        setRelatedTopics(results.relatedTopics);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("검색 결과를 불러오는데 실패했습니다.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -59,10 +56,6 @@ function SearchClientPageContent() {
 
     fetchResults();
   }, [searchQuery, token]);
-
-  useEffect(() => {
-    setTrendingTopics(mockTrendingTopics);
-  }, []);
 
   const handleSearch = (query: string) => {
     if (query.trim()) {
@@ -108,7 +101,6 @@ function SearchClientPageContent() {
             <p className="text-muted-foreground mb-10 text-lg">뉴스 기사, 토론, 키워드를 검색해 보세요.</p>
             <SearchInput onSearch={handleSearch} />
             <RecentSearches onSearch={handleSearch} />
-            <TrendingSearches topics={trendingTopics} onSearch={handleSearch} />
           </motion.div>
         ) : (
           <motion.div
@@ -134,10 +126,15 @@ function SearchClientPageContent() {
                </div>
             ) : (
               <>
-                <h2 className="text-xl text-foreground font-semibold mt-10 mb-6">
-                  <span className="font-bold text-red-500">&apos;{searchQuery}&apos;</span>
-                  <span className="text-muted-foreground">에 대한 {searchResults.length}개의 검색 결과</span>
-                </h2>
+                <RelatedTopicsSection topics={relatedTopics} />
+                
+                {searchResults.length > 0 &&
+                  <h2 className="text-xl text-foreground font-semibold mt-10 mb-6">
+                    <span className="font-bold text-red-500">&apos;{searchQuery}&apos;</span>
+                    <span className="text-muted-foreground">에 대한 {searchResults.length}개의 검색 결과</span>
+                  </h2>
+                }
+
                 {searchResults.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {searchResults.map((article, index) => (
@@ -145,13 +142,15 @@ function SearchClientPageContent() {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-12">
-                    <EmptyState 
-                      Icon={SearchX}
-                      title="검색 결과 없음"
-                      description={`'${searchQuery}'에 대한 검색 결과가 없습니다. 다른 키워드로 검색해 보세요.`}
-                    />
-                  </div>
+                  relatedTopics.length === 0 && (
+                    <div className="mt-12">
+                      <EmptyState 
+                        Icon={SearchX}
+                        title="검색 결과 없음"
+                        description={`'${searchQuery}'에 대한 검색 결과가 없습니다. 다른 키워드로 검색해 보세요.`}
+                      />
+                    </div>
+                  )
                 )}
               </>
             )}

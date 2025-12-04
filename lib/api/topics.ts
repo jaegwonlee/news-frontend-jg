@@ -140,6 +140,15 @@ export async function getChatHistory(
   limit: number = 50,
   offset: number = 0
 ): Promise<ApiChatMessage[]> {
+  interface RawChatMessage {
+    id: number;
+    content: string;
+    created_at: string;
+    nickname: string;
+    profile_image_url?: string;
+    article_preview?: Article | null;
+    topic_preview?: TopicPreview | null;
+  }
 
   try {
     const response = await fetchWrapper(`/api/topics/${topicId}/chat?limit=${limit}&offset=${offset}`, {
@@ -154,9 +163,9 @@ export async function getChatHistory(
       throw new Error(errorData.message || "Failed to fetch chat history");
     }
 
-    const rawMessages: ApiChatMessage[] = await response.json();
+    const rawMessages: RawChatMessage[] = await response.json();
     
-    return rawMessages.map((rawMsg: ApiChatMessage) => ({
+    return rawMessages.map((rawMsg: RawChatMessage) => ({
         id: rawMsg.id,
         message: rawMsg.content, // 'content' from backend maps to 'message' here
         created_at: rawMsg.created_at,
@@ -314,9 +323,12 @@ export async function castTopicVote(
       throw new Error(errorData.message || "투표에 실패했습니다.");
     }
     return response.json();
-  } catch (error: Error) {
-    console.error("Error in castTopicVote:", error);
-    throw error;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error in castTopicVote:", error);
+      throw error;
+    }
+    throw new Error("An unknown error occurred during vote casting.");
   }
 }
 

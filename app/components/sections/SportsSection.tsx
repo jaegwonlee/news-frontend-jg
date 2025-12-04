@@ -31,20 +31,20 @@ export default function SportsSection({ articles }: SportsSectionProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Main Highlight */}
           <div className="lg:col-span-2">
-            {articles[0] && <ArticleCard article={articles[0]} variant="hero" hoverColor="blue" />}
+            {articles[0] && <ArticleCard article={articles[0]} variant="hero" customHoverColor="blue" />}
           </div>
 
           {/* Side List */}
           <div className="flex flex-col gap-4">
             {articles.slice(1, 4).map((article) => (
-              <ArticleCard key={article.id} article={article} variant="horizontal" hoverColor="blue" />
+              <ArticleCard key={article.id} article={article} variant="horizontal" customHoverColor="blue" />
             ))}
           </div>
 
           {/* Bottom Row */}
           {articles.slice(4, 7).map((article) => (
             <div key={article.id} className="lg:col-span-1">
-              <ArticleCard article={article} variant="standard" hoverColor="blue" />
+              <ArticleCard article={article} variant="standard" customHoverColor="blue" />
             </div>
           ))}
         </div>

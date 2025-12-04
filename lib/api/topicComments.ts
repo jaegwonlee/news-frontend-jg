@@ -1,5 +1,5 @@
 import { Comment } from "@/lib/types/comment";
-import { fw } from "./fw";
+import { fetchWrapper as fw } from "./fetchWrapper";
 
 // Represents the raw comment structure from the API
 interface ApiComment {

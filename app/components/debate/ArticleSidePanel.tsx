@@ -25,13 +25,13 @@ export default function ArticleSidePanel({ articles }: ArticleSidePanelProps) {
 
     return (
         <aside className="sticky top-[80px] h-[calc(100vh-100px)] flex flex-col">
-            <div className="bg-card border border-border rounded-lg flex-1 flex flex-col overflow-hidden">
-                <div className="flex border-b border-border">
+            <div className="bg-card border border-border rounded-lg flex-1 flex flex-col overflow-hidden p-4">
+                <div className="flex border-b border-border -mx-4 px-4 mb-4">
                     {Object.entries(stanceConfig).map(([stanceKey, config]) => {
                         const currentStance = stanceKey as Stance;
-                        const baseClass = "flex-1 flex flex-col items-center justify-center gap-1 p-3 text-sm font-bold border-b-4 transition-all";
+                        const baseClass = "flex-1 flex flex-col items-center justify-center gap-1 p-3 text-sm font-bold border-b-2 transition-all duration-200";
                         const activeClass = `text-${config.color}-500 border-${config.color}-500`;
-                        const inactiveClass = "text-muted-foreground border-transparent hover:bg-accent";
+                        const inactiveClass = "text-muted-foreground border-transparent hover:text-foreground hover:border-gray-500/50";
 
                         return (
                             <GenericTabButton<Stance>
@@ -49,7 +49,7 @@ export default function ArticleSidePanel({ articles }: ArticleSidePanelProps) {
                         );
                     })}
                 </div>
-                <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                <div className="space-y-4 overflow-y-auto flex-1">
                     {filteredArticles.length > 0 ? (
                         filteredArticles.map(article => (
                             <ArticleCard key={article.id} article={article} variant="horizontal" />

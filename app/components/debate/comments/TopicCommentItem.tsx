@@ -34,22 +34,24 @@ export default function TopicCommentItem({ comment, onPostReply, onEdit, onDelet
     };
 
     return (
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-4 pt-4">
             <Image 
                 src={getFullImageUrl(comment.profile_image_url)}
                 alt={comment.author_name}
-                width={36}
-                height={36}
-                className="rounded-full h-9 w-9 mt-1 bg-muted"
+                width={40}
+                height={40}
+                className="rounded-full h-10 w-10 mt-1 bg-muted border-2 border-primary-foreground/20"
             />
             <div className="flex-1">
                 {!isEditing ? (
                     <div>
                         <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm">{comment.author_name}</span>
-                            <span className="text-xs text-muted-foreground">{formatRelativeTime(comment.created_at)}</span>
+                            <span className="font-bold text-base text-foreground">{comment.author_name}</span>
+                            <span className="text-xs text-muted-foreground ml-1">{formatRelativeTime(comment.created_at)}</span>
+                            {comment.status === 'DELETED_BY_USER' && <span className="text-xs text-red-500 ml-2">(삭제됨)</span>}
+                            {comment.status === 'HIDDEN' && <span className="text-xs text-yellow-500 ml-2">(숨김)</span>}
                         </div>
-                        <p className="text-sm mt-1 text-foreground/90 whitespace-pre-wrap">{comment.content}</p>
+                        <p className="text-sm mt-1 text-foreground whitespace-pre-wrap leading-relaxed">{comment.content}</p>
                     </div>
                 ) : (
                     <CommentInput 
@@ -61,20 +63,18 @@ export default function TopicCommentItem({ comment, onPostReply, onEdit, onDelet
                 )}
 
                 {!isEditing && (
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <Button onClick={() => setIsReplying(!isReplying)} variant="ghost" size="sm" className="flex items-center gap-1.5 px-2">
+                    <div className="flex items-center gap-2 mt-2 text-xs">
+                        <Button onClick={() => setIsReplying(!isReplying)} variant="ghost" size="sm" className="flex items-center gap-1 px-2 py-1 h-auto text-muted-foreground hover:bg-accent hover:text-foreground">
                             <Reply size={14} />
                             <span>답글</span>
                         </Button>
                         {isAuthor && (
                             <>
-                                <Button onClick={() => setIsEditing(true)} variant="ghost" size="sm" className="flex items-center gap-1.5 px-2">
+                                <Button onClick={() => setIsEditing(true)} variant="ghost" size="sm" className="p-1.5 h-auto text-muted-foreground hover:bg-accent hover:text-foreground">
                                     <Edit size={14} />
-                                    <span>수정</span>
                                 </Button>
-                                <Button onClick={() => onDelete(comment.id)} variant="ghost" size="sm" className="flex items-center gap-1.5 px-2">
+                                <Button onClick={() => onDelete(comment.id)} variant="ghost" size="sm" className="p-1.5 h-auto text-muted-foreground hover:bg-accent hover:text-destructive">
                                     <Trash size={14} />
-                                    <span>삭제</span>
                                 </Button>
                             </>
                         )}
@@ -93,7 +93,7 @@ export default function TopicCommentItem({ comment, onPostReply, onEdit, onDelet
                 )}
                 
                 {comment.children && comment.children.length > 0 && (
-                    <div className="mt-2 space-y-2 border-l-2 border-border/50 pl-4">
+                    <div className="mt-4 pt-4 space-y-4 border-l-2 border-blue-500/30 pl-4 bg-gray-800/10 rounded-lg">
                         {comment.children.map(child => (
                             <TopicCommentItem 
                                 key={child.id}

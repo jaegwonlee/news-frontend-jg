@@ -41,7 +41,7 @@ export function useLinkMetadata(url: string | undefined): UseLinkMetadataResult 
         const data = await getLinkMetadata(url);
         setMetadata(data);
       } catch {
-        setError("메타데이터를 가져오는 데 실패했습니다.");
+        setError(new Error("메타데이터를 가져오는 데 실패했습니다."));
       } finally {
         setIsLoading(false);
       }

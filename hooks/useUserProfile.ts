@@ -42,14 +42,18 @@ export const useUserProfile = () => {
         const avatarList = await getAvatars(token);
         console.log("Fetched avatar list:", avatarList);
         setAvatars(avatarList);
-      } catch (err: Error) {
+      } catch (err: unknown) {
         console.error("Error fetching profile or avatars:", err);
-        setError(err.message || "프로필 정보를 불러오는데 실패했습니다.");
-        if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
-          console.log("401 error, logging out and redirecting.");
-          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-          logout();
-          router.push("/login");
+        if (err instanceof Error) {
+          setError(err.message);
+          if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+            console.log("401 error, logging out and redirecting.");
+            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+            logout();
+            router.push("/login");
+          }
+        } else {
+          setError("프로필 정보를 불러오는데 실패했습니다.");
         }
       } finally {
         console.log("fetchProfileAndAvatars finished. Setting isLoading to false.");
@@ -88,14 +92,18 @@ export const useUserProfile = () => {
       setSelectedAvatar(updatedUser.profile_image_url || undefined);
       login(token, updatedUser);
       setIsEditing(false);
-    } catch (err: Error) {
+    } catch (err: unknown) {
       console.error("Profile update error:", err);
-      if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        logout();
-        router.push("/login");
+      if (err instanceof Error) {
+        if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+          logout();
+          router.push("/login");
+        } else {
+          setError(err.message);
+        }
       } else {
-        setError(err.message || "프로필 업데이트 중 오류가 발생했습니다.");
+        setError("프로필 업데이트 중 오류가 발생했습니다.");
       }
     } finally {
       setIsUpdating(false);

@@ -64,11 +64,10 @@ const NotificationItem = ({ notification, onRead, onDelete, token, onClosePanel 
   return (
     <div
       className={cn(
-        "group relative flex items-start gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer border",
+        "group relative flex items-start gap-3 p-3 rounded-lg cursor-pointer border",
         notification.is_read
-          ? "bg-gray-200 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800"
-          : "bg-gray-300 dark:bg-zinc-800 border-gray-400 dark:border-zinc-700",
-        "hover:bg-accent hover:border-gray-500 dark:hover:border-zinc-600"
+          ? "bg-gray-100 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
+          : "bg-sky-100 dark:bg-sky-900 border-sky-300 dark:border-sky-700"
       )}
       onClick={handleNotificationClick}
     >
@@ -130,8 +129,12 @@ export default function NotificationSidePanel() {
     try {
       const data = await getNotifications(token, 1, 10);
       setNotifications(data.notifications);
-    } catch (err: any) {
-      setError(err.message || "알림을 불러오는데 실패했습니다.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("알림을 불러오는데 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
@@ -149,8 +152,10 @@ export default function NotificationSidePanel() {
       await markAllAsRead(token);
       setNotifications((prev) => prev.map((notif) => ({ ...notif, is_read: true })));
       markAllAsReadInContext(); 
-    } catch (err: any) {
-      console.error("Failed to mark all as read:", err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Failed to mark all as read:", err.message);
+      }
     }
   };
 
@@ -166,8 +171,10 @@ export default function NotificationSidePanel() {
     try {
       await deleteNotification(token, deleteConfirmationId);
       setNotifications((prev) => prev.filter(n => n.id !== deleteConfirmationId));
-    } catch (err: any) {
-      console.error("Failed to delete notification:", err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Failed to delete notification:", err.message);
+      }
     } finally {
       setDeleteConfirmationId(null);
     }
@@ -194,7 +201,7 @@ export default function NotificationSidePanel() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.2 }}
-            className={`fixed top-0 right-0 h-full w-full max-w-xs ${isDarkMode ? "bg-zinc-900" : "bg-white"} shadow-lg z-50 flex flex-col`}
+            className={`fixed top-0 right-0 h-full w-full max-w-xs ${isDarkMode ? "bg-background" : "bg-white"} shadow-lg z-50 flex flex-col`}
           >
             <div className="p-4">
               <div className="flex items-center justify-between mb-2">

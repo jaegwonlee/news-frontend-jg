@@ -4,6 +4,7 @@ import { Topic, TrendingKeyword } from "@/lib/types/topic";
 import { useState } from "react";
 import ChatRoom from "./ChatRoom";
 import TrendingKeywords from "./TrendingKeywords";
+import { useTheme } from "next-themes";
 import TrendingTopics from "./TrendingTopics";
 
 interface MainGridProps {
@@ -14,6 +15,8 @@ interface MainGridProps {
 }
 
 export default function MainGrid({ mainTopic, popularTopics = [], latestTopics = [], trendingKeywords = [] }: MainGridProps) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
   const [topicTab, setTopicTab] = useState<"popular" | "latest">("popular");
   const [selectedTopic, setSelectedTopic] = useState<Topic | undefined>(mainTopic);
 
@@ -37,10 +40,10 @@ export default function MainGrid({ mainTopic, popularTopics = [], latestTopics =
       <div className="xl:col-span-1 grid grid-rows-2 gap-6 h-[600px] lg:h-[729px]">
         {/* ROUND2 Topics Section (Top Half) */}
         <div className="bg-card border border-border rounded-xl flex flex-col min-h-0 overflow-hidden">
-          <div className="p-4 bg-black">
+          <div className={`p-4 ${isDarkMode ? "bg-black" : "bg-white"}`}>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-white">ROUND2</h2>
+                <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>ROUND2</h2>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -66,7 +69,7 @@ export default function MainGrid({ mainTopic, popularTopics = [], latestTopics =
               </div>
             </div>
           </div>
-          <hr className="border-gray-700" />
+          <hr className={isDarkMode ? "border-gray-700" : "border-gray-200"} />
           <div className="flex-1 min-h-0 p-4">
             <TrendingTopics 
               displayMode={topicTab} 

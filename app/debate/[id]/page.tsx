@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { getTopicDetail } from "@/lib/api";
+import { getTopicDetail, castTopicVote } from "@/lib/api/topics";
 import { TopicDetail } from "@/lib/types/topic";
 import { useAuth } from "@/app/context/AuthContext";
 import LoadingSpinner from "@/app/components/common/LoadingSpinner";
 import TopicCommentSection from "@/app/components/debate/comments/TopicCommentSection";
 import ArticleSidePanel from "@/app/components/debate/ArticleSidePanel";
+import TopicVoteUI from "@/app/components/debate/TopicVoteUI";
 import { Users, Calendar } from "lucide-react";
 import { format } from "date-fns";
 
@@ -17,6 +18,8 @@ export default function TopicDetailPage() {
   const { token } = useAuth();
 
   const [topicDetail, setTopicDetail] = useState<TopicDetail | null>(null);
+  const [userVoteStance, setUserVoteStance] = useState<'LEFT' | 'RIGHT' | null>(null);
+  const [voteCounts, setVoteCounts] = useState<{ left: number; right: number }>({ left: 0, right: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +33,11 @@ export default function TopicDetailPage() {
      try {
         const data = await getTopicDetail(id, token || undefined);
         setTopicDetail(data);
+        setUserVoteStance(data.topic.my_vote || null);
+        setVoteCounts({
+            left: data.topic.vote_count_left || 0,
+            right: data.topic.vote_count_right || 0,
+        });
     } catch (err) {
         setError("토픽 정보를 불러오는 데 실패했습니다.");
         console.error(err);
@@ -42,6 +50,23 @@ export default function TopicDetailPage() {
   useEffect(() => {
     fetchTopicData();
   }, [fetchTopicData]);
+
+  const handleVoteSuccess = useCallback((newVoteCounts: { left: number; right: number }, newUserStance: 'LEFT' | 'RIGHT') => {
+      setVoteCounts(newVoteCounts);
+      setUserVoteStance(newUserStance);
+      setTopicDetail(prev => {
+          if (!prev) return null;
+          return {
+              ...prev,
+              topic: {
+                  ...prev.topic,
+                  vote_count_left: newVoteCounts.left,
+                  vote_count_right: newVoteCounts.right,
+                  my_vote: newUserStance,
+              }
+          };
+      });
+  }, []);
 
 
   if (isLoading) {
@@ -58,26 +83,37 @@ export default function TopicDetailPage() {
 
   const { topic, articles } = topicDetail;
 
+
+
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
             
             {/* Main Content: Topic Header + Comments */}
             <main className="lg:col-span-2">
-                <header className="mb-8">
-                    <h1 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight mb-4">{topic.display_name}</h1>
-                    <p className="text-base text-muted-foreground">{topic.summary}</p>
-                    <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground border-t border-b border-border py-3">
+                <header className="mb-10">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4">{topic.display_name}</h1>
+                    <p className="text-lg text-muted-foreground leading-relaxed mb-6">{topic.summary}</p>
+                    <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-base text-gray-400 pb-4 mb-4 border-b border-border">
                         <div className="flex items-center gap-2">
-                            <Users size={16} />
+                            <Users size={18} className="text-blue-400" />
                             <span>조회수 {topic.view_count.toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Calendar size={16} />
+                            <Calendar size={18} className="text-purple-400" />
                             <span>게시일: {format(new Date(topic.published_at), 'yyyy년 MM월 dd일')}</span>
                         </div>
                     </div>
                 </header>
+                
+                {topic && (
+                    <TopicVoteUI
+                        topicId={parseInt(id as string, 10)}
+                        initialVoteCounts={voteCounts}
+                        userStance={userVoteStance}
+                        onVoteSuccess={handleVoteSuccess}
+                    />
+                )}
                 
                 <TopicCommentSection topicId={id as string} />
 

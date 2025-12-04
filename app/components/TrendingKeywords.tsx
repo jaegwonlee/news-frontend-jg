@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
 import { Flame } from "lucide-react";
+import { useTheme } from "next-themes";
 
 interface TrendingKeywordsProps {
   keywords: TrendingKeyword[];
@@ -46,18 +47,20 @@ const ArticleItem = ({ article }: { article: Article }) => {
 };
 
 export default function TrendingKeywords({ keywords }: TrendingKeywordsProps) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
   const [selectedKeywordIndex, setSelectedKeywordIndex] = useState(0);
 
   if (!keywords || keywords.length === 0) {
     return (
       <div className="flex flex-col h-full">
-        <div className="p-4 bg-black">
+        <div className={`p-4 ${isDarkMode ? "bg-black" : "bg-white"}`}>
           <div className="flex items-center gap-2">
             <Flame className="w-5 h-5 text-red-500" />
-            <h2 className="text-xl font-bold text-white">이슈 NOW</h2>
+            <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>이슈 NOW</h2>
           </div>
         </div>
-        <hr className="border-gray-700" />
+        <hr className={isDarkMode ? "border-gray-700" : "border-gray-200"} />
         <div className="flex-1 flex items-center justify-center text-muted-foreground p-4">
             <p>현재 인기 키워드가 없습니다.</p>
         </div>
@@ -70,18 +73,18 @@ export default function TrendingKeywords({ keywords }: TrendingKeywordsProps) {
   return (
     <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="p-4 bg-black">
+        <div className={`p-4 ${isDarkMode ? "bg-black" : "bg-white"}`}>
             <div className="flex items-center gap-2">
                 <Flame className="w-5 h-5 text-red-500" />
-                <h2 className="text-xl font-bold text-white">이슈 NOW</h2>
+                <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>이슈 NOW</h2>
             </div>
         </div>
-        <hr className="border-gray-700" />
+        <hr className={isDarkMode ? "border-gray-700" : "border-gray-200"} />
 
         {/* Content */}
         <div className="p-4 flex flex-col flex-1 min-h-0">
             {/* Keyword Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-3 -mx-4 px-4">
+            <div className="flex items-center gap-1 pb-3">
                 {keywords.map((kw, index) => (
                 <button
                     key={kw.keyword}

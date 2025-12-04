@@ -20,6 +20,8 @@ interface ArticleCardProps {
   priority?: boolean;
   hoverColorClass?: string;
   rel?: string; // Add rel prop for link relations
+  hideImage?: boolean;
+  customHoverColor?: string; // Add this prop
 
 }
 
@@ -32,21 +34,25 @@ export default function ArticleCard({
   priority = false, // Default to false
   hoverColorClass, // No default, will be determined below
   rel = "noopener noreferrer", // Default rel to noopener noreferrer
-
+  hideImage = false,
+  customHoverColor, // Add this
 }: ArticleCardProps) {
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
+
+  const { title, summary, thumbnail_url, source, url, published_at, view_count, favicon_url } = article;
+
   // Determine hover colors dynamically
   let finalHoverColorClass = hoverColorClass;
 
-  if (!finalHoverColorClass && article.category) {
+  if (customHoverColor) { // Use customHoverColor if provided
+      finalHoverColorClass = `group-hover:text-${customHoverColor}-500`;
+  } else if (!finalHoverColorClass && article.category) {
     const theme = getCategoryTheme(article.category);
     finalHoverColorClass = theme.hoverText;
   } else if (!finalHoverColorClass) {
     finalHoverColorClass = 'group-hover:text-primary'; // Default if no specific hover color class or category
   }
-
-    const { title, summary, thumbnail_url, source, url, published_at, view_count, favicon_url } = article;
 
   
 
@@ -258,135 +264,31 @@ export default function ArticleCard({
 
   
 
-      if (variant === "horizontal") {
+            if (variant === "horizontal") {
 
   
 
-        return (
+              return (
 
   
 
-          <Link
+                <Link
 
   
 
-            href={url}
+                  href={url}
 
   
 
-            target="_blank"
+                  target="_blank"
 
   
 
-            rel={rel}
+                  rel={rel}
 
   
 
-            className={cn(cardBaseClasses, "flex flex-row items-stretch h-32 md:h-40", className)}
-
-  
-
-          >
-
-  
-
-            <div className="relative w-1/3 md:w-48 shrink-0">
-
-  
-
-              <Image
-
-  
-
-                src={thumbnail_url || "/placeholder.png"}
-
-  
-
-                alt={title}
-
-  
-
-                fill
-
-  
-
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-
-  
-
-                sizes="200px"
-
-  
-
-                unoptimized
-
-  
-
-              />
-
-  
-
-            </div>
-
-  
-
-            <div className="flex flex-col justify-between p-4 grow">
-
-  
-
-              <div>
-
-  
-
-                <div className="flex items-center gap-2 mb-1.5">
-
-  
-
-                  <div className="flex items-center gap-1.5">
-
-  
-
-                    <Favicon src={favicon_url || ""} alt={source} size={12} />
-
-  
-
-                    <span className="text-xs font-medium text-primary/70">{source}</span>
-
-  
-
-                  </div>
-
-  
-
-                  <span className="text-[10px] text-muted-foreground">•</span>
-
-  
-
-                  <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground" />
-
-  
-
-                </div>
-
-  
-
-                <h3
-
-  
-
-                  className={cn(
-
-  
-
-                    "font-bold text-base md:text-lg leading-snug line-clamp-2 transition-colors",
-
-  
-
-                    finalHoverColorClass
-
-  
-
-                  )}
+                  className={cn(cardBaseClasses, "flex flex-row items-stretch h-32 md:h-40", className)}
 
   
 
@@ -394,31 +296,143 @@ export default function ArticleCard({
 
   
 
-                  {title}
+                  {!hideImage && (
 
   
 
-                </h3>
+                    <div className="relative w-1/3 md:w-48 shrink-0">
 
   
 
-              </div>
+                      <Image
 
   
 
-              <p className="text-xs text-muted-foreground line-clamp-1 hidden md:block mt-1">{summary}</p>
+                        src={thumbnail_url || "/placeholder.png"}
 
   
 
-            </div>
+                        alt={title}
 
   
 
-          </Link>
+                        fill
 
   
 
-        );
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+
+  
+
+                        sizes="200px"
+
+  
+
+                        unoptimized
+
+  
+
+                      />
+
+  
+
+                    </div>
+
+  
+
+                  )}
+
+  
+
+                  <div className="flex flex-col justify-between p-4 grow">
+
+  
+
+                    <div>
+
+  
+
+                      <div className="flex items-center gap-2 mb-1.5">
+
+  
+
+                        <div className="flex items-center gap-1.5">
+
+  
+
+                          <Favicon src={favicon_url || ""} alt={source} size={12} />
+
+  
+
+                          <span className="text-xs font-medium text-primary/70">{source}</span>
+
+  
+
+                        </div>
+
+  
+
+                        <span className="text-[10px] text-muted-foreground">•</span>
+
+  
+
+                        <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground" />
+
+  
+
+                      </div>
+
+  
+
+                      <h3
+
+  
+
+                        className={cn(
+
+  
+
+                          "font-bold text-base md:text-lg leading-snug line-clamp-2 transition-colors",
+
+  
+
+                          finalHoverColorClass
+
+  
+
+                        )}
+
+  
+
+                      >
+
+  
+
+                        {title}
+
+  
+
+                      </h3>
+
+  
+
+                    </div>
+
+  
+
+                    <p className="text-xs text-muted-foreground line-clamp-1 hidden md:block mt-1">{summary}</p>
+
+  
+
+                  </div>
+
+  
+
+                </Link>
+
+  
+
+              );
 
   
 

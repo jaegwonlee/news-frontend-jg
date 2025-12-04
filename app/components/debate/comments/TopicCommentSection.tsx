@@ -114,21 +114,23 @@ export default function TopicCommentSection({ topicId }: TopicCommentSectionProp
 
   return (
     <div className="py-6">
-      <div className="mb-6 p-1 bg-secondary rounded-lg flex">
+      <div className="mb-6 flex space-x-2 p-1 bg-muted rounded-lg">
         {(['LEFT', 'RIGHT', 'NEUTRAL'] as const).map(s => (
           <Button 
             key={s}
-            variant={stance === s ? 'default' : 'ghost'} 
+            variant="ghost" 
             onClick={() => setStance(s)}
-            className="flex-1"
+            className={`flex-1 text-center py-2 rounded-md font-medium transition-colors ${
+              stance === s ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-accent'
+            }`}
           >
             {s === 'LEFT' ? '찬성' : s === 'RIGHT' ? '반대' : '전체'}
           </Button>
         ))}
       </div>
 
-      <h3 className="text-lg font-bold mb-4">
-        의견 남기기 ({stance === 'LEFT' ? '찬성' : stance === 'RIGHT' ? '반대' : '중립'})
+      <h3 className="text-xl font-bold mb-4">
+        의견 남기기 ({stance === 'LEFT' ? '찬성' : stance === 'RIGHT' ? '반대' : '중립'}) <span className="text-muted-foreground text-base">({filteredComments.length})</span>
       </h3>
       
       {user && <CommentInput onSubmit={handlePostComment} />}

@@ -3,7 +3,7 @@ import { getTrendingKeywords } from "@/lib/api/keywords";
 import { getPopularTopics, getLatestTopics, getTopicDetail } from "@/lib/api/topics";
 import { Topic, TrendingKeyword } from "@/lib/types/topic";
 import MainGrid from "./components/MainGrid";
-import BreakingNews from "./components/BreakingNews";
+
 
 export default async function Home() {
   const [topicDetail, popularTopics, latestTopics, trendingKeywords] = await Promise.all([
@@ -27,7 +27,7 @@ export default async function Home() {
 
   return (
     <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <BreakingNews />
+
       <div className="space-y-12">
         <MainGrid
           mainTopic={topicDetail?.topic}
