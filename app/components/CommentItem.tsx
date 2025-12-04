@@ -24,7 +24,7 @@ import { createPortal } from "react-dom";
 const getFullImageUrl = (url?: string): string => {
   if (!url) return "/user-placeholder.svg";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://news01.onrender.com";
+  const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://news02.onrender.com";
   return `${BACKEND_BASE_URL}${url}`;
 };
 

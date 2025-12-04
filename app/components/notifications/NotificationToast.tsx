@@ -68,16 +68,16 @@ export default function NotificationToast({ notification, onDismiss }: Notificat
           exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.3 } }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           onClick={handleToastClick}
-          className="fixed bottom-5 right-5 w-full max-w-sm bg-card border border-border shadow-2xl rounded-2xl cursor-pointer z-[100]"
+          className="fixed bottom-5 right-5 w-full max-w-sm bg-card border border-border shadow-2xl rounded-2xl cursor-pointer z-[100] dark:bg-black"
         >
           <div className="p-4 flex items-start gap-4">
              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-secondary mt-1">
                 {getIcon(notification.type)}
             </div>
-            <div className="flex-1">
-                <h4 className="font-bold text-foreground">새로운 알림</h4>
-                <p className="text-sm text-muted-foreground line-clamp-2">{notification.message}</p>
-                 <div className="text-xs text-muted-foreground/80 mt-1">
+            <div className="flex-1 dark:text-white">
+                <h4 className="font-bold text-foreground dark:text-white">새로운 알림</h4>
+                <p className="text-sm text-muted-foreground line-clamp-2 dark:text-gray-300">{notification.message}</p>
+                 <div className="text-xs text-muted-foreground/80 mt-1 dark:text-gray-400">
                     {formatRelativeTime(notification.created_at)}
                 </div>
             </div>
@@ -87,7 +87,7 @@ export default function NotificationToast({ notification, onDismiss }: Notificat
                 setIsVisible(false);
                 onDismiss();
               }}
-              className="p-1 rounded-full text-muted-foreground hover:bg-accent absolute top-2 right-2"
+              className="p-1 rounded-full text-muted-foreground hover:bg-accent absolute top-2 right-2 dark:text-gray-400"
               aria-label="Dismiss notification"
             >
               <X className="w-4 h-4" />

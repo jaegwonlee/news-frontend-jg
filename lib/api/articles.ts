@@ -82,7 +82,7 @@ export async function getCategoryNews(categoryName: string, limit?: number, toke
 
   // 프로덕션 환경에서는 실제 API를 호출합니다.
   const encodedCategoryName = encodeURIComponent(categoryName);
-  let apiUrl = `/api/articles/by-category?name=${encodedCategoryName}`;
+  let apiUrl = `/articles/by-category?name=${encodedCategoryName}`;
   
   if (limit) {
     apiUrl += `&limit=${limit}`;
@@ -99,7 +99,12 @@ export async function getCategoryNews(categoryName: string, limit?: number, toke
       headers: headers
     });
     if (!response.ok) {
-      throw new Error(`API 호출 실패 (${categoryName}): ${response.status}`);
+      if (response.status === 404) {
+        console.warn(`Category "${categoryName}" not found or has no articles.`);
+        return [];
+      } else {
+        throw new Error(`API 호출 실패 (${categoryName}): ${response.status}`);
+      }
     }
     return await response.json();
   } catch (error) {

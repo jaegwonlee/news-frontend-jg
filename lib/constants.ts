@@ -1,4 +1,4 @@
-export const BACKEND_BASE_URL = 'https://news01.onrender.com';
+export const BACKEND_BASE_URL = 'https://news02.onrender.com';
 
 // A map of known favicon URLs for specific news sources.
 // Can be populated over time.
