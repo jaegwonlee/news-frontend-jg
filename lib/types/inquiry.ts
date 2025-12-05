@@ -1,32 +1,33 @@
 /**
- * API에서 받아오는 문의(Inquiry) 데이터 구조 정의
+ * @file Inquiry-related type definitions
  */
-export interface Inquiry {
+
+export type InquiryStatus = "SUBMITTED" | "ANSWERED" | "CLOSED";
+
+/**
+ * Defines the data structure for an inquiry summary, used in lists.
+ * This corresponds to the response from `GET /api/inquiry`.
+ */
+export interface InquirySummary {
+  id: number;
+  subject: string;
+  status: InquiryStatus;
+  created_at: string;
+}
+
+/**
+ * Defines the data structure for a detailed inquiry view.
+ * This corresponds to the response from `GET /api/inquiry/:id`.
+ */
+export interface InquiryDetail {
   id: number;
   subject: string;
   content: string;
-  status: "SUBMITTED" | "ANSWERED" | "CLOSED";
+  status: InquiryStatus;
   created_at: string;
-  updated_at: string;
-  user_id: number;
-  file_path?: string;
-  file_originalname?: string;
-  reply?: InquiryReply;
-}
-
-/**
- * 문의 답변 데이터 구조 정의
- */
-export interface InquiryReply {
-  id: number;
-  content: string;
-  created_at: string;
-}
-
-/**
- * 페이지네이션된 문의 목록 데이터 구조
- */
-export interface PaginatedInquiries {
-  inquiries: Inquiry[];
-  total: number;
+  attachment_url?: string | null;
+  answer?: {
+    content: string;
+    created_at: string;
+  } | null;
 }

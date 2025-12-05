@@ -3,34 +3,23 @@
 import { getCategoryTheme } from "@/lib/categoryColors";
 import { cn } from "@/lib/utils";
 import { Article } from "@/lib/types/article";
-import { ChevronRight, Newspaper } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { Newspaper } from "lucide-react";
 import { useMemo, useState, useEffect, useCallback } from "react";
-import ClientOnlyTime from "./common/ClientOnlyTime";
 import ClientPaginationControls from "./common/ClientPaginationControls";
 import { EmptyState } from "./common/EmptyState";
-import Favicon from "./common/Favicon";
 import { useAuth } from "@/app/context/AuthContext";
 import { getCategoryNews, toggleArticleSave } from "@/lib/api";
 import LoadingSpinner from "./common/LoadingSpinner";
-import ArticleSaveButton from "./ArticleSaveButton";
 import ChatRoom from "./ChatRoom";
 import { Topic } from "@/lib/types/topic";
+import CategoryArticleCard from "./category/CategoryArticleCard";
+import CategoryArticleGrid from "./category/CategoryArticleGrid";
+import CategorySourceSidebar from "./category/CategorySourceSidebar";
+import { ARTICLES_PER_PAGE, categoryTopicMap } from "@/lib/constants/category";
 
 interface CategoryNewsClientPageProps {
   categoryName: string;
 }
-
-const ARTICLES_PER_PAGE = 20;
-
-const categoryTopicMap: { [key: string]: number } = {
-  "정치": 2,
-  "경제": 3,
-  "사회": 4,
-  "문화": 5,
-  "스포츠": 6,
-};
 
 export default function CategoryNewsClientPage({ categoryName }: CategoryNewsClientPageProps) {
   const { token } = useAuth();
@@ -108,192 +97,6 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
     return filteredArticles.slice(indexOfFirstArticle, indexOfLastArticle);
   }, [filteredArticles, currentPage]);
 
-  const renderArticleContent = (
-    article: Article,
-    type: "hero" | "standard" | "compact" | "horizontal" | "title-only",
-    isProminent: boolean = false
-  ) => {
-    const commonClasses = cn(
-      "group relative block h-full bg-card rounded-xl overflow-hidden border border-border transition-all duration-300 hover:shadow-xl hover:translate-y-[-2px] hover:border-primary",
-      isProminent && "hover:border-2"
-    );
-
-    const hoverAccentClasses = theme.hoverText;
-    const hoverBorderClasses = theme.hoverBorder;
-    
-    const handleSaveClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleSaveToggle(article);
-    };
-
-    switch (type) {
-      case "hero":
-        return (
-          <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
-            <div className="absolute top-4 right-4 z-10">
-              {!!token && article.isSaved !== undefined && (
-                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-              )}
-            </div>
-            <div className="relative w-full h-2/3 md:h-3/5 overflow-hidden">
-              <Image
-                src={article.thumbnail_url || "/placeholder.png"}
-                alt={article.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent flex items-end p-4">
-                <span className="text-white text-xs font-bold px-2 py-1 rounded bg-black/50">{article.source}</span>
-              </div>
-            </div>
-            <div className="p-4 flex flex-col justify-between grow">
-              <h3
-                className={cn(
-                  "font-bold text-xl leading-tight line-clamp-2 mb-2 transition-colors",
-                  hoverAccentClasses
-                )}
-              >
-                {article.title}
-              </h3>
-              <p className="text-sm text-muted-foreground line-clamp-3 mb-3 grow">
-                {article.description || article.summary}
-              </p>
-              <div className="flex items-center text-xs text-muted-foreground">
-                <ClientOnlyTime date={article.published_at} />
-                <span className="mx-2">•</span>
-                <span>{article.view_count?.toLocaleString() || 0} 조회</span>
-              </div>
-            </div>
-          </Link>
-        );
-      case "standard":
-        return (
-          <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
-            <div className="absolute top-2 right-2 z-10">
-              {!!token && article.isSaved !== undefined && (
-                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-              )}
-            </div>
-            <div className="relative w-full aspect-video overflow-hidden rounded-t-xl">
-              <Image
-                src={article.thumbnail_url || "/placeholder.png"}
-                alt={article.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 300px"
-                unoptimized
-              />
-            </div>
-            <div className="p-4 flex flex-col grow">
-              <h3
-                className={cn(
-                  "font-bold text-base leading-tight line-clamp-2 mb-2 transition-colors",
-                  hoverAccentClasses
-                )}
-              >
-                {article.title}
-              </h3>
-              <p className="text-xs text-muted-foreground line-clamp-3 grow">{article.summary}</p>
-              <div className="flex items-center text-xs text-muted-foreground mt-3">
-                <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
-                <span className="ml-1">{article.source}</span>
-              </div>
-            </div>
-          </Link>
-        );
-                case "compact":
-                  return (
-                    <div className="relative">
-                      <div className="absolute top-2 right-2 z-10">
-                        {!!token && article.isSaved !== undefined && (
-                          <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-                        )}
-                      </div>            <Link
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                "block p-4 rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-md hover:translate-x-1",
-                hoverBorderClasses
-              )}
-            >
-              <h3 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
-                {article.title}
-              </h3>
-              <div className="flex items-center text-xs text-muted-foreground mt-2">
-                <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
-                <span className="ml-1">{article.source}</span>
-              </div>
-            </Link>
-          </div>
-        );
-      case "horizontal":
-        return (
-          <div className="relative">
-             <div className="absolute top-2 right-2 z-10">
-              {!!token && article.isSaved !== undefined && (
-                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-              )}
-            </div>
-            <Link
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(commonClasses, "flex flex-row items-start gap-4 p-4")}
-            >
-              <div className="relative w-24 h-16 shrink-0 overflow-hidden rounded-lg">
-                <Image
-                  src={article.thumbnail_url || "/placeholder.png"}
-                  alt={article.title}
-                  fill
-                  className="object-cover"
-                  sizes="96px"
-                  unoptimized
-                />
-              </div>
-              <div className="flex flex-col grow">
-                <h3 className={cn("font-bold text-base leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
-                  {article.title}
-                </h3>
-                <div className="flex items-center text-xs text-muted-foreground mt-1">
-                  <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
-                  <span className="ml-1">{article.source}</span>
-                </div>
-              </div>
-            </Link>
-          </div>
-        );
-      case "title-only":
-        return (
-          <div className="relative">
-            <div className="absolute top-2 right-2 z-10">
-              {!!token && article.isSaved !== undefined && (
-                <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-              )}
-            </div>
-            <Link
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                "block p-3 rounded-lg bg-card border border-border transition-all duration-300 hover:shadow-sm",
-                hoverBorderClasses
-              )}
-            >
-              <h3 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
-                {article.title}
-              </h3>
-            </Link>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in">
       <header className="mb-8">
@@ -302,90 +105,42 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
         </h1>
       </header>
 
-      <div className="mb-8">
-        <div className="flex flex-wrap gap-2">
-          {sources.map((source) => (
-            <button
-              key={source}
-              onClick={() => {
-                setSelectedSource(source);
-                setCurrentPage(1);
-              }}
-              className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${
-                selectedSource === source
-                  ? `${theme.bg} text-white`
-                  : "bg-secondary text-muted-foreground hover:bg-accent"
-              }`}
-            >
-              {source === "전체" ? "전체 언론사" : source}
-              {selectedSource === source && <ChevronRight size={16} className="ml-2" />}
-            </button>
-          ))}
-        </div>
-      </div>
-      {isLoading ? (
-        <div className="h-96 flex items-center justify-center"><LoadingSpinner size="large" /></div>
-      ) : error ? (
-        <div className="h-96 flex items-center justify-center"><EmptyState Icon={Newspaper} title="오류 발생" description="뉴스를 불러오는 데 실패했습니다." /></div>
-      ) : filteredArticles.length === 0 ? (
-        <div className="py-20">
-          <EmptyState Icon={Newspaper} title="기사 없음" description="해당 언론사의 뉴스가 없습니다." />
-        </div>
-      ) : (
-        <div className="space-y-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-[minmax(180px,fr)]">
-            {paginatedArticles.map((article, index) => {
-              // Decide layout based on index and overall design vision
-              if (index === 0) {
-                // Large Hero Feature: Full width, taller
-                return (
-                  <div key={article.id} className="md:col-span-2 lg:col-span-3 xl:col-span-4 row-span-2">
-                    {renderArticleContent(article, "hero", true)}
-                  </div>
-                );
-              } else if (index === 1 || index === 2) {
-                // Two medium features, could be 2-col on larger screens
-                return (
-                  <div key={article.id} className="md:col-span-1 lg:col-span-1 xl:col-span-2">
-                    {renderArticleContent(article, "standard")}
-                  </div>
-                );
-              } else if (index === 3 || index === 4 || index === 5) {
-                // Three compact articles, less visual weight
-                return (
-                  <div key={article.id} className="md:col-span-1 lg:col-span-1 xl:col-span-1">
-                    {renderArticleContent(article, "compact")}
-                  </div>
-                );
-              } else if (index === 6 || index === 7) {
-                // Two horizontal list style articles
-                return (
-                  <div key={article.id} className="md:col-span-1 lg:col-span-2 xl:col-span-2">
-                    {renderArticleContent(article, "horizontal")}
-                  </div>
-                );
-              } else if (index === 8 || index === 9 || index === 10 || index === 11) {
-                // A block of 4 title-only articles
-                return (
-                  <div key={article.id} className="xl:col-span-1">
-                    {renderArticleContent(article, "title-only")}
-                  </div>
-                );
-              }
-              // Fallback for the rest of the articles
-              return (
-                <div key={article.id} className="lg:col-span-1">
-                  {renderArticleContent(article, "standard")}
-                </div>
-              );
-            })}
-          </div>
-          {totalPages > 1 && (
-            <ClientPaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      {/* Main content area: Sidebar + Article Grid */}
+      <div className="flex flex-col lg:flex-row gap-6"> {/* Use flexbox for layout */}
+        {/* Left Sidebar */}
+        <CategorySourceSidebar
+          sources={sources}
+          selectedSource={selectedSource}
+          setSelectedSource={setSelectedSource}
+          setCurrentPage={setCurrentPage}
+          categoryTheme={theme}
+        />
+
+        {/* Main Article Content */}
+        <div className="flex-grow"> {/* This div will contain the article grid and pagination */}
+          {isLoading ? (
+            <div className="h-96 flex items-center justify-center"><LoadingSpinner size="large" /></div>
+          ) : error ? (
+            <div className="h-96 flex items-center justify-center"><EmptyState Icon={Newspaper} title="오류 발생" description="뉴스를 불러오는 데 실패했습니다." /></div>
+          ) : filteredArticles.length === 0 ? (
+            <div className="py-20">
+              <EmptyState Icon={Newspaper} title="기사 없음" description="해당 언론사의 뉴스가 없습니다." />
+            </div>
+          ) : (
+            <div className="space-y-12">
+              <CategoryArticleGrid
+                articles={paginatedArticles}
+                token={token}
+                handleSaveToggle={handleSaveToggle}
+                categoryTheme={theme}
+              />
+              {totalPages > 1 && (
+                <ClientPaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
-

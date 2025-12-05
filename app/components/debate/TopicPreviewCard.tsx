@@ -13,15 +13,37 @@ interface TopicPreview {
   left_count: number;
   right_count: number;
   vote_remaining_time: string | null;
+  vote_end_at?: string; // Made optional to match lib/types/topic.ts
 }
 
 interface TopicPreviewCardProps {
-  topic: TopicPreview;
+  topic?: TopicPreview | null; // Make topic optional
+  isNotFound?: boolean; // New prop for "not found" state
+  failedTopicId?: string; // Optional: to display the ID of the topic that failed
 }
 
-export default function TopicPreviewCard({ topic }: TopicPreviewCardProps) {
+export default function TopicPreviewCard({ topic, isNotFound, failedTopicId }: TopicPreviewCardProps) {
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
+
+  if (isNotFound || !topic) {
+    return (
+      <div className={`block mt-2 max-w-full`}>
+        <div className={`w-full rounded-lg ${isDarkMode ? "border border-gray-800 bg-black" : "border border-gray-200 bg-white"} p-4 transition-all opacity-70`}>
+          <div className="flex justify-between items-start mb-3">
+            <h4 className="font-bold text-lg text-foreground line-clamp-2 leading-tight">토론을 찾을 수 없습니다.</h4>
+            <span className="text-xs font-semibold px-2 py-1 bg-red-500/10 text-red-500 rounded-full shrink-0 ml-2">
+              오류
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            요청하신 토론 ID ({failedTopicId || '알 수 없음'}) 에 해당하는 토론을 찾을 수 없습니다.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const totalVotes = topic.left_count + topic.right_count;
   const leftPercent = totalVotes > 0 ? (topic.left_count / totalVotes) * 100 : 50;
   const rightPercent = 100 - leftPercent;
@@ -63,10 +85,10 @@ export default function TopicPreviewCard({ topic }: TopicPreviewCardProps) {
         </div>
         
         {/* Footer with time */}
-        {topic.vote_remaining_time && (
+        {topic.vote_end_at && ( // Changed from vote_remaining_time
           <div className="text-center text-sm font-medium text-primary mt-4 pt-3 border-t border-border/50 flex items-center justify-center gap-2">
             <Clock size={14} />
-            <span className="truncate">{topic.vote_remaining_time}</span>
+            <span className="truncate">{topic.vote_end_at}</span>
           </div>
         )}
       </div>

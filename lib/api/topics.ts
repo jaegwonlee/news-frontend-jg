@@ -94,7 +94,16 @@ export async function getTopicDetail(topicId: string, token?: string): Promise<T
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch topic detail for ${topicId}`);
+    let errorMessage = `Failed to fetch topic detail for ID: ${topicId}.`; // Always include topicId
+    try {
+      const errorData = await response.json();
+      if (errorData && errorData.message) {
+        errorMessage = errorData.message + ` (ID: ${topicId})`; // Append topicId
+      }
+    } catch (e) {
+      errorMessage += ` Status: ${response.status} ${response.statusText}`;
+    }
+    throw new Error(errorMessage);
   }
   return response.json();
 }
@@ -188,15 +197,23 @@ export async function getChatHistory(
  * @param token The user's authentication token.
  * @returns The newly created message object.
  */
-export async function sendChatMessage(topicId: number, content: string, token: string): Promise<ApiChatMessage> {
-
+export async function sendChatMessage(
+  topicId: number,
+  content: string,
+  token: string,
+  topicPreview?: TopicPreview | null // Add optional topicPreview parameter
+): Promise<ApiChatMessage> {
+  const body: { content: string; topic_preview?: TopicPreview | null } = { content };
+  if (topicPreview) {
+    body.topic_preview = topicPreview;
+  }
 
   const response = await fetchWrapper(`/api/topics/${topicId}/chat`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -311,11 +328,15 @@ export async function castTopicVote(
 ): Promise<{ message: string; voteCountLeft?: number; voteCountRight?: number }> {
 
   try {
-    const response = await fetchWrapper(`/api/topics/${topicId}/${stance}/vote`, {
+    // Bypassing fetchWrapper to call the local API route directly
+    const response = await fetch(`/api/topics/${topicId}/vote`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
+      body: JSON.stringify({ side: stance }),
     });
 
     if (!response.ok) {

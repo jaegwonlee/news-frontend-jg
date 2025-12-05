@@ -34,6 +34,7 @@ const Favicon = ({ src, alt, size = 16, className }: FaviconProps) => {
       height={size}
       className={`rounded ${className}`}
       onError={() => setError(true)}
+      unoptimized={src.includes('google.com/s2/favicons')}
     />
   );
 };

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/app/context/AuthContext';
-import { Button } from '@/app/components/common/Button'; // Assuming a generic Button component exists
+import { Button } from '@/app/components/common/Button';
+import { Loader2 } from 'lucide-react';
 
 interface CommentInputProps {
     onSubmit: (content: string, parentId: number | null) => Promise<void>;
@@ -46,24 +48,36 @@ export default function CommentInput({
     }
     
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-            <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder={placeholder}
-                className="w-full p-3 bg-input border border-border rounded-md text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 resize-y"
-                rows={initialContent ? 3 : 2}
-                disabled={isSubmitting}
-            />
-            <div className="flex justify-end gap-2">
-                {onCancel && (
-                    <Button variant="outline" onClick={onCancel} disabled={isSubmitting} className="text-muted-foreground hover:bg-muted-foreground/20">
-                        취소
+        <form onSubmit={handleSubmit} className="flex items-start gap-3 p-4 bg-background border border-border rounded-xl">
+            <div className="flex-shrink-0">
+                <Image 
+                    src={user.profile_image_url || '/user-placeholder.svg'} 
+                    alt={user.nickname || 'user avatar'}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                />
+            </div>
+            <div className="flex-grow">
+                <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full p-2.5 bg-input border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 resize-y"
+                    rows={initialContent ? 4 : 3}
+                    disabled={isSubmitting}
+                />
+                <div className="flex justify-end gap-2 mt-2">
+                    {onCancel && (
+                        <Button variant="ghost" size="sm" onClick={onCancel} disabled={isSubmitting}>
+                            취소
+                        </Button>
+                    )}
+                    <Button type="submit" size="sm" disabled={!content.trim() || isSubmitting}>
+                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSubmitting ? "등록 중..." : (initialContent ? "수정" : "등록")}
                     </Button>
-                )}
-                <Button type="submit" disabled={!content.trim() || isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white font-bold">
-                    {isSubmitting ? "등록 중..." : (initialContent ? "수정" : "등록")}
-                </Button>
+                </div>
             </div>
         </form>
     );

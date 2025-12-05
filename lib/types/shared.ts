@@ -26,8 +26,8 @@ export interface SavedArticleCategory {
 export type NotificationType = "NEW_TOPIC" | "BREAKING_NEWS" | "EXCLUSIVE_NEWS" | "VOTE_REMINDER" | "ADMIN_NOTICE" | "FRIEND_REQUEST";
 
 export interface NotificationSetting {
-  notification_type: NotificationType;
-  is_enabled: boolean;
+  notificationType: NotificationType;
+  isEnabled: boolean;
 }
 
 /**

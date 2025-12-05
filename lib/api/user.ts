@@ -85,7 +85,7 @@ export async function updateUserProfile(token: string, updatedData: UserUpdate):
 export async function getAvatars(token: string): Promise<string[]> {
 
   try {
-    const response = await fetchWrapper(`/avatars`, {
+    const response = await fetchWrapper(`/api/avatars`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -141,7 +141,7 @@ export async function getNotificationSettings(token: string): Promise<Notificati
  * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  */
 export async function updateNotificationSettings(token: string, settings: NotificationSetting[]): Promise<NotificationSetting[]> {
-
+  console.log("Sending notification settings payload:", settings); // Add this log
   const response = await fetchWrapper(`/api/user/me/notification-settings`, {
     method: 'PUT',
     headers: {

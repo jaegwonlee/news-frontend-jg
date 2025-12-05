@@ -608,7 +608,7 @@ export default function ArticleCard({
         href={article.url}
         target="_blank"
         rel={rel}
-        className={`group flex items-center rounded-lg ${isDarkMode ? "border border-gray-800 bg-black text-white" : "border border-gray-200 bg-white text-black"} hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors ${className}`}
+        className={`group flex items-center rounded-lg ${isDarkMode ? "border border-gray-800 bg-black text-white" : "border border-gray-200 bg-white text-black"} transition-colors ${className}`}
       >
         <div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-l-lg">
           <Image

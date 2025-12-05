@@ -1,74 +1,44 @@
+/**
+ * @file API functions for handling inquiries.
+ */
+
+import { InquirySummary, InquiryDetail } from "@/lib/types/inquiry";
 import { fetchWrapper } from "./fetchWrapper";
-import { BACKEND_BASE_URL } from "../constants";
-import { Inquiry as InquiryType } from "@/lib/types/inquiry";
 
 /**
- * Fetches a presigned URL from the backend for file uploads.
+ * Creates a new inquiry.
+ * Sends data as multipart/form-data, which is the standard for file uploads.
+ * @param token - The user's authentication token.
+ * @param subject - The subject of the inquiry.
+ * @param content - The content of the inquiry.
+ * @param privacyAgreement - Whether the user agreed to the privacy policy.
+ * @param attachment - The file to attach (optional).
+ * @returns A promise that resolves to a success message object.
  */
-export const getPresignedUrl = async (
-  token: string,
-  filename: string,
-  contentType: string
-): Promise<{ url: string; filePath: string }> => {
-  const response = await fetchWrapper(`/api/inquiry/presigned-url`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ filename, contentType }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: '파일 업로드 URL을 받아오는데 실패했습니다.' }));
-    throw new Error(errorData.message || '파일 업로드 URL을 받아오는데 실패했습니다.');
-  }
-
-  return response.json();
-};
-
-/**
- * Uploads a file to a presigned S3 URL.
- * Note: This does not use fetchWrapper as it's not hitting our backend.
- */
-export const uploadFileToS3 = async (url: string, file: File): Promise<Response> => {
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': file.type,
-    },
-    body: file,
-  });
-
-  if (!response.ok) {
-    throw new Error('파일 업로드에 실패했습니다. (S3)');
-  }
-
-  return response;
-};
-
-/**
- * Submits a new inquiry to the backend.
- */
-export const submitInquiry = async (
+export async function createInquiry(
   token: string,
   subject: string,
   content: string,
-  privacy_agreement: boolean,
-  filePath: string | null = null
-) => {
+  privacyAgreement: boolean,
+  attachment?: File | null
+): Promise<{ message: string }> {
+  const formData = new FormData();
+  formData.append('subject', subject);
+  formData.append('content', content);
+  formData.append('privacy_agreement', String(privacyAgreement)); // API expects a string "true"
+  
+  if (attachment) {
+    formData.append('attachment', attachment);
+  }
+
   const response = await fetchWrapper(`/api/inquiry`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      // For multipart/form-data, the browser sets the Content-Type header automatically, including the boundary.
+      // Do not set it manually here.
+      'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({
-      subject,
-      content,
-      privacy_agreement,
-      file_path: filePath,
-    }),
+    body: formData,
   });
 
   if (!response.ok) {
@@ -77,18 +47,18 @@ export const submitInquiry = async (
   }
 
   return response.json();
-};
-
-export interface InquiryReply {
-  id: number;
-  content: string;
-  created_at: string;
 }
 
-export const getInquiries = async (token:string, page: number, limit: number): Promise<{inquiries: InquiryType[], total: number}> => {
-  const response = await fetchWrapper(`/api/inquiry?page=${page}&limit=${limit}`, {
+/**
+ * Fetches the list of the current user's inquiries.
+ * @param token - The user's authentication token.
+ * @returns A promise that resolves to an array of inquiry summaries.
+ */
+export async function getInquiries(token: string): Promise<InquirySummary[]> {
+  const response = await fetchWrapper(`/api/inquiry`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
   });
 
@@ -98,12 +68,19 @@ export const getInquiries = async (token:string, page: number, limit: number): P
   }
 
   return response.json();
-};
+}
 
-export const getInquiryDetail = async (token: string, inquiryId: number): Promise<InquiryType> => {
+/**
+ * Fetches the detail of a single inquiry by its ID.
+ * @param token - The user's authentication token.
+ * @param inquiryId - The ID of the inquiry to fetch.
+ * @returns A promise that resolves to the detailed inquiry object.
+ */
+export async function getInquiryDetail(token: string, inquiryId: number): Promise<InquiryDetail> {
   const response = await fetchWrapper(`/api/inquiry/${inquiryId}`, {
+    method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
   });
 
@@ -112,31 +89,5 @@ export const getInquiryDetail = async (token: string, inquiryId: number): Promis
     throw new Error(errorData.message || '문의 상세 정보를 불러오는데 실패했습니다.');
   }
 
-  const { inquiry, reply } = await response.json();
-  return { ...inquiry, reply: reply || undefined };
-};
-
-export const downloadInquiryAttachment = async (
-  token: string,
-  filePath: string
-): Promise<Blob> => {
-  const fullUrl = `${BACKEND_BASE_URL}/api/inquiry/download?path=${encodeURIComponent(filePath)}`;
-  
-  const headers: HeadersInit = {
-    'Authorization': `Bearer ${token}`,
-  };
-
-  const res = await fetch(fullUrl, {
-    method: 'GET',
-    headers: headers,
-  });
-
-  if (!res.ok) {
-    if (res.status === 401) {
-      window.dispatchEvent(new Event('sessionExpired'));
-    }
-    throw new Error('파일 다운로드에 실패했습니다.');
-  }
-
-  return res.blob();
-};
+  return response.json();
+}

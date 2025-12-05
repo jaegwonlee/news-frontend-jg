@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { getInquiries } from '@/lib/api/inquiry';
-import { Inquiry } from '@/lib/types/inquiry';
+import { InquirySummary } from '@/lib/types/inquiry';
 import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -18,50 +18,56 @@ export default function InquiryClientPage() {
     const searchParams = useSearchParams();
 
     // Component State
-    const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-    const [totalInquiries, setTotalInquiries] = useState(0);
+    const [allInquiries, setAllInquiries] = useState<InquirySummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     // View State
-    const [view, setView] = useState<'DETAIL' | 'NEW'>('DETAIL');
+    const [view, setView] = useState<'DETAIL' | 'NEW' | 'LIST'>('LIST'); // Added 'LIST' view
     const [selectedInquiryId, setSelectedInquiryId] = useState<number | null>(null);
     
     // Pagination State
     const [page, setPage] = useState(1);
     const limit = 10; // Inquiries per page
 
+    const paginatedInquiries = useMemo(() => {
+        const start = (page - 1) * limit;
+        const end = start + limit;
+        return allInquiries.slice(start, end);
+    }, [allInquiries, page, limit]);
+
+    const totalPages = useMemo(() => {
+        return Math.ceil(allInquiries.length / limit);
+    }, [allInquiries.length, limit]);
+
     const fetchInquiries = useCallback(async () => {
         if (!token) return;
-        // Don't set loading to true here to avoid flashing on refetch
-        // setIsLoading(true); 
+        setIsLoading(true); // Set loading to true for initial fetch and refresh
         setError(null);
         try {
-            const { inquiries: fetchedInquiries, total } = await getInquiries(token, page, limit);
-            setInquiries(fetchedInquiries);
-            setTotalInquiries(total);
+            const fetchedInquiries = await getInquiries(token);
+            setAllInquiries(fetchedInquiries);
+            // After fetching, if no ID is selected and not creating new, select first inquiry
+            if (!selectedInquiryId && fetchedInquiries.length > 0 && view !== 'NEW') {
+                router.replace(`/inquiry?id=${fetchedInquiries[0].id}`);
+            }
         } catch (err: any) {
             setError(err.message || '문의 내역을 불러오는데 실패했습니다.');
         } finally {
             setIsLoading(false);
         }
-    }, [token, page, limit]);
+    }, [token, router, selectedInquiryId, view]);
 
     useEffect(() => {
         if (!authLoading) { // authLoading becoming false indicates initialization is complete
             if (token) {
-                setIsLoading(true);
                 fetchInquiries();
             } else {
                 router.push('/login');
             }
         }
-    }, [authLoading, token, router]);
+    }, [authLoading, token, router, fetchInquiries]);
 
-    useEffect(() => {
-        fetchInquiries();
-    }, [page, fetchInquiries]);
-    
     useEffect(() => {
         const idFromParams = searchParams.get('id');
         if (idFromParams === 'new') {
@@ -72,15 +78,15 @@ export default function InquiryClientPage() {
             if (!isNaN(numericId)) {
                 setView('DETAIL');
                 setSelectedInquiryId(numericId);
+            } else { // Handle invalid ID in URL
+                setView('LIST');
+                setSelectedInquiryId(null);
             }
-        } else if (Array.isArray(inquiries) && inquiries.length > 0 && view !== 'NEW') {
-             // Default to showing the first inquiry if none is selected via URL
-            if (!selectedInquiryId && inquiries[0]) {
-                router.replace(`/inquiry?id=${inquiries[0].id}`);
-            }
+        } else {
+            setView('LIST'); // Default to list view if no 'id' param
+            setSelectedInquiryId(null);
         }
-    }, [searchParams, inquiries, router, view, selectedInquiryId]);
-
+    }, [searchParams]); // removed inquiries from dependency array to avoid loop
 
     const handleSelectInquiry = (id: number) => {
         router.push(`/inquiry?id=${id}`);
@@ -92,9 +98,8 @@ export default function InquiryClientPage() {
 
     const handleInquirySubmitted = () => {
         setPage(1); 
-        setIsLoading(true);
-        fetchInquiries().then(() => {
-            router.push('/inquiry');
+        fetchInquiries().then(() => { // Refetch after submission
+            router.push('/inquiry'); // Go back to list/first item
         });
     };
     
@@ -115,13 +120,24 @@ export default function InquiryClientPage() {
             return <InquiryForm onSuccess={handleInquirySubmitted} />;
         }
         if (view === 'DETAIL' && selectedInquiryId) {
-            return <InquiryDetail inquiryId={selectedInquiryId} />;
+            return <InquiryDetail inquiryId={selectedInquiryId} onBack={() => router.push('/inquiry')} />;
+        }
+        // If no inquiry is selected and not in NEW view, display a message or default to first
+        if (view === 'LIST' && allInquiries.length > 0 && selectedInquiryId === null) {
+            return (
+                <div className="flex flex-col items-center justify-center h-full text-center bg-card">
+                    <div className="p-8">
+                        <h2 className="text-xl font-semibold text-foreground">문의 내역을 확인하세요</h2>
+                        <p className="text-muted-foreground mt-2">왼쪽 목록에서 문의를 선택하세요.</p>
+                    </div>
+                </div>
+            );
         }
         return (
-            <div className="hidden md:flex flex-col items-center justify-center h-full text-center bg-card">
+            <div className="flex flex-col items-center justify-center h-full text-center bg-card">
                 <div className="p-8">
-                    <h2 className="text-xl font-semibold text-foreground">문의 내역을 확인하세요</h2>
-                    <p className="text-muted-foreground mt-2">왼쪽 목록에서 문의를 선택하거나 새 문의를 작성하세요.</p>
+                    <h2 className="text-xl font-semibold text-foreground">환영합니다!</h2>
+                    <p className="text-muted-foreground mt-2">새로운 문의를 작성하거나 왼쪽 목록에서 기존 문의를 확인하세요.</p>
                 </div>
             </div>
         );
@@ -133,8 +149,8 @@ export default function InquiryClientPage() {
             <div className="flex flex-col md:flex-row border border-border rounded-lg bg-card shadow-sm h-[calc(100vh-250px)]">
                 <aside className="w-full md:w-1/3 xl:w-1/4">
                     <InquirySidebar
-                        inquiries={inquiries}
-                        total={totalInquiries}
+                        inquiries={paginatedInquiries}
+                        total={allInquiries.length} // Pass total length for pagination
                         page={page}
                         setPage={setPage}
                         limit={limit}

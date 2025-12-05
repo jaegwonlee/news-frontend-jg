@@ -1,5 +1,12 @@
 import { MoreHorizontal, Tag, Folder, Trash2, Check, ExternalLink } from 'lucide-react';
+import { SavedArticle } from '@/lib/types/article';
+import { SavedArticleCategory } from '@/lib/types/shared';
+import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import Favicon from '../common/Favicon'; // Import Favicon component
+import { formatRelativeTime } from '@/lib/utils';
+
 
 interface SavedArticleCardProps {
   article: SavedArticle;

@@ -1,14 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Inquiry } from '@/lib/types/inquiry';
+import { InquirySummary } from '@/lib/types/inquiry';
 import { Button } from '@/app/components/common/Button';
 import { PlusCircle, Inbox } from 'lucide-react';
 import ClientPaginationControls from '@/app/components/common/ClientPaginationControls';
 import { cn } from '@/lib/utils';
 
 interface InquirySidebarProps {
-  inquiries: Inquiry[];
+  inquiries: InquirySummary[];
   total: number;
   page: number;
   setPage: (page: number) => void;
@@ -18,7 +18,7 @@ interface InquirySidebarProps {
   onNew: () => void;
 }
 
-const StatusBadge = ({ status }: { status: Inquiry['status'] }) => {
+const StatusBadge = ({ status }: { status: InquirySummary['status'] }) => {
   const statusMap = {
     SUBMITTED: { text: '답변 대기', className: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
     ANSWERED: { text: '답변 완료', className: 'bg-green-500/10 text-green-600 dark:text-green-400' },

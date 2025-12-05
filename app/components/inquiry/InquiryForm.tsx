@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
-import { getPresignedUrl, uploadFileToS3, submitInquiry } from '@/lib/api/inquiry';
+import { createInquiry } from '@/lib/api/inquiry';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
-import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 import { Button } from '@/app/components/common/Button';
 import { Paperclip, X, Loader2 } from 'lucide-react';
 
@@ -19,76 +18,31 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [privacyAgreement, setPrivacyAgreement] = useState(false);
-  
-  // File state
   const [file, setFile] = useState<File | null>(null);
-  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
 
   // General state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
 
-    if (selectedFile.size > 10 * 1024 * 1024) { // 10MB limit
-      setError('첨부 파일은 10MB를 초과할 수 없습니다.');
+    if (selectedFile.size > 5 * 1024 * 1024) { // 5MB limit from API doc
+      setError('첨부 파일은 5MB를 초과할 수 없습니다.');
+      setFile(null);
       return;
     }
 
     setFile(selectedFile);
     setError(null);
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      if (!token) throw new Error('인증 토큰이 없습니다.');
-
-      const { url, filePath } = await getPresignedUrl(token, selectedFile.name, selectedFile.type);
-      
-      // Using XMLHttpRequest to monitor progress, as fetch doesn't support it directly
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', url, true);
-      xhr.setRequestHeader('Content-Type', selectedFile.type);
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          setUploadProgress(percentComplete);
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          setUploadedFilePath(filePath);
-        } else {
-          throw new Error(`파일 업로드 실패: ${xhr.statusText}`);
-        }
-        setIsUploading(false);
-      };
-
-      xhr.onerror = () => {
-        setError('파일 업로드 중 네트워크 오류가 발생했습니다.');
-        setIsUploading(false);
-      };
-
-      xhr.send(selectedFile);
-
-    } catch (err: any) {
-      setError(err.message || '파일 업로드 준비 중 오류가 발생했습니다.');
-      setIsUploading(false);
-      setFile(null);
-    }
   };
 
   const handleRemoveFile = () => {
     setFile(null);
-    setUploadedFilePath(null);
-    setUploadProgress(0);
-    setIsUploading(false);
     // Reset file input
     const fileInput = document.getElementById('attachment') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
@@ -111,12 +65,12 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
     try {
       if (!token) throw new Error('인증 토큰이 없습니다.');
       
-      await submitInquiry(
+      await createInquiry(
         token,
         subject,
         content,
         privacyAgreement,
-        uploadedFilePath
+        file
       );
       
       // Reset form on success
@@ -161,7 +115,7 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
             ></textarea>
           </div>
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">첨부 파일 (선택, 최대 10MB)</label>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">첨부 파일 (선택, 최대 5MB)</label>
             {!file && (
               <label htmlFor="attachment" className="relative cursor-pointer bg-input border-2 border-dashed border-border rounded-lg p-6 flex flex-col justify-center items-center hover:border-primary transition-colors">
                 <Paperclip className="w-8 h-8 text-muted-foreground"/>
@@ -171,7 +125,7 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
                   type="file"
                   className="sr-only"
                   onChange={handleFileChange}
-                  disabled={isUploading}
+                  disabled={isLoading}
                 />
               </label>
             )}
@@ -182,17 +136,10 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
                     <Paperclip className="w-5 h-5 flex-shrink-0" />
                     <span className="text-sm font-medium truncate">{file.name}</span>
                   </div>
-                  <button onClick={handleRemoveFile} type="button" disabled={isUploading} className="p-1 rounded-full hover:bg-muted disabled:opacity-50">
+                  <button onClick={handleRemoveFile} type="button" disabled={isLoading} className="p-1 rounded-full hover:bg-muted disabled:opacity-50">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
-                {isUploading && (
-                  <div className="mt-2">
-                    <div className="w-full bg-muted rounded-full h-1.5">
-                      <div className="bg-primary h-1.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -215,9 +162,9 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
 
           {error && <ErrorMessage message={error} />}
           
-          <Button type="submit" disabled={isLoading || isUploading} className="w-full">
+          <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isLoading ? '제출 중...' : (isUploading ? '파일 업로드 중...' : '문의 제출')}
+            {isLoading ? '제출 중...' : '문의 제출'}
           </Button>
         </div>
       </form>

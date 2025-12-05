@@ -13,7 +13,7 @@ import {
 } from "@/lib/api/topics";
 import { getFullImageUrl } from "@/lib/utils";
 import { Message } from "@/lib/types/shared";
-import { Topic } from "@/lib/types/topic";
+import { Topic, TopicPreview } from "@/lib/types/topic";
 import { format } from "date-fns";
 import {
   AlertTriangle,
@@ -66,10 +66,10 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
   const [messages, setMessages] = useState<Message[]>([]);                                                                    
   const [newMessage, setNewMessage] = useState("");                                                                           
   const [isLoadingHistory, setIsLoadingHistory] = useState(!!topic?.id);                                                      
-  const [isSending, setIsSending] = useState(false);                                                                          
-  const [isUploading, setIsUploading] = useState(false);                                                                      
-  const [dialog, setDialog] = useState<{ type: "delete"; messageId: number } | null>(null);                                   
-  const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);                                                  
+    const [isSending, setIsSending] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [topicToSend, setTopicToSend] = useState<TopicPreview | null>(null); // New state variable
+    const [dialog, setDialog] = useState<{ type: "delete"; messageId: number } | null>(null);  const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);                                                  
   const [isDownloading, setIsDownloading] = useState<string | null>(null);                                                    
   const [toast, setToast] = useState<ToastState>(null);                                                                       
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);                                                          
@@ -103,10 +103,10 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
     const data = e.dataTransfer.getData("application/json");
     if (data) {
       try {
-        const droppedTopic = JSON.parse(data);
-        // Format the dropped topic into a message string
-        const topicUrl = `${window.location.origin}/debate/${droppedTopic.id}`;
-        setNewMessage((prev) => (prev ? `${prev} ${topicUrl}` : topicUrl));
+        const droppedTopic: TopicPreview = JSON.parse(data);
+        setTopicToSend(droppedTopic);
+        // Set a visual indicator in the input field without adding the URL
+        setNewMessage(`[토픽 카드: ${droppedTopic.display_name}]`); // Temporary placeholder
       } catch (error) {
         console.error("Failed to parse dropped data:", error);
       }
@@ -220,56 +220,65 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
     }                                                                                                                         
   };                                                                                                                          
                                                                                                                               
-  const handleSendMessage = async (e: React.FormEvent) => {                                                                   
-    e.preventDefault();                                                                                                       
-    if (topic?.id && isConnected && newMessage.trim() && user && token && !isSending) {                                       
-      let messageToSend = newMessage.trim();                                                                                  
-      setNewMessage("");                                                                                                      
-                                                                                                                              
-      // Check if it's a full app URL (local or prod) and convert to relative path                                            
-      try {                                                                                                                   
-        const url = new URL(messageToSend);                                                                                   
-        if ((['localhost', '127.0.0.1'].includes(url.hostname) || url.hostname.endsWith('vercel.app')) && url.pathname.startsWith('/debate/')) {                                                                                                            
-          messageToSend = url.pathname;                                                                                       
-        }                                                                                                                     
-      } catch {                                                                                                               
-        // Not a valid URL, send as is                                                                                        
-      }                                                                                                                       
-                                                                                                                              
-            // Optimistic update: temporarily add message to UI
-            const tempMessageId = Date.now(); // Using Date.now() for a temporary unique ID
-            const optimisticMessage: Message = {
-              id: tempMessageId,
-              author: user.nickname || user.name || "익명", // Use user's name or a fallback
-              message: messageToSend,
-              profile_image_url: user.profile_image_url || "/default_profile.png", // Use user's profile image or a default fallback
-              created_at: new Date().toISOString(), // Client-side timestamp
-              isPending: true, // Custom flag to indicate it's a pending message
-            };
-            setMessages((prev) => [...prev, optimisticMessage]);
-            setTimeout(() => scrollToBottom("smooth"), 0); // Scroll to bottom immediately
-      
-            try {
-              // Send message via API
-              const sentMessage = await sendChatMessage(topic.id, messageToSend, token);
-              
-              // Update the optimistic message with the server's definitive message
-              setMessages((prev) => prev.map((msg) => 
-                msg.id === tempMessageId ? { ...sentMessage, isPending: false } : msg
-              ));
-              // No need to scroll again here as it should already be at the bottom
-      
-            } catch (error) {
-              console.error("Failed to send message:", error);
-              alert("메시지 전송에 실패했습니다. 다시 시도해주세요.");
-              // Rollback optimistic update on failure
-              setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
-              setNewMessage(messageToSend); // Restore message to input for retry
-            } finally {
-              setIsSending(false);
-            }    }                                                                                                                         
-  };                                                                                                                          
-                                                                                                                              
+    const handleSendMessage = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (topic?.id && isConnected && (newMessage.trim() || topicToSend) && user && token && !isSending) {
+        let messageToSend = newMessage.trim();
+        setNewMessage(""); // Clear input immediately
+        setIsSending(true);
+  
+        const previewToUse = topicToSend; // Capture the current value of topicToSend
+        setTopicToSend(null); // Clear topicToSend immediately after capturing
+  
+        // Check if it's a full app URL (local or prod) and convert to relative path
+        try {
+          const url = new URL(messageToSend);
+          if (
+            (['localhost', '127.0.0.1'].includes(url.hostname) || url.hostname.endsWith('vercel.app')) &&
+            url.pathname.startsWith('/debate/')
+          ) {
+            messageToSend = url.pathname;
+          }
+        } catch {
+          // Not a valid URL, send as is
+        }
+  
+        // Optimistic update: temporarily add message to UI
+        const tempMessageId = Date.now(); // Using Date.now() for a temporary unique ID
+        const optimisticMessage: Message = {
+          id: tempMessageId,
+          author: user.nickname || user.name || "익명", // Use user's name or a fallback
+          message: messageToSend,
+          profile_image_url: user.profile_image_url || "/default_profile.png", // Use user's profile image or a default fallback
+          created_at: new Date().toISOString(), // Client-side timestamp
+          isPending: true, // Custom flag to indicate it's a pending message
+          topic_preview: previewToUse, // Include the topic preview in the optimistic message
+        };
+        setMessages((prev) => [...prev, optimisticMessage]);
+        setTimeout(() => scrollToBottom("smooth"), 0); // Scroll to bottom immediately
+  
+        try {
+          // Send message via API
+          const sentMessage = await sendChatMessage(topic.id, messageToSend, token, previewToUse);
+  
+          // Update the optimistic message with the server's definitive message
+          setMessages((prev) =>
+            prev.map((msg) => (msg.id === tempMessageId ? { ...sentMessage, isPending: false } : msg))
+          );
+          // No need to scroll again here as it should already be at the bottom
+        } catch (error) {
+          console.error("Failed to send message:", error);
+          alert("메시지 전송에 실패했습니다. 다시 시도해주세요.");
+          // Rollback optimistic update on failure
+          setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
+          if (!previewToUse) { // Only restore newMessage if it was a plain text message
+            setNewMessage(messageToSend); // Restore message to input for retry
+          }
+        } finally {
+          setIsSending(false);
+        }
+      }
+    };                                                                                                                              
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {                                                
     const file = e.target.files?.[0];                                                                                         
     if (!file || !token || !topic?.id) return;                                                                                
