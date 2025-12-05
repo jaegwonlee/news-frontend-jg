@@ -32,7 +32,7 @@ export const useNotificationSettings = () => {
         const fetchedSettings = await getNotificationSettings(token);
         
         // Ensure fetchedSettings is an array and filter out any malformed entries
-        const cleanFetchedSettings = (Array.isArray(fetchedSettings) ? fetchedSettings : []).filter(s => s && s.notification_type);
+        const cleanFetchedSettings = (Array.isArray(fetchedSettings) ? fetchedSettings : []).filter(s => s && s.notificationType);
 
         // Merge fetched settings with default types to ensure all types are present and well-formed
         const mergedSettings = ALL_NOTIFICATION_TYPES.map(type => {
