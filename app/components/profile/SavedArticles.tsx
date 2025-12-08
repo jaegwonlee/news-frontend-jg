@@ -86,9 +86,9 @@ export default function SavedArticles() {
         className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-20"
       >
         <AnimatePresence mode="popLayout">
-          {filteredArticles.map((article) => (
+          {filteredArticles.map((article, index) => (
             <motion.div
-              key={article.id}
+              key={article?.id ? `${article.id}-${index}` : `article-placeholder-${index}`}
               layout
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}

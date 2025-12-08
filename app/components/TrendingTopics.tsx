@@ -1,6 +1,6 @@
 import { Topic } from "@/lib/types/topic";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { ArrowRight, Eye } from "lucide-react";
+import { ArrowRight, Eye, MessageCircle, Trophy, Users } from "lucide-react";
 
 interface TrendingTopicsProps {
   topics: Topic[];
@@ -20,72 +20,174 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
             const isPopular = displayMode === "popular";
             const isTopThree = isPopular && rank <= 3;
 
-            const rankClasses = [
-              // Rank 1
+            const proVotes = topic.vote_count_left || 0;
+            const conVotes = topic.vote_count_right || 0;
+            const totalVotes = topic.total_votes || proVotes + conVotes;
+            const proPercentage = totalVotes > 0 ? (proVotes / totalVotes) * 100 : 50;
+            const conPercentage = totalVotes > 0 ? (conVotes / totalVotes) * 100 : 50;
+
+            // Medal colors for top 3
+            const medalColors = [
               {
-                gradient: "bg-gradient-gold",
-                border: "border-yellow-400/50 hover:border-yellow-400",
-                shadow: "hover:shadow-lg hover:shadow-yellow-500/10",
-                rankText: "text-yellow-400",
+                bg: "from-yellow-500 via-yellow-400 to-amber-400",
+                icon: "text-yellow-300",
+                border: "border-yellow-400/30",
               },
-              // Rank 2
+              { bg: "from-slate-400 via-slate-300 to-gray-300", icon: "text-slate-200", border: "border-slate-400/30" },
               {
-                gradient: "bg-gradient-silver",
-                border: "border-slate-400/50 hover:border-slate-300",
-                shadow: "hover:shadow-lg hover:shadow-slate-500/10",
-                rankText: "text-slate-300",
-              },
-              // Rank 3
-              {
-                gradient: "bg-gradient-bronze",
-                border: "border-amber-600/50 hover:border-amber-500",
-                shadow: "hover:shadow-lg hover:shadow-amber-600/10",
-                rankText: "text-amber-600",
+                bg: "from-amber-600 via-amber-500 to-orange-500",
+                icon: "text-amber-300",
+                border: "border-amber-500/30",
               },
             ];
 
-            const cardClasses = cn(
-              "group flex items-center gap-3 p-3 rounded-lg border transition-all duration-300 ease-in-out transform hover:-translate-y-1 w-full text-left",
-              "bg-card/50 backdrop-blur-sm",
-              isTopThree
-                ? `${rankClasses[rank - 1].gradient} ${rankClasses[rank - 1].border} ${rankClasses[rank - 1].shadow}`
-                : "border-border hover:border-primary/50 hover:bg-accent"
-            );
+            // Gradients for cards
+            const gradients = [
+              "from-blue-600 via-blue-500 to-cyan-400",
+              "from-purple-600 via-purple-500 to-pink-500",
+              "from-orange-500 via-red-500 to-pink-600",
+              "from-emerald-500 via-teal-500 to-cyan-500",
+              "from-indigo-600 via-blue-600 to-purple-600",
+            ];
+            const gradient = gradients[topic.id % gradients.length];
 
-            const rankTextClasses = cn(
-              "text-xl font-black transition-colors",
-              isTopThree ? rankClasses[rank - 1].rankText : "text-muted-foreground group-hover:text-primary"
-            );
+            // Format end date
+            const formatEndDate = (dateString?: string) => {
+              if (!dateString) return null;
+              const date = new Date(dateString);
+              const now = new Date();
+              const diffTime = date.getTime() - now.getTime();
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+              if (diffDays < 0) return "마감";
+              if (diffDays === 0) return "오늘 마감";
+              if (diffDays === 1) return "내일 마감";
+              return `D-${diffDays}`;
+            };
+
+            const endDateText = formatEndDate(topic.vote_end_at);
 
             return (
               <button
                 onClick={() => onTopicSelect(topic)}
                 key={topic.id}
-                className="outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+                className={cn(
+                  "group relative w-full rounded-xl overflow-hidden transition-all duration-500",
+                  "hover:scale-[1.02] hover:shadow-xl",
+                  "border border-border/50 hover:border-border",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  isTopThree ? "min-h-[160px]" : "min-h-[130px]"
+                )}
                 draggable="true"
                 onDragStart={(e) => {
                   e.dataTransfer.setData("application/json", JSON.stringify(topic));
-                  e.dataTransfer.effectAllowed = "copy"; // or "move", "link"
+                  e.dataTransfer.effectAllowed = "copy";
                 }}
               >
-                <div className={cardClasses}>
-                  <div className="w-8 shrink-0 text-center">
-                    <span className={rankTextClasses}>{isPopular ? rank : "•"}</span>
+                {/* Background Gradient */}
+                <div
+                  className={cn(
+                    "absolute inset-0 bg-linear-to-br transition-all duration-700",
+                    gradient,
+                    "opacity-90 group-hover:opacity-100"
+                  )}
+                />
+
+                {/* Content */}
+                <div className="relative h-full flex flex-col p-3 text-white z-10">
+                  {/* Top Row: Rank/Medal + End Date */}
+                  <div className="flex items-start justify-between mb-2">
+                    {/* Rank/Medal */}
+                    <div className="shrink-0">
+                      {isTopThree ? (
+                        <div
+                          className={cn(
+                            "w-9 h-9 rounded-full flex items-center justify-center",
+                            "bg-linear-to-br shadow-lg border-2",
+                            medalColors[rank - 1].bg,
+                            medalColors[rank - 1].border
+                          )}
+                        >
+                          <Trophy size={16} className={medalColors[rank - 1].icon} />
+                        </div>
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                          <span className="text-xs font-black">{isPopular ? rank : "•"}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* End Date Badge */}
+                    {endDateText && (
+                      <div className="bg-red-500/90 backdrop-blur-sm px-2 py-1 rounded-full text-[10px] font-black border border-white/30 shadow-md">
+                        {endDateText}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-foreground truncate">{topic.display_name}</p>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                      <span>{formatRelativeTime(topic.published_at)}</span>
-                      <div className="flex items-center gap-1">
-                        <Eye size={12} />
-                        <span>{topic.view_count.toLocaleString()}</span>
+
+                  {/* Topic Title */}
+                  <div className="flex-1 mb-2">
+                    <p
+                      className={cn(
+                        "font-black leading-tight line-clamp-2 drop-shadow-md",
+                        isTopThree ? "text-sm" : "text-xs"
+                      )}
+                    >
+                      {topic.display_name}
+                    </p>
+                    {topic.summary && isTopThree && (
+                      <p className="text-[10px] text-white/70 line-clamp-1 mt-1 font-medium">{topic.summary}</p>
+                    )}
+                  </div>
+
+                  {/* Stats Row */}
+                  <div className="flex items-center gap-2 text-[10px] text-white/80 mb-2">
+                    <div className="flex items-center gap-0.5 bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded">
+                      <Users size={9} />
+                      <span className="font-bold">{totalVotes.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5 bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded">
+                      <MessageCircle size={9} />
+                      <span className="font-bold">{topic.comment_count?.toLocaleString() || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5 bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded">
+                      <Eye size={9} />
+                      <span className="font-bold">{topic.view_count.toLocaleString()}</span>
+                    </div>
+                    <span className="text-white/50 text-[9px] ml-auto">{formatRelativeTime(topic.published_at)}</span>
+                  </div>
+
+                  {/* Vote Bar (for top 3 only) */}
+                  {isTopThree && totalVotes > 0 && (
+                    <div className="space-y-1">
+                      <div className="relative h-1.5 bg-black/30 rounded-full overflow-hidden">
+                        <div
+                          className="absolute left-0 top-0 h-full bg-blue-400 transition-all duration-500"
+                          style={{ width: `${proPercentage}%` }}
+                        />
+                        <div
+                          className="absolute right-0 top-0 h-full bg-red-400 transition-all duration-500"
+                          style={{ width: `${conPercentage}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[9px] font-bold">
+                        <span className="text-blue-200">{proPercentage.toFixed(0)}%</span>
+                        <span className="text-red-200">{conPercentage.toFixed(0)}%</span>
                       </div>
                     </div>
-                  </div>
-                  <div className="transform transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
-                    <ArrowRight size={20} className="text-muted-foreground group-hover:text-primary" />
+                  )}
+
+                  {/* Arrow Icon */}
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 transform transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
+                    <ArrowRight size={16} className="text-white drop-shadow-md" />
                   </div>
                 </div>
+
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+
+                {/* Shine Effect */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-linear-to-tr from-transparent via-white/10 to-transparent" />
               </button>
             );
           })}

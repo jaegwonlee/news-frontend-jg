@@ -34,7 +34,7 @@ export async function getBreakingNews(token?: string): Promise<Article[]> {
   }
 
   try {
-    const res = await fetchWrapper(`/api/articles/breaking?limit=10&offset=0`, fetchOptions);
+    const res = await fetchWrapper(`/api/articles/breaking?limit=5&offset=0`, fetchOptions);
     if (!res.ok) return []; // API 응답이 실패하면 빈 배열 반환
     const articles = await res.json();
     return articles.map((article: Article) => ({ ...article, articleType: "home" }));

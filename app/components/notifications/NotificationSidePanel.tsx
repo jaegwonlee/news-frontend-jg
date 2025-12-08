@@ -72,8 +72,8 @@ const NotificationItem = ({
       className={cn(
         "group relative flex items-start gap-3 p-3 rounded-lg cursor-pointer border",
         notification.is_read
-          ? "bg-gray-100 dark:bg-zinc-950/50 border-gray-200 dark:border-zinc-800"
-          : "bg-sky-100 dark:bg-zinc-900 border-sky-300 dark:border-zinc-700"
+          ? "bg-zinc-900/50 dark:bg-zinc-900/50 border-zinc-800 dark:border-zinc-800"
+          : "bg-zinc-800 dark:bg-zinc-800 border-zinc-700 dark:border-zinc-700"
       )}
       onClick={handleNotificationClick}
     >
@@ -207,7 +207,7 @@ export default function NotificationSidePanel() {
             exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.2 }}
             className={`fixed top-0 right-0 h-full w-full max-w-xs ${
-              isDarkMode ? "bg-background" : "bg-white"
+              isDarkMode ? "bg-black" : "bg-white"
             } shadow-lg z-50 flex flex-col`}
           >
             <div className="p-4">
@@ -242,9 +242,7 @@ export default function NotificationSidePanel() {
             </div>
 
             <div
-              className={`absolute top-24 left-0 right-0 h-px ${
-                isDarkMode ? "bg-gray-600" : "bg-gray-300"
-              } z-50`}
+              className={`absolute top-24 left-0 right-0 h-px ${isDarkMode ? "bg-gray-600" : "bg-gray-300"} z-50`}
             ></div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">

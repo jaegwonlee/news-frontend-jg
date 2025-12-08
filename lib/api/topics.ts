@@ -82,6 +82,9 @@ export async function getTopicDetail(topicId: string, token?: string): Promise<T
   });
 
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error("TOPIC_NOT_FOUND");
+    }
     let errorMessage = `Failed to fetch topic detail for ID: ${topicId}.`; // Always include topicId
     try {
       const errorData = await response.json();

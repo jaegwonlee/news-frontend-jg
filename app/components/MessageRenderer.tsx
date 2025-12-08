@@ -255,11 +255,6 @@ export default function MessageRenderer({
           <TopicPreviewCard topic={clientResolvedTopic} />
         )}
 
-      {/* Render TopicPreviewCard in a 'not found' state if there was a fetch error */}
-      {!clientResolvedTopic && fetchError && (
-        <TopicPreviewCard isNotFound={true} failedTopicId={fetchError.match(/ID: (\d+)/)?.[1] || undefined} />
-      )}
-
       {/* Part 4: Render client-side external URL preview if no other preview exists */}
       {clientRenderUrl && <UrlRenderer url={clientRenderUrl} />}
     </>

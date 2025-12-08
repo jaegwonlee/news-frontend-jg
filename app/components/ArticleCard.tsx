@@ -300,6 +300,9 @@ export default function ArticleCard({
           </h3>
           <div className="mt-auto pt-2 flex items-center justify-between border-t border-border/30">
             <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground" />
+            {onSaveToggle && article.isSaved !== undefined && (
+              <ArticleSaveButton isSaved={isSaved} onClick={handleSaveClick} />
+            )}
           </div>
         </div>
       </Link>

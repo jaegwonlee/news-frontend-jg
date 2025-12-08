@@ -20,15 +20,6 @@ const ArticleItem = ({ article }: { article: Article }) => {
       rel="noopener noreferrer"
       className="flex items-center gap-3 group p-2 rounded-lg hover:bg-accent transition-colors"
     >
-      <div className="shrink-0 w-16 h-12 rounded-md overflow-hidden relative">
-        <Image
-          src={article.thumbnail_url || "/placeholder.png"}
-          alt={article.title}
-          fill
-          sizes="64px"
-          className="object-cover transition-transform group-hover:scale-105"
-        />
-      </div>
       <div className="flex-1">
         <p className="text-sm font-semibold text-foreground line-clamp-2 leading-tight">
           {article.title}
@@ -82,7 +73,7 @@ export default function TrendingKeywords({ keywords }: TrendingKeywordsProps) {
         <hr className={isDarkMode ? "border-gray-700" : "border-gray-200"} />
 
         {/* Content */}
-        <div className="p-4 flex flex-col flex-1 min-h-0">
+        <div className="p-4 flex flex-col flex-1 min-h-0 bg-secondary">
             {/* Keyword Tabs */}
             <div className="flex items-center gap-1">
                 {keywords.map((kw, index) => (
