@@ -7,16 +7,10 @@ import React, { useState, useEffect } from "react";
 
 const Footer = () => {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const isDarkMode = theme === "dark";
-  // Use a default color for SSR, and theme-dependent colors only after client-side mount
-  const footerTextColor = mounted ? (isDarkMode ? "#ffffff" : "#000000") : "#000000"; // Default to light mode text for SSR
-  const footerBorderColor = mounted ? (isDarkMode ? "#27272a" : "#e5e5e5") : "#e5e5e5"; // Default to light mode border for SSR
+  const footerTextColor = isDarkMode ? "#ffffff" : "#000000";
+  const footerBorderColor = isDarkMode ? "#27272a" : "#e5e5e5";
 
   return (
     <footer
