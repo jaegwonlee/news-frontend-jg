@@ -4,7 +4,7 @@ import { Article } from "@/lib/types/article";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Star } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import ArticleCard from "./ArticleCard";
 
 interface BreakingNewsTabsProps {
@@ -17,11 +17,15 @@ export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = []
   const isDarkMode = theme === "dark";
   const [activeTab, setActiveTab] = useState<"breaking" | "exclusive">("breaking");
   
-  const [articles, setArticles] = useState(activeTab === "breaking" ? breakingNews : exclusiveNews);
+  const currentArticles = useMemo(() => {
+    return activeTab === "breaking" ? breakingNews : exclusiveNews;
+  }, [activeTab, breakingNews, exclusiveNews]);
+
+  const [articles, setArticles] = useState<Article[]>(currentArticles);
 
   useEffect(() => {
-    setArticles(activeTab === "breaking" ? breakingNews : exclusiveNews);
-  }, [activeTab, breakingNews, exclusiveNews]);
+    setArticles(currentArticles);
+  }, [currentArticles]);
 
   const handleSaveToggle = (updatedArticle: Article) => {
     setArticles(prevArticles => 
@@ -40,10 +44,10 @@ export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = []
             {activeTab === "breaking" ? (
               <AlertCircle className="w-5 h-5 text-red-500" />
             ) : (
-              <Star className="w-5 h-5 text-yellow-500" />
+              <Star className="w-5 h-5 text-blue-500" />
             )}
             <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
-              {activeTab === "breaking" ? "속보" : "단독"}
+              {activeTab === "breaking" ? <span className="text-red-500">속보</span> : <span className="text-blue-500">단독</span>}
             </h2>
           </div>
           <div className="flex items-center space-x-2">
@@ -63,7 +67,7 @@ export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = []
               className={cn(
                 "px-2 py-1 text-xs font-bold rounded-md transition-colors",
                 activeTab === "exclusive"
-                  ? "bg-yellow-600 text-white"
+                  ? "bg-blue-600 text-white"
                   : "bg-secondary text-muted-foreground hover:bg-accent"
               )}
             >

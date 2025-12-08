@@ -19,7 +19,6 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
-  Clipboard,
   Flag,
   Loader2,
   MessageSquareText,
@@ -296,17 +295,7 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
     }                                                                                                                         
   };                                                                                                                          
                                                                                                                               
-  const handlePaste = async () => {                                                                                           
-    try {                                                                                                                     
-      const text = await navigator.clipboard.readText();                                                                      
-      setNewMessage((prev) => prev + text);                                                                                   
-    } catch (err) {                                                                                                           
-      console.error("클립보드 읽기 실패:", err);                                                                               
-      // 사용자가 클립보드 권한을 거부한 경우를 대비해 사용자에게 안내                                                                      
-      alert("클립보드 접근이 허용되지 않았습니다. 브라우저 설정을 확인해주세요.");                                                
-    }                                                                                                                         
-  };                                                                                                                          
-                                                                                                                              
+                                                                                                                                
   const openConfirmation = (messageId: number) => {                                                                           
     setDialog({ type: "delete", messageId });                                                                                 
   };                                                                                                                          

@@ -98,9 +98,11 @@ const NotificationItem = ({
         <p className="text-sm font-medium text-foreground line-clamp-3 pr-4">{notification.message}</p>
         <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
           {notification.metadata?.source_domain && (
-            <img
+            <Image
               src={`https://www.google.com/s2/favicons?domain=${notification.metadata.source_domain}&sz=16`}
               alt=""
+              width={16} // Explicit width
+              height={16} // Explicit height
               className="w-4 h-4"
             />
           )}

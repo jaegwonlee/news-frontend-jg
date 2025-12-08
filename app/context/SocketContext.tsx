@@ -5,6 +5,7 @@ import React, { createContext, ReactNode, useContext, useEffect, useRef, useStat
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import { useNotifications } from "./NotificationContext"; // Import useNotifications
+import { Notification } from "@/lib/types/notification"; // Import Notification type
 
 interface SocketContextType {
   socket: Socket | null;
@@ -67,7 +68,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       });
 
       // 알림 이벤트 리스너
-      newSocket.on("new_notification", (data: any) => {
+      newSocket.on("new_notification", (data: Notification) => {
         console.log("New notification received:", data);
         addNotification(data); // Use addNotification from NotificationContext
       });
@@ -101,7 +102,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         setIsConnected(false);
       }
     };
-  }, [token]); // Rerun effect only when token changes
+  }, [token, addNotification]); // Added addNotification to dependencies
 
   return (
     <SocketContext.Provider

@@ -57,7 +57,7 @@ const ExclusiveNews = () => {
 
   return (
     <section className="mb-8">
-        <h2 className="text-2xl font-bold mb-4 px-4 md:px-0">단독 기사</h2>
+        <h2 className="text-2xl font-bold mb-4 px-4 md:px-0"><span className="text-blue-500">단독</span> 기사</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {articles.map((article) => (
                 <ArticleCard key={article.id} article={article} variant="compact" />

@@ -44,14 +44,18 @@ export default function ChangePasswordForm() {
       alert("비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.");
       logout();
       router.push("/login");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Password change error:", err);
-      if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        logout();
-        router.push("/login");
+      if (err instanceof Error) {
+        if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+          logout();
+          router.push("/login");
+        } else {
+          setError(err.message || "비밀번호 변경에 실패했습니다.");
+        }
       } else {
-        setError(err.message || "비밀번호 변경에 실패했습니다.");
+        setError("알 수 없는 오류가 발생했습니다.");
       }
     } finally {
       setIsLoading(false);

@@ -36,10 +36,6 @@ export default function InquiryClientPage() {
         return allInquiries.slice(start, end);
     }, [allInquiries, page, limit]);
 
-    const totalPages = useMemo(() => {
-        return Math.ceil(allInquiries.length / limit);
-    }, [allInquiries.length, limit]);
-
     const fetchInquiries = useCallback(async () => {
         if (!token) return;
         setIsLoading(true); // Set loading to true for initial fetch and refresh
@@ -51,8 +47,8 @@ export default function InquiryClientPage() {
             if (!selectedInquiryId && fetchedInquiries.length > 0 && view !== 'NEW') {
                 router.replace(`/inquiry?id=${fetchedInquiries[0].id}`);
             }
-        } catch (err: any) {
-            setError(err.message || '문의 내역을 불러오는데 실패했습니다.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : '문의 내역을 불러오는데 실패했습니다.');
         } finally {
             setIsLoading(false);
         }

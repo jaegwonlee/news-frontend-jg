@@ -5,7 +5,7 @@
  */
 
 import { fetchWrapper } from "./fetchWrapper";
-import { Notification as NotificationItem, NotificationType } from "@/lib/types/notification"; // Import from single source of truth
+import { Notification as NotificationItem } from "@/lib/types/notification"; // Import from single source of truth
 
 export interface PaginatedNotifications {
   notifications: NotificationItem[];
@@ -39,9 +39,9 @@ export async function getNotifications(token: string, page: number = 1, limit: n
   const data = await response.json();
   
   // Map the API response to the frontend Notification type
-  const mappedNotifications = (data.notifications || []).map((notif: any) => ({
+  const mappedNotifications = (data.notifications || []).map((notif: NotificationItem) => ({
     ...notif,
-    url: notif.related_url, // Map related_url to url
+
   }));
 
   return {

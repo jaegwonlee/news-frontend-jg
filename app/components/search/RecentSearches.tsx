@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, X } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const MAX_RECENT_SEARCHES = 7;
 const LOCAL_STORAGE_KEY = "recentSearches";
@@ -28,15 +28,14 @@ export const addRecentSearch = (query: string) => {
 };
 
 export default function RecentSearches({ onSearch }: RecentSearchesProps) {
-  const [searches, setSearches] = useState<string[]>([]); // Initialize with empty array
-  const { resolvedTheme } = useTheme();
-
-  useEffect(() => {
-    // This effect runs only on the client side after hydration
+  const [searches, setSearches] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
-      setSearches(getRecentSearches());
+      return getRecentSearches();
     }
-  }, []); // Empty dependency array means this runs once on mount
+    return []; // Default value for SSR
+  });
+
+  const { resolvedTheme } = useTheme();
 
 
   const handleRemove = (e: React.MouseEvent, searchToRemove: string) => {

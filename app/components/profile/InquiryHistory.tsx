@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { getInquiries } from '@/lib/api/inquiry';
 import { InquirySummary } from '@/lib/types/inquiry';
@@ -42,13 +42,17 @@ export default function InquiryHistory() {
       try {
         const data = await getInquiries(token);
         setAllInquiries(data || []);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to fetch inquiries:", err);
-        if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
-          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-          logout();
+        if (err instanceof Error) {
+          if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+            logout();
+          } else {
+            setError(err.message || "문의 내역을 불러오는데 실패했습니다.");
+          }
         } else {
-          setError(err.message || "문의 내역을 불러오는데 실패했습니다.");
+          setError("알 수 없는 오류가 발생했습니다.");
         }
       } finally {
         setIsLoading(false);

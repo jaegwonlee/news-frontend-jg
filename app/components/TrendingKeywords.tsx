@@ -3,10 +3,11 @@
 import { Article } from "@/lib/types/article";
 import { TrendingKeyword } from "@/lib/types/topic";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
-import { useState } from "react";
 import { Flame } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useState } from "react";
+
+import Image from "next/image"; // Re-import Image
 
 interface TrendingKeywordsProps {
   keywords: TrendingKeyword[];
@@ -25,9 +26,11 @@ const ArticleItem = ({ article }: { article: Article }) => {
           {article.title}
         </p>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-          <img
+          <Image // Changed from img to Image
             src={article.favicon_url || "/placeholder.png"}
             alt=""
+            width={14} // specify width
+            height={14} // specify height
             className="w-3.5 h-3.5"
           />
           <span className="truncate">{article.source}</span>

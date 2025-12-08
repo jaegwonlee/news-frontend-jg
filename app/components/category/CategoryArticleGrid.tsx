@@ -28,7 +28,7 @@ export default function CategoryArticleGrid({
 }: CategoryArticleGridProps) {
 
   // Explicitly type the return value of getArticleLayout
-  const getArticleLayout = (index: number): ArticleLayout => {
+  const getArticleLayout = (): ArticleLayout => {
     // For a uniform layout, all articles will be 'standard' and occupy a single column
     // The grid container will define overall responsiveness
     return { variant: "standard", colSpan: "col-span-full md:col-span-1", rowSpan: "" };
@@ -37,14 +37,13 @@ export default function CategoryArticleGrid({
   return (
     // Adjust grid classes for uniform standard cards
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {articles.map((article, index) => {
-        const { variant, colSpan, rowSpan } = getArticleLayout(index);
+      {articles.map((article) => {
+        const { variant, colSpan, rowSpan } = getArticleLayout();
         return (
           <div key={article.id} className={cn(colSpan, rowSpan)}>
             <CategoryArticleCard
               article={article}
               variant={variant}
-              token={token}
               handleSaveToggle={handleSaveToggle}
               categoryTheme={categoryTheme}
             />

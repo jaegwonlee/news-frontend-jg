@@ -41,9 +41,9 @@ export default function DeleteAccountSection() {
       alert("계정이 성공적으로 비활성화되었습니다. 이용해주셔서 감사합니다.");
       logout();
       router.push("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Account deletion error:", err);
-      const errorMessage = String(err.message);
+      const errorMessage = err instanceof Error ? String(err.message) : "알 수 없는 오류";
 
       if (errorMessage.includes("비밀번호 불일치")) {
         setError("비밀번호가 올바르지 않습니다. 다시 확인해주세요.");

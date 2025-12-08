@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { getCategoryNews, toggleArticleSave } from '@/lib/api';
 import { Article } from '@/lib/types/article';
@@ -43,16 +43,24 @@ export default function LatestNewsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const loadNews = useCallback(async () => {
-    setIsLoading(true);
-    const articles = await fetchAllLatestNews(isLoggedIn ? token : undefined);
-    setAllArticles(articles);
-    setIsLoading(false);
-  }, [token, isLoggedIn]);
-
   useEffect(() => {
-    loadNews();
-  }, [loadNews]);
+    let ignore = false;
+
+    async function fetchNews() {
+      setIsLoading(true);
+      const articles = await fetchAllLatestNews(isLoggedIn ? token : undefined);
+      if (!ignore) {
+        setAllArticles(articles);
+        setIsLoading(false);
+      }
+    }
+
+    fetchNews();
+
+    return () => {
+      ignore = true;
+    };
+  }, [token, isLoggedIn]);
 
   const totalPages = Math.ceil(allArticles.length / ARTICLES_PER_PAGE);
 
@@ -80,7 +88,7 @@ export default function LatestNewsPage() {
     setAllArticles(newArticles);
 
     try {
-      await toggleArticleSave(token, articleToToggle.id, !!articleToToggle.isSaved);
+      await toggleArticleSave(token, articleToToggle.id, !!articleToToggle.isSaved, "home");
     } catch (err) {
       // Revert on error
       setAllArticles(originalArticles);

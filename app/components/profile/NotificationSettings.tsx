@@ -58,7 +58,17 @@ export default function NotificationSettings() {
             >
               <div className="flex flex-col">
                 <span className="font-medium text-foreground text-lg mb-1">
-                  {NOTIFICATION_DETAILS[setting.notificationType].name}
+                  {(() => {
+                    const name = NOTIFICATION_DETAILS[setting.notificationType].name;
+                    const words = name.split(' ');
+                    if (words[0] === '속보') {
+                      return <><span className="text-red-500">{words[0]}</span> {words.slice(1).join(' ')}</>;
+                    }
+                    if (words[0] === '단독') {
+                      return <><span className="text-blue-500">{words[0]}</span> {words.slice(1).join(' ')}</>;
+                    }
+                    return name;
+                  })()}
                 </span>
                 <p className="text-muted-foreground text-sm">
                   {NOTIFICATION_DETAILS[setting.notificationType].description}

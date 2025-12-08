@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { DownloadCloud, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import { getInquiryDetail } from '@/lib/api/inquiry';
 import { InquiryDetail as InquiryDetailType, InquiryStatus } from '@/lib/types/inquiry';
 import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
 import { Button } from '@/app/components/common/Button';
-import { DownloadCloud, Loader2, ArrowLeft } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 
 interface InquiryDetailProps {
@@ -33,7 +34,6 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
   const { token, logout } = useAuth();
   const [inquiry, setInquiry] = useState<InquiryDetailType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDownloading, setIsDownloading] = useState(false); // Kept for UI feedback, though logic is simpler
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,12 +45,16 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
       try {
         const fetchedDetail = await getInquiryDetail(token, inquiryId);
         setInquiry(fetchedDetail);
-      } catch (err: any) {
-        if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
-          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-          logout();
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          if (String(err.message).includes("401") || String(err.message).includes("Unauthorized")) {
+            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+            logout();
+          } else {
+            setError(err.message || "문의 상세 정보를 불러오는데 실패했습니다.");
+          }
         } else {
-          setError(err.message || "문의 상세 정보를 불러오는데 실패했습니다.");
+          setError("알 수 없는 오류가 발생했습니다.");
         }
       } finally {
         setIsLoading(false);
@@ -105,7 +109,7 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
             {inquiry.attachment_url && (
                 <div className="mt-4">
                     <h4 className="font-semibold text-muted-foreground text-sm mb-2">첨부 파일</h4>
-                    <Button onClick={handleDownload} disabled={isDownloading} variant="outline" size="sm">
+                    <Button onClick={handleDownload} variant="outline" size="sm">
                         <DownloadCloud className="mr-2 h-4 w-4" />
                         파일 다운로드
                     </Button>

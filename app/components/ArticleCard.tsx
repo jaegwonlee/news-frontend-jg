@@ -13,6 +13,7 @@ import { useState } from "react";
 import ArticleSaveButton from "./ArticleSaveButton";
 import ClientOnlyTime from "./common/ClientOnlyTime";
 import Favicon from "./common/Favicon";
+import StyledArticleTitle from "./common/StyledArticleTitle";
 
 interface ArticleCardProps {
   article: Article;
@@ -146,15 +147,19 @@ export default function ArticleCard({
             )}
           </div>
 
-          <h2
-            className={cn(
-              "text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3 drop-shadow-sm transition-colors",
+                    <StyledArticleTitle
 
-              finalHoverColorClass
-            )}
-          >
-            {title}
-          </h2>
+                      title={title}
+
+                      className={cn(
+
+                        "text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3 drop-shadow-sm transition-colors",
+
+                        finalHoverColorClass
+
+                      )}
+
+                    />
 
           <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-3xl mb-4 opacity-90">{summary}</p>
 
@@ -174,7 +179,7 @@ export default function ArticleCard({
               )}
 
               {onSaveToggle && article.isSaved !== undefined && (
-                <ArticleSaveButton isSaved={isSaved} onClick={handleSaveClick} light={true} />
+                <ArticleSaveButton isSaved={isSaved} onClick={handleSaveClick} />
               )}
             </div>
           </div>
@@ -220,15 +225,19 @@ export default function ArticleCard({
               <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground" />
             </div>
 
-            <h3
-              className={cn(
-                "font-bold text-base md:text-lg leading-snug line-clamp-2 transition-colors",
+                        <StyledArticleTitle
 
-                finalHoverColorClass
-              )}
-            >
-              {title}
-            </h3>
+                          title={title}
+
+                          className={cn(
+
+                            "font-bold text-base md:text-lg leading-snug line-clamp-2 transition-colors",
+
+                            finalHoverColorClass
+
+                          )}
+
+                        />
           </div>
 
           <p className="text-xs text-muted-foreground line-clamp-1 hidden md:block mt-1">{summary}</p>
@@ -248,15 +257,13 @@ export default function ArticleCard({
         className={cn("block group py-3 border-b border-border/40 last:border-0", className)}
       >
         <div className="flex items-start justify-between gap-4">
-          <h3
-            className={cn(
-              "font-medium text-sm md:text-base leading-snug line-clamp-2 transition-colors",
-
-              finalHoverColorClass
-            )}
-          >
-            {title}
-          </h3>
+                    <StyledArticleTitle
+                      title={title}
+                      className={cn(
+                        "font-medium text-sm md:text-base leading-snug line-clamp-2 transition-colors",
+                        finalHoverColorClass
+                      )}
+                    />
         </div>
 
         <div className="flex items-center gap-2 mt-1.5">
@@ -293,11 +300,10 @@ export default function ArticleCard({
             <Favicon src={favicon_url || ""} alt={source} size={12} />
             <span className="text-xs font-bold text-primary/80">{source}</span>
           </div>
-          <h3
+          <StyledArticleTitle
+            title={title}
             className={cn("font-bold text-sm leading-snug line-clamp-2 mb-2 transition-colors", finalHoverColorClass)}
-          >
-            {title}
-          </h3>
+          />
           <div className="mt-auto pt-2 flex items-center justify-between border-t border-border/30">
             <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground" />
             {onSaveToggle && article.isSaved !== undefined && (
@@ -331,9 +337,10 @@ export default function ArticleCard({
             <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded mb-2">
               {article.source}
             </span>
-            <h3 className="text-white font-bold text-lg leading-tight mb-1 line-clamp-2 group-hover:text-red-400 transition-colors">
-              {article.title}
-            </h3>
+            <StyledArticleTitle
+              title={article.title}
+              className="text-white font-bold text-lg leading-tight mb-1 line-clamp-2 group-hover:text-red-400 transition-colors"
+            />
             <div className="flex gap-3 text-white/70 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
               <ClientOnlyTime date={article.published_at} />
             </div>
@@ -366,11 +373,10 @@ export default function ArticleCard({
             <Favicon src={favicon_url || ""} alt={source} size={12} />
             <span className="text-xs font-semibold text-foreground/80">{source}</span>
           </div>
-          <h3
+          <StyledArticleTitle
+            title={title}
             className={cn("font-bold text-lg leading-snug line-clamp-2 mb-1 transition-colors", finalHoverColorClass)}
-          >
-            {title}
-          </h3>
+          />
         </div>
       </Link>
     );
@@ -398,7 +404,7 @@ export default function ArticleCard({
           />
         </div>
         <div className="flex flex-col grow min-w-0 p-2">
-          <h3 className={`font-semibold text-sm leading-tight line-clamp-2`}>{title}</h3>
+          <StyledArticleTitle title={title} className={`font-semibold text-sm leading-tight line-clamp-2`} />
           <div className="flex items-center text-xs text-gray-300 mt-1">
             {favicon_url && <Favicon src={favicon_url} alt={`${source} favicon`} size={12} />}
             <span className="font-medium ml-1">{source}</span>
@@ -429,9 +435,10 @@ export default function ArticleCard({
       </div>
 
       <div className="flex flex-col grow p-4 md:p-5">
-        <h3 className={cn("font-bold text-lg leading-snug line-clamp-2 mb-2 transition-colors", finalHoverColorClass)}>
-          {title}
-        </h3>
+        <StyledArticleTitle
+          title={title}
+          className={cn("font-bold text-lg leading-snug line-clamp-2 mb-2 transition-colors", finalHoverColorClass)}
+        />
         <p className="text-sm text-muted-foreground line-clamp-3 mb-4 grow">{summary}</p>
 
         <div className="flex items-center justify-between pt-4 border-t border-border/30 mt-auto">

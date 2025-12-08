@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import CategoryNewsClientPage from "./CategoryNewsClientPage";
 import ChatRoom from "./ChatRoom";
 import { Topic } from "@/lib/types/topic";

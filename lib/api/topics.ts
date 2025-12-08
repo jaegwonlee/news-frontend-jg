@@ -91,7 +91,7 @@ export async function getTopicDetail(topicId: string, token?: string): Promise<T
       if (errorData && errorData.message) {
         errorMessage = errorData.message + ` (ID: ${topicId})`; // Append topicId
       }
-    } catch (e) {
+    } catch (_e) {
       errorMessage += ` Status: ${response.status} ${response.statusText}`;
     }
     throw new Error(errorMessage);

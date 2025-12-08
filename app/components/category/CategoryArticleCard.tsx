@@ -3,17 +3,16 @@
 import ArticleSaveButton from "@/app/components/ArticleSaveButton";
 import ClientOnlyTime from "@/app/components/common/ClientOnlyTime";
 import Favicon from "@/app/components/common/Favicon";
+import StyledArticleTitle from "@/app/components/common/StyledArticleTitle";
 import { getCategoryTheme } from "@/lib/categoryColors";
 import { Article } from "@/lib/types/article";
 import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 
 interface CategoryArticleCardProps {
   article: Article;
   variant: "hero" | "standard" | "compact" | "horizontal" | "title-only";
-  token: string | null;
   handleSaveToggle: (article: Article) => void;
   categoryTheme: ReturnType<typeof getCategoryTheme>;
 }
@@ -21,14 +20,12 @@ interface CategoryArticleCardProps {
 export default function CategoryArticleCard({
   article,
   variant,
-  token,
   handleSaveToggle,
   categoryTheme,
 }: CategoryArticleCardProps) {
-  const { theme } = useTheme();
-  const isDarkMode = theme === "dark";
 
-  const { title, summary, thumbnail_url, source, url, published_at, view_count, favicon_url } = article;
+
+  const { title, thumbnail_url, source, view_count } = article;
 
   const commonClasses = cn(
     "group relative block h-full bg-card rounded-xl overflow-hidden border border-border transition-all duration-300 hover:shadow-xl hover:translate-y-[-2px] hover:border-primary"
@@ -61,11 +58,10 @@ export default function CategoryArticleCard({
             </div>
           </div>
           <div className="p-4 flex flex-col justify-between grow">
-            <h3
+            <StyledArticleTitle
+              title={title}
               className={cn("font-bold text-xl leading-tight line-clamp-2 mb-2 transition-colors", hoverAccentClasses)}
-            >
-              {title}
-            </h3>
+            />
             <p className="text-sm text-muted-foreground line-clamp-3 mb-3 grow">
               {article.description || article.summary}
             </p>
@@ -94,14 +90,13 @@ export default function CategoryArticleCard({
             />
           </div>
           <div className="p-4 flex flex-col grow">
-            <h3
+            <StyledArticleTitle
+              title={title}
               className={cn(
                 "font-bold text-base leading-tight line-clamp-2 mb-2 transition-colors",
                 hoverAccentClasses
               )}
-            >
-              {title}
-            </h3>
+            />
             <p className="text-xs text-muted-foreground line-clamp-3 grow">{article.summary}</p>
             <div className="flex items-center justify-between mt-3">
               <div className="flex items-center text-xs text-muted-foreground">
@@ -125,9 +120,10 @@ export default function CategoryArticleCard({
               hoverBorderClasses
             )}
           >
-            <h3 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
-              {article.title}
-            </h3>
+            <StyledArticleTitle
+              title={article.title}
+              className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}
+            />
             <div className="flex items-center justify-between mt-2">
               <div className="flex items-center text-xs text-muted-foreground">
                 <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
@@ -158,9 +154,10 @@ export default function CategoryArticleCard({
               />
             </div>
             <div className="flex flex-col grow">
-              <h3 className={cn("font-bold text-base leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
-                {title}
-              </h3>
+              <StyledArticleTitle
+                title={title}
+                className={cn("font-bold text-base leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}
+              />
               <div className="flex items-center justify-between mt-1">
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
@@ -185,11 +182,10 @@ export default function CategoryArticleCard({
             )}
           >
             <div className="flex items-center justify-between">
-              <h3
+              <StyledArticleTitle
+                title={article.title}
                 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}
-              >
-                {article.title}
-              </h3>
+              />
               <ArticleSaveButton isSaved={article.isSaved || false} onClick={handleSaveClick} />
             </div>
           </Link>
