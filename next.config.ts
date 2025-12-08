@@ -75,6 +75,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "img7.yna.co.kr", // 연합뉴스 특정 이미지 서버
+      },
+      {
+        protocol: "https",
+        hostname: "img.yna.co.kr",
+      },
+      {
+        protocol: "https",
+        hostname: "r.yna.co.kr",
+      },
+      {
+        protocol: "https",
         hostname: "www.newsis.com", // 뉴시스 파비콘
       },
       {

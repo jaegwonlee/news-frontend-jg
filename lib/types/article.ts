@@ -19,6 +19,7 @@ export interface Article {
   comment_count?: number;
   isSaved?: boolean;
   category?: string;
+  articleType?: "home" | "topic"; // Added for save/unsave functionality
 }
 
 export interface SavedArticle extends Article {

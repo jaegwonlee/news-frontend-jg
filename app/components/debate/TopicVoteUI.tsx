@@ -1,94 +1,136 @@
 "use client";
 
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/app/context/AuthContext';
-import { castTopicVote } from '@/lib/api/topics';
-import { ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react';
+import { useAuth } from "@/app/context/AuthContext";
+import { castTopicVote } from "@/lib/api/topics";
+import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 interface TopicVoteUIProps {
-    topicId: number;
-    initialVoteCounts: { left: number; right: number };
-    userStance: 'LEFT' | 'RIGHT' | null;
-    onVoteSuccess: (newVoteCounts: { left: number; right: number }, newUserStance: 'LEFT' | 'RIGHT') => void;
+  topicId: number;
+  initialVoteCounts: { left: number; right: number };
+  userStance: "LEFT" | "RIGHT" | null;
+  onVoteSuccess: (newVoteCounts: { left: number; right: number }, newUserStance: "LEFT" | "RIGHT") => void;
 }
 
-export default function TopicVoteUI({ topicId, initialVoteCounts, userStance: initialUserStance, onVoteSuccess }: TopicVoteUIProps) {
-    const { token } = useAuth();
-    const [userStance, setUserStance] = useState<'LEFT' | 'RIGHT' | null>(initialUserStance);
-    const [voteCounts, setVoteCounts] = useState(initialVoteCounts);
-    const [isVoting, setIsVoting] = useState(false);
+export default function TopicVoteUI({
+  topicId,
+  initialVoteCounts,
+  userStance: initialUserStance,
+  onVoteSuccess,
+}: TopicVoteUIProps) {
+  const { token } = useAuth();
+  const [userStance, setUserStance] = useState<"LEFT" | "RIGHT" | null>(initialUserStance);
+  const [voteCounts, setVoteCounts] = useState(initialVoteCounts);
+  const [isVoting, setIsVoting] = useState(false);
 
-    const totalVotes = voteCounts.left + voteCounts.right;
-    const leftPercent = totalVotes === 0 ? 50 : (voteCounts.left / totalVotes) * 100;
-    const rightPercent = totalVotes === 0 ? 50 : (voteCounts.right / totalVotes) * 100;
+  const totalVotes = voteCounts.left + voteCounts.right;
+  const leftPercent = totalVotes === 0 ? 50 : (voteCounts.left / totalVotes) * 100;
+  const rightPercent = totalVotes === 0 ? 50 : (voteCounts.right / totalVotes) * 100;
 
-    const handleVote = async (stance: 'LEFT' | 'RIGHT') => {
-        if (!token) {
-            alert('로그인 후 투표할 수 있습니다.');
-            return;
-        }
-        if (isVoting) return; // Prevent double clicking
-        if (userStance === stance) return; // Already voted for this stance, disallow re-vote for simplicity
+  const handleVote = async (stance: "LEFT" | "RIGHT") => {
+    if (!token) {
+      alert("로그인 후 투표할 수 있습니다.");
+      return;
+    }
+    if (isVoting) return;
+    if (userStance === stance) return;
 
-        setIsVoting(true);
-        try {
-            const response = await castTopicVote(topicId, stance, token);
-            setVoteCounts({
-                left: response.voteCountLeft || voteCounts.left,
-                right: response.voteCountRight || voteCounts.right,
-            });
-            setUserStance(stance);
-            onVoteSuccess({ left: response.voteCountLeft || voteCounts.left, right: response.voteCountRight || voteCounts.right }, stance);
-        } catch (error) {
-            console.error('Failed to cast vote:', error);
-            alert(`투표에 실패했습니다: ${(error as Error).message}`);
-        } finally {
-            setIsVoting(false);
-        }
-    };
+    setIsVoting(true);
+    try {
+      const response = await castTopicVote(topicId, stance, token);
+      setVoteCounts({
+        left: response.voteCountLeft || voteCounts.left,
+        right: response.voteCountRight || voteCounts.right,
+      });
+      setUserStance(stance);
+      onVoteSuccess(
+        { left: response.voteCountLeft || voteCounts.left, right: response.voteCountRight || voteCounts.right },
+        stance
+      );
+    } catch (error) {
+      console.error("Failed to cast vote:", error);
+      alert(`투표에 실패했습니다: ${(error as Error).message}`);
+    } finally {
+      setIsVoting(false);
+    }
+  };
 
-    return (
-        <div className="flex flex-col items-center p-6 border border-border rounded-xl bg-card shadow-sm mb-8">
-            <h3 className="text-xl font-bold text-foreground mb-4">당신의 의견은?</h3>
-            <div className="flex justify-around w-full max-w-sm gap-4 mb-6">
-                <button
-                    onClick={() => handleVote('LEFT')}
-                    disabled={isVoting || userStance === 'LEFT'}
-                    className={cn(
-                        "flex flex-col items-center p-4 rounded-lg flex-1 transition-all duration-200",
-                        "text-blue-500 border-2 border-blue-500 hover:bg-blue-500 hover:text-white",
-                        userStance === 'LEFT' && "bg-blue-500 text-white shadow-lg",
-                        isVoting && "opacity-50 cursor-not-allowed"
-                    )}
-                >
-                    {isVoting ? <Loader2 className="w-6 h-6 animate-spin" /> : <ThumbsUp className="w-8 h-8 mb-2" />}
-                    <span className="font-semibold text-lg">찬성</span>
-                </button>
-                <button
-                    onClick={() => handleVote('RIGHT')}
-                    disabled={isVoting || userStance === 'RIGHT'}
-                    className={cn(
-                        "flex flex-col items-center p-4 rounded-lg flex-1 transition-all duration-200",
-                        "text-red-500 border-2 border-red-500 hover:bg-red-500 hover:text-white",
-                        userStance === 'RIGHT' && "bg-red-500 text-white shadow-lg",
-                        isVoting && "opacity-50 cursor-not-allowed"
-                    )}
-                >
-                    {isVoting ? <Loader2 className="w-6 h-6 animate-spin" /> : <ThumbsDown className="w-8 h-8 mb-2" />}
-                    <span className="font-semibold text-lg">반대</span>
-                </button>
-            </div>
-            
-            <div className="w-full h-8 flex rounded-full overflow-hidden text-sm font-bold shadow-inner">
-                <div className="bg-blue-600 flex items-center justify-center text-white" style={{ width: `${leftPercent}%` }}>
-                    {totalVotes > 0 && `${Math.round(leftPercent)}%`}
-                </div>
-                <div className="bg-red-600 flex items-center justify-center text-white" style={{ width: `${rightPercent}%` }}>
-                    {totalVotes > 0 && `${Math.round(rightPercent)}%`}
-                </div>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">총 {totalVotes.toLocaleString()}명 참여</p>
+  return (
+    <div className="w-full mb-12">
+      {/* Round Header */}
+      <div className="flex justify-between items-center mb-4 px-2">
+        <span className="text-sm font-bold text-blue-500">이해한다</span>
+        <div className="flex flex-col items-center">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Round 2</span>
+          <span className="text-xs text-muted-foreground">종료까지 14:35:20 남음</span>
         </div>
-    );
+        <span className="text-sm font-bold text-red-500">민폐이다</span>
+      </div>
+
+      {/* Main Split Container */}
+      <div className="relative flex w-full h-[320px] md:h-[400px] rounded-3xl overflow-hidden shadow-2xl">
+        {/* Left Side (Blue) */}
+        <div className="relative flex-1 bg-blue-50 flex flex-col items-center justify-center p-6 group">
+          <div className="absolute inset-0 bg-blue-100/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Image
+            src="/blue--glove.svg"
+            width={120}
+            height={120}
+            alt="Blue Glove"
+            className="drop-shadow-xl mb-6 transform group-hover:scale-110 transition-transform duration-300"
+          />
+          <button
+            onClick={() => handleVote("LEFT")}
+            disabled={isVoting || userStance === "LEFT"}
+            className={cn(
+              "relative z-10 px-8 py-3 rounded-full font-bold text-lg shadow-lg transition-all transform hover:-translate-y-1",
+              userStance === "LEFT"
+                ? "bg-blue-600 text-white ring-4 ring-blue-200"
+                : "bg-white text-blue-600 hover:bg-blue-600 hover:text-white"
+            )}
+          >
+            {isVoting && userStance !== "RIGHT" ? <Loader2 className="animate-spin" /> : "선택"}
+          </button>
+        </div>
+
+        {/* Center Divider & Stats */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
+          <div className="bg-white rounded-full px-6 py-2 shadow-xl border border-gray-100 flex items-center gap-4 mb-4">
+            <span className="text-blue-600 font-black text-xl">{Math.round(leftPercent)}%</span>
+            <div className="h-4 w-px bg-gray-300" />
+            <span className="text-red-600 font-black text-xl">{Math.round(rightPercent)}%</span>
+          </div>
+          <div className="bg-black/80 text-white text-xs font-bold px-3 py-1 rounded-full backdrop-blur-md">
+            🔥 {totalVotes.toLocaleString()}명 투표 중!
+          </div>
+        </div>
+
+        {/* Right Side (Red) */}
+        <div className="relative flex-1 bg-red-50 flex flex-col items-center justify-center p-6 group">
+          <div className="absolute inset-0 bg-red-100/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Image
+            src="/red--glove.svg"
+            width={120}
+            height={120}
+            alt="Red Glove"
+            className="drop-shadow-xl mb-6 transform scale-x-[-1] group-hover:scale-x-[-1] group-hover:scale-110 transition-transform duration-300"
+          />
+          <button
+            onClick={() => handleVote("RIGHT")}
+            disabled={isVoting || userStance === "RIGHT"}
+            className={cn(
+              "relative z-10 px-8 py-3 rounded-full font-bold text-lg shadow-lg transition-all transform hover:-translate-y-1",
+              userStance === "RIGHT"
+                ? "bg-red-600 text-white ring-4 ring-red-200"
+                : "bg-white text-red-600 hover:bg-red-600 hover:text-white"
+            )}
+          >
+            {isVoting && userStance !== "LEFT" ? <Loader2 className="animate-spin" /> : "선택"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

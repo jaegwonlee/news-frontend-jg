@@ -2,17 +2,17 @@
 
 "use client";
 
+import { useNotifications } from "@/app/context/NotificationContext"; // New import
 import { getCategoryTheme } from "@/lib/categoryColors";
 import { cn } from "@/lib/utils";
-import { Bell, Headset, Moon, Sun } from "lucide-react";
-import NotificationBadge from "./notifications/NotificationBadge";
+import { Headset, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
-import { useNotifications } from "@/app/context/NotificationContext"; // New import
 import AuthStatus from "./header/AuthStatus";
 import SearchBar from "./header/SearchBar";
+import NotificationBadge from "./notifications/NotificationBadge";
 
 const navLinks = [
   { title: "정치", href: "/politics" },
@@ -64,9 +64,9 @@ export default function Header() {
               >
                 {mounted ? (
                   isDarkMode ? (
-                    <Moon className="w-5 h-5 text-[var(--icon-adaptive)] hover:text-foreground transition-transform group-hover:scale-125" />
+                    <Moon className="w-5 h-5 text-(--icon-adaptive) hover:text-foreground transition-transform group-hover:scale-125" />
                   ) : (
-                    <Sun className="w-5 h-5 text-[var(--icon-adaptive)] hover:text-foreground transition-transform group-hover:scale-125" />
+                    <Sun className="w-5 h-5 text-(--icon-adaptive) hover:text-foreground transition-transform group-hover:scale-125" />
                   )
                 ) : (
                   <div className="w-5 h-5" /> // Render an empty div or a default icon placeholder
@@ -76,7 +76,7 @@ export default function Header() {
                 href="/inquiry"
                 className="p-1 rounded-full hover:bg-accent transition-colors hidden sm:block group"
               >
-                <Headset className="w-5 h-5 text-[var(--icon-adaptive)] cursor-pointer hover:text-foreground transition-transform group-hover:scale-125" />
+                <Headset className="w-5 h-5 text-(--icon-adaptive) cursor-pointer hover:text-foreground transition-transform group-hover:scale-125" />
               </Link>
               {/* Changed to button to open side panel */}
               <button

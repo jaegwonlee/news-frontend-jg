@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { Article } from '@/lib/types/article';
-import Link from 'next/link';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { formatRelativeTime } from '@/lib/utils';
-import ArticleImageWithFallback from '../ArticleImageWithFallback';
-import StyledArticleTitle from '../common/StyledArticleTitle';
+import { Article } from "@/lib/types/article";
+import { formatRelativeTime } from "@/lib/utils";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import ArticleImageWithFallback from "../ArticleImageWithFallback";
+import StyledArticleTitle from "../common/StyledArticleTitle";
 
 interface SearchResultCardProps {
   article: Article;
@@ -34,22 +34,25 @@ export default function SearchResultCard({ article, index }: SearchResultCardPro
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
-           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"></div>
         </div>
         <div className="p-4 flex flex-col h-full">
-            <StyledArticleTitle
-                title={article.title}
-                className="text-md font-bold text-white mb-2 line-clamp-2"
-            />
-            <p className="text-muted-foreground text-sm line-clamp-2 flex-grow">{article.description}</p>
-            <div className="flex items-center text-xs text-muted-foreground mt-3">
-              {article.favicon_url && (
-                <Image src={article.favicon_url} alt={article.source} width={12} height={12} className="mr-1.5 rounded-sm" />
-              )}
-              <span className="truncate max-w-[100px]">{article.source}</span>
-              <span className="mx-1.5">·</span>
-              <span>{formatRelativeTime(article.published_at)}</span>
-            </div>
+          <StyledArticleTitle title={article.title} className="text-md font-bold text-white mb-2 line-clamp-2" />
+          <p className="text-muted-foreground text-sm line-clamp-2 grow">{article.description}</p>
+          <div className="flex items-center text-xs text-muted-foreground mt-3">
+            {article.favicon_url && (
+              <Image
+                src={article.favicon_url}
+                alt={article.source}
+                width={12}
+                height={12}
+                className="mr-1.5 rounded-sm"
+              />
+            )}
+            <span className="truncate max-w-[100px]">{article.source}</span>
+            <span className="mx-1.5">·</span>
+            <span>{formatRelativeTime(article.published_at)}</span>
+          </div>
         </div>
       </Link>
     </motion.div>

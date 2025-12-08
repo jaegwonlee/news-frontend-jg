@@ -1,12 +1,15 @@
 "use client";
 
+import { useAuth } from "@/app/context/AuthContext";
+import { toggleArticleSave } from "@/lib/api/articles";
+import { getCategoryTheme } from "@/lib/categoryColors";
 import { Article } from "@/lib/types/article";
-import { MessageSquare, Eye } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Eye, MessageSquare } from "lucide-react";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
-import { getCategoryTheme } from "@/lib/categoryColors";
-import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
+import { useState } from "react";
 import ArticleSaveButton from "./ArticleSaveButton";
 import ClientOnlyTime from "./common/ClientOnlyTime";
 import Favicon from "./common/Favicon";
@@ -22,7 +25,6 @@ interface ArticleCardProps {
   rel?: string; // Add rel prop for link relations
   hideImage?: boolean;
   customHoverColor?: string; // Add this prop
-
 }
 
 export default function ArticleCard({
@@ -45,472 +47,237 @@ export default function ArticleCard({
   // Determine hover colors dynamically
   let finalHoverColorClass = hoverColorClass;
 
-  if (customHoverColor) { // Use customHoverColor if provided
-      finalHoverColorClass = `group-hover:text-${customHoverColor}-500`;
+  if (customHoverColor) {
+    // Use customHoverColor if provided
+    finalHoverColorClass = `group-hover:text-${customHoverColor}-500`;
   } else if (!finalHoverColorClass && article.category) {
     const theme = getCategoryTheme(article.category);
     finalHoverColorClass = theme.hoverText;
   } else if (!finalHoverColorClass) {
-    finalHoverColorClass = 'group-hover:text-primary'; // Default if no specific hover color class or category
+    finalHoverColorClass = "group-hover:text-primary"; // Default if no specific hover color class or category
   }
 
-  
+  // Common hover and transition classes
 
-    // Common hover and transition classes
+  const cardBaseClasses =
+    "group relative overflow-hidden rounded-xl bg-card border border-border/50 transition-all duration-300 hover:shadow-lg hover:border-primary/20";
 
-    const cardBaseClasses =
+  const handleCommentClick = (e: React.MouseEvent) => {
+    e.preventDefault();
 
-      "group relative overflow-hidden rounded-xl bg-card border border-border/50 transition-all duration-300 hover:shadow-lg hover:border-primary/20";
+    if (onCommentIconClick) {
+      onCommentIconClick(article);
+    }
+  };
 
-  
+  const [isSaved, setIsSaved] = useState(article.isSaved || false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { token } = useAuth();
 
-    const handleCommentClick = (e: React.MouseEvent) => {
+  const handleSaveClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent link click
 
-      e.preventDefault();
+    if (isLoading) return;
 
-      if (onCommentIconClick) {
-
-        onCommentIconClick(article);
-
-      }
-
-    };
-
-  
-
-    const handleSaveClick = (e: React.MouseEvent) => {
-
-      e.preventDefault();
-
-      if (onSaveToggle) onSaveToggle(article);
-
-    };
-
-  
-
-
-
-  
-
-    // --- Variant: Hero (Large, Immersive) ---
-
-    if (variant === "hero") {
-
-      return (
-
-        <Link
-
-          href={url}
-
-          target="_blank"
-
-          rel={rel}
-
-          className={cn(cardBaseClasses, "block h-full min-h-[400px]", className)}
-
-        >
-
-          <div className="absolute inset-0">
-
-            <Image
-
-              src={thumbnail_url || "/placeholder.png"}
-
-              alt={title}
-
-              fill
-
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-
-              priority={priority}
-
-              sizes="(max-width: 768px) 100vw, 66vw"
-
-              unoptimized
-
-            />
-
-            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
-
-          </div>
-
-  
-
-          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 flex flex-col justify-end h-full">
-
-            <div className="flex items-center gap-2 mb-3">
-
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/80 backdrop-blur-md rounded-full border border-white/10 shadow-sm">
-
-                <Favicon src={favicon_url || ""} alt={source} size={14} className="rounded-full bg-white/10 p-0.5" />
-
-                <span className="text-xs font-bold text-white">{source}</span>
-
-              </div>
-
-              {view_count && view_count > 1000 && (
-
-                <span className="px-2 py-0.5 text-[10px] font-medium text-amber-300 bg-black/40 backdrop-blur-sm rounded-full border border-amber-500/30 flex items-center gap-1">
-
-                  <Eye size={10} /> {view_count.toLocaleString()}
-
-                </span>
-
-              )}
-
-            </div>
-
-  
-
-            <h2
-
-              className={cn(
-
-                "text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3 drop-shadow-sm transition-colors",
-
-                finalHoverColorClass
-
-              )}
-
-            >
-
-              {title}
-
-            </h2>
-
-  
-
-            <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-3xl mb-4 opacity-90">{summary}</p>
-
-  
-
-                        <div className="flex items-center justify-between w-full mt-2">
-
-  
-
-                          <ClientOnlyTime date={published_at} className="text-gray-300 text-xs" />
-
-  
-
-                          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
-
-  
-
-                            {onCommentIconClick && (
-
-  
-
-                              <button
-
-  
-
-                                onClick={handleCommentClick}
-
-  
-
-                                className="flex items-center gap-1 text-xs hover:text-white transition-colors"
-
-  
-
-                              >
-
-  
-
-                                <MessageSquare size={14} />
-
-  
-
-                                <span>{article.comment_count ?? 0}</span>
-
-  
-
-                              </button>
-
-  
-
-                            )}
-
-  
-
-                            {onSaveToggle && article.isSaved !== undefined && (
-
-  
-
-                              <ArticleSaveButton isSaved={article.isSaved || false} onClick={handleSaveClick} light={true} />
-
-  
-
-                            )}
-
-  
-
-                          </div>
-
-  
-
-                        </div>
-
-          </div>
-
-        </Link>
-
-      );
-
+    if (!token) {
+      // Handle not logged in state - maybe redirect to login or show toast
+      console.log("로그인이 필요합니다.");
+      return;
     }
 
-  
-
-      // --- Variant: Horizontal (List style) ---
-
-  
-
-            if (variant === "horizontal") {
-
-  
-
-              return (
-
-  
-
-                <Link
-
-  
-
-                  href={url}
-
-  
-
-                  target="_blank"
-
-  
-
-                  rel={rel}
-
-  
-
-                  className={cn(cardBaseClasses, "flex flex-row items-stretch h-32 md:h-40", className)}
-
-  
-
-                >
-
-  
-
-                  {!hideImage && (
-
-  
-
-                    <div className="relative w-1/3 md:w-48 shrink-0">
-
-  
-
-                      <Image
-
-  
-
-                        src={thumbnail_url || "/placeholder.png"}
-
-  
-
-                        alt={title}
-
-  
-
-                        fill
-
-  
-
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-
-  
-
-                        sizes="200px"
-
-  
-
-                        unoptimized
-
-  
-
-                      />
-
-  
-
-                    </div>
-
-  
-
-                  )}
-
-  
-
-                  <div className="flex flex-col justify-between p-4 grow">
-
-  
-
-                    <div>
-
-  
-
-                      <div className="flex items-center gap-2 mb-1.5">
-
-  
-
-                        <div className="flex items-center gap-1.5">
-
-  
-
-                          <Favicon src={favicon_url || ""} alt={source} size={12} />
-
-  
-
-                          <span className="text-xs font-medium text-primary/70">{source}</span>
-
-  
-
-                        </div>
-
-  
-
-                        <span className="text-[10px] text-muted-foreground">•</span>
-
-  
-
-                        <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground" />
-
-  
-
-                      </div>
-
-  
-
-                      <h3
-
-  
-
-                        className={cn(
-
-  
-
-                          "font-bold text-base md:text-lg leading-snug line-clamp-2 transition-colors",
-
-  
-
-                          finalHoverColorClass
-
-  
-
-                        )}
-
-  
-
-                      >
-
-  
-
-                        {title}
-
-  
-
-                      </h3>
-
-  
-
-                    </div>
-
-  
-
-                    <p className="text-xs text-muted-foreground line-clamp-1 hidden md:block mt-1">{summary}</p>
-
-  
-
-                  </div>
-
-  
-
-                </Link>
-
-  
-
-              );
-
-  
-
-      }
-
-      
-
-        // --- Variant: Text Only (Minimal) ---
-
-        if (variant === "text-only") {
-
-          return (
-
-            <Link
-
-              href={url}
-
-              target="_blank"
-
-              rel={rel}
-
-              className={cn("block group py-3 border-b border-border/40 last:border-0", className)}
-
-            >
-
-              <div className="flex items-start justify-between gap-4">
-
-                <h3
-
-                  className={cn(
-
-                    "font-medium text-sm md:text-base leading-snug line-clamp-2 transition-colors",
-
-                    finalHoverColorClass
-
-                  )}
-
-                >
-
-                  {title}
-
-                </h3>
-
-              </div>
-
-              <div className="flex items-center gap-2 mt-1.5">
-
-                <div className="flex items-center gap-1.5">
-
-                  <Favicon src={favicon_url || ""} alt={source} size={12} />
-
-                  <span className="text-xs text-muted-foreground">{source}</span>
-
-                </div>
-
-                <span className="text-[10px] text-muted-foreground/50">•</span>
-
-                <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground/50" />
-
-              </div>
-
-            </Link>
-
-          );
-
+    setIsLoading(true);
+    const articleType = article.articleType || "home"; // Default to 'home' if not specified
+
+    try {
+      await toggleArticleSave(token, article.id, isSaved, articleType);
+      setIsSaved(!isSaved);
+      if (onSaveToggle) onSaveToggle({ ...article, isSaved: !isSaved }); // Notify parent if needed
+    } catch (error: unknown) {
+      console.error("저장/취소 실패:", error);
+      if (error instanceof Error) {
+        if (error.message?.includes("409")) {
+          console.log("이미 저장된 기사입니다.");
+        } else if (error.message?.includes("404")) {
+          console.log("기사를 찾을 수 없습니다.");
         }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      
+  // --- Variant: Hero (Large, Immersive) ---
 
-  // --- Variant: Compact (For Bento Grid side items) ---
-  if (variant === "compact") {
+  if (variant === "hero") {
     return (
       <Link
         href={url}
         target="_blank"
         rel={rel}
-        className={cn(cardBaseClasses, "flex flex-col h-full", className)}
+        className={cn(cardBaseClasses, "block h-full min-h-[400px]", className)}
       >
+        <div className="absolute inset-0">
+          <Image
+            src={thumbnail_url || "/placeholder.png"}
+            alt={title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            priority={priority}
+            sizes="(max-width: 768px) 100vw, 66vw"
+            unoptimized
+          />
+
+          <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 flex flex-col justify-end h-full">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/80 backdrop-blur-md rounded-full border border-white/10 shadow-sm">
+              <Favicon src={favicon_url || ""} alt={source} size={14} className="rounded-full bg-white/10 p-0.5" />
+
+              <span className="text-xs font-bold text-white">{source}</span>
+            </div>
+
+            {view_count && view_count > 1000 && (
+              <span className="px-2 py-0.5 text-[10px] font-medium text-amber-300 bg-black/40 backdrop-blur-sm rounded-full border border-amber-500/30 flex items-center gap-1">
+                <Eye size={10} /> {view_count.toLocaleString()}
+              </span>
+            )}
+          </div>
+
+          <h2
+            className={cn(
+              "text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3 drop-shadow-sm transition-colors",
+
+              finalHoverColorClass
+            )}
+          >
+            {title}
+          </h2>
+
+          <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-3xl mb-4 opacity-90">{summary}</p>
+
+          <div className="flex items-center justify-between w-full mt-2">
+            <ClientOnlyTime date={published_at} className="text-gray-300 text-xs" />
+
+            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+              {onCommentIconClick && (
+                <button
+                  onClick={handleCommentClick}
+                  className="flex items-center gap-1 text-xs hover:text-white transition-colors"
+                >
+                  <MessageSquare size={14} />
+
+                  <span>{article.comment_count ?? 0}</span>
+                </button>
+              )}
+
+              {onSaveToggle && article.isSaved !== undefined && (
+                <ArticleSaveButton isSaved={isSaved} onClick={handleSaveClick} light={true} />
+              )}
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  // --- Variant: Horizontal (List style) ---
+
+  if (variant === "horizontal") {
+    return (
+      <Link
+        href={url}
+        target="_blank"
+        rel={rel}
+        className={cn(cardBaseClasses, "flex flex-row items-stretch h-32 md:h-40", className)}
+      >
+        {!hideImage && (
+          <div className="relative w-1/3 md:w-48 shrink-0">
+            <Image
+              src={thumbnail_url || "/placeholder.png"}
+              alt={title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="200px"
+              unoptimized
+            />
+          </div>
+        )}
+
+        <div className="flex flex-col justify-between p-4 grow">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Favicon src={favicon_url || ""} alt={source} size={12} />
+
+                <span className="text-xs font-medium text-primary/70">{source}</span>
+              </div>
+
+              <span className="text-[10px] text-muted-foreground">•</span>
+
+              <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground" />
+            </div>
+
+            <h3
+              className={cn(
+                "font-bold text-base md:text-lg leading-snug line-clamp-2 transition-colors",
+
+                finalHoverColorClass
+              )}
+            >
+              {title}
+            </h3>
+          </div>
+
+          <p className="text-xs text-muted-foreground line-clamp-1 hidden md:block mt-1">{summary}</p>
+        </div>
+      </Link>
+    );
+  }
+
+  // --- Variant: Text Only (Minimal) ---
+
+  if (variant === "text-only") {
+    return (
+      <Link
+        href={url}
+        target="_blank"
+        rel={rel}
+        className={cn("block group py-3 border-b border-border/40 last:border-0", className)}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <h3
+            className={cn(
+              "font-medium text-sm md:text-base leading-snug line-clamp-2 transition-colors",
+
+              finalHoverColorClass
+            )}
+          >
+            {title}
+          </h3>
+        </div>
+
+        <div className="flex items-center gap-2 mt-1.5">
+          <div className="flex items-center gap-1.5">
+            <Favicon src={favicon_url || ""} alt={source} size={12} />
+
+            <span className="text-xs text-muted-foreground">{source}</span>
+          </div>
+
+          <span className="text-[10px] text-muted-foreground/50">•</span>
+
+          <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground/50" />
+        </div>
+      </Link>
+    );
+  }
+
+  // --- Variant: Compact (For Bento Grid side items) ---
+  if (variant === "compact") {
+    return (
+      <Link href={url} target="_blank" rel={rel} className={cn(cardBaseClasses, "flex flex-col h-full", className)}>
         <div className="relative w-full aspect-video overflow-hidden">
           <Image
             src={thumbnail_url || "/placeholder.png"}
@@ -526,7 +293,9 @@ export default function ArticleCard({
             <Favicon src={favicon_url || ""} alt={source} size={12} />
             <span className="text-xs font-bold text-primary/80">{source}</span>
           </div>
-          <h3 className={cn("font-bold text-sm leading-snug line-clamp-2 mb-2 transition-colors", finalHoverColorClass)}>
+          <h3
+            className={cn("font-bold text-sm leading-snug line-clamp-2 mb-2 transition-colors", finalHoverColorClass)}
+          >
             {title}
           </h3>
           <div className="mt-auto pt-2 flex items-center justify-between border-t border-border/30">
@@ -542,8 +311,9 @@ export default function ArticleCard({
     return (
       <Link
         href={article.url}
-        target="_blank" rel={rel}
-        className={`group relative block w-full aspect-[4/5] overflow-hidden rounded-xl ${className}`}
+        target="_blank"
+        rel={rel}
+        className={`group relative block w-full aspect-4/5 overflow-hidden rounded-xl ${className}`}
       >
         <Image
           src={article.thumbnail_url || "/placeholder.png"}
@@ -553,7 +323,7 @@ export default function ArticleCard({
           sizes="(max-width: 768px) 50vw, 300px"
           unoptimized
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 flex flex-col justify-end">
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent p-4 flex flex-col justify-end">
           <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
             <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded mb-2">
               {article.source}
@@ -593,7 +363,9 @@ export default function ArticleCard({
             <Favicon src={favicon_url || ""} alt={source} size={12} />
             <span className="text-xs font-semibold text-foreground/80">{source}</span>
           </div>
-          <h3 className={cn("font-bold text-lg leading-snug line-clamp-2 mb-1 transition-colors", finalHoverColorClass)}>
+          <h3
+            className={cn("font-bold text-lg leading-snug line-clamp-2 mb-1 transition-colors", finalHoverColorClass)}
+          >
             {title}
           </h3>
         </div>
@@ -608,9 +380,11 @@ export default function ArticleCard({
         href={article.url}
         target="_blank"
         rel={rel}
-        className={`group flex items-center rounded-lg ${isDarkMode ? "border border-gray-800 bg-black text-white" : "border border-gray-200 bg-white text-black"} transition-colors ${className}`}
+        className={`group flex items-center rounded-lg ${
+          isDarkMode ? "border border-gray-800 bg-black text-white" : "border border-gray-200 bg-white text-black"
+        } transition-colors ${className}`}
       >
-        <div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-l-lg">
+        <div className="relative w-16 h-16 shrink-0 overflow-hidden rounded-l-lg">
           <Image
             src={article.thumbnail_url || "/placeholder.png"}
             alt={title}
@@ -620,12 +394,10 @@ export default function ArticleCard({
             unoptimized
           />
         </div>
-        <div className="flex flex-col flex-grow min-w-0 p-2">
-          <h3 className={`font-semibold text-sm leading-tight line-clamp-2`}>
-            {title}
-          </h3>
+        <div className="flex flex-col grow min-w-0 p-2">
+          <h3 className={`font-semibold text-sm leading-tight line-clamp-2`}>{title}</h3>
           <div className="flex items-center text-xs text-gray-300 mt-1">
-              {favicon_url && <Favicon src={favicon_url} alt={`${source} favicon`} size={12} />}
+            {favicon_url && <Favicon src={favicon_url} alt={`${source} favicon`} size={12} />}
             <span className="font-medium ml-1">{source}</span>
           </div>
         </div>
@@ -635,12 +407,7 @@ export default function ArticleCard({
 
   // --- Variant: Standard (Default vertical card) ---
   return (
-    <Link
-      href={url}
-      target="_blank"
-      rel={rel}
-      className={cn(cardBaseClasses, "flex flex-col h-full", className)}
-    >
+    <Link href={url} target="_blank" rel={rel} className={cn(cardBaseClasses, "flex flex-col h-full", className)}>
       <div className="relative w-full aspect-video overflow-hidden">
         <Image
           src={thumbnail_url || "/placeholder.png"}
@@ -679,7 +446,7 @@ export default function ArticleCard({
               </button>
             )}
             {onSaveToggle && article.isSaved !== undefined && (
-              <ArticleSaveButton isSaved={article.isSaved || false} onClick={handleSaveClick} />
+              <ArticleSaveButton isSaved={isSaved} onClick={handleSaveClick} />
             )}
           </div>
         </div>

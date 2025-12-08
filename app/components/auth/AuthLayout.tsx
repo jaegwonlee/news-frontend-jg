@@ -12,8 +12,6 @@ interface AuthLayoutProps {
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = "default", focusedField = null }) => {
   return (
     <div className="min-h-screen w-full flex items-start justify-center p-4 pt-12 relative overflow-hidden">
-
-
       {/* Gloves Container - Positioned relative to screen */}
       {variant === "gloves" && (
         <>
@@ -47,7 +45,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = "def
 
       <div className="relative z-10 w-full max-w-md flex flex-col items-center group">
         {/* Chain / Hanging Mechanism */}
-        <div className="w-2 h-32 bg-gradient-to-b from-neutral-600 to-neutral-800 border-x border-neutral-900 mb-[-10px] relative z-0">
+        <div className="w-2 h-32 bg-linear-to-b from-neutral-600 to-neutral-800 border-x border-neutral-900 mb-[-10px] relative z-0">
           {/* Chain links pattern (simulated) */}
           <div className="absolute inset-0 flex flex-col items-center justify-around py-1">
             {[...Array(6)].map((_, i) => (
@@ -93,8 +91,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = "def
 
             <div className="w-full space-y-6">{children}</div>
           </div>
-
-
         </div>
       </div>
     </div>

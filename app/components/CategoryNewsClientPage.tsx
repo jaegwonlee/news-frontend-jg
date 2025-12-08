@@ -1,21 +1,18 @@
 "use client";
 
 import { getCategoryTheme } from "@/lib/categoryColors";
-import { cn } from "@/lib/utils";
-import { Article } from "@/lib/types/article";
-import { Newspaper } from "lucide-react";
-import { useMemo, useState, useEffect, useCallback } from "react";
-import ClientPaginationControls from "./common/ClientPaginationControls";
-import { EmptyState } from "./common/EmptyState";
+
 import { useAuth } from "@/app/context/AuthContext";
 import { getCategoryNews, toggleArticleSave } from "@/lib/api";
-import LoadingSpinner from "./common/LoadingSpinner";
-import ChatRoom from "./ChatRoom";
-import { Topic } from "@/lib/types/topic";
-import CategoryArticleCard from "./category/CategoryArticleCard";
+import { ARTICLES_PER_PAGE } from "@/lib/constants/category";
+import { Article } from "@/lib/types/article";
+import { Newspaper } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import CategoryArticleGrid from "./category/CategoryArticleGrid";
 import CategorySourceSidebar from "./category/CategorySourceSidebar";
-import { ARTICLES_PER_PAGE, categoryTopicMap } from "@/lib/constants/category";
+import ClientPaginationControls from "./common/ClientPaginationControls";
+import { EmptyState } from "./common/EmptyState";
+import LoadingSpinner from "./common/LoadingSpinner";
 
 interface CategoryNewsClientPageProps {
   categoryName: string;
@@ -31,16 +28,6 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
   const [currentPage, setCurrentPage] = useState(1);
 
   const theme = getCategoryTheme(categoryName);
-  const topicId = categoryTopicMap[categoryName];
-
-  const mockTopic: Topic = useMemo(() => ({
-    id: topicId,
-    display_name: `${categoryName} 채팅방`,
-    summary: '',
-    published_at: new Date().toISOString(),
-    view_count: 0,
-  }), [topicId, categoryName]);
-
 
   const fetchNews = useCallback(async () => {
     setIsLoading(true);
@@ -62,21 +49,19 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
 
   const handleSaveToggle = async (articleToToggle: Article) => {
     if (!token) {
-      alert('로그인이 필요한 기능입니다.');
+      alert("로그인이 필요한 기능입니다.");
       return;
     }
 
     const originalArticles = articles;
-    const newArticles = articles.map((a) =>
-      a.id === articleToToggle.id ? { ...a, isSaved: !a.isSaved } : a
-    );
+    const newArticles = articles.map((a) => (a.id === articleToToggle.id ? { ...a, isSaved: !a.isSaved } : a));
     setArticles(newArticles);
 
     try {
-      await toggleArticleSave(token, articleToToggle.id, !!articleToToggle.isSaved);
+      await toggleArticleSave(token, articleToToggle.id, !!articleToToggle.isSaved, "home");
     } catch (err) {
       setArticles(originalArticles);
-      alert('기사 저장 상태 변경에 실패했습니다.');
+      alert("기사 저장 상태 변경에 실패했습니다.");
       console.error(err);
     }
   };
@@ -106,7 +91,9 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
       </header>
 
       {/* Main content area: Sidebar + Article Grid */}
-      <div className="flex flex-col lg:flex-row gap-6"> {/* Use flexbox for layout */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {" "}
+        {/* Use flexbox for layout */}
         {/* Left Sidebar */}
         <CategorySourceSidebar
           sources={sources}
@@ -115,13 +102,18 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
           setCurrentPage={setCurrentPage}
           categoryTheme={theme}
         />
-
         {/* Main Article Content */}
-        <div className="flex-grow"> {/* This div will contain the article grid and pagination */}
+        <div className="grow">
+          {" "}
+          {/* This div will contain the article grid and pagination */}
           {isLoading ? (
-            <div className="h-96 flex items-center justify-center"><LoadingSpinner size="large" /></div>
+            <div className="h-96 flex items-center justify-center">
+              <LoadingSpinner size="large" />
+            </div>
           ) : error ? (
-            <div className="h-96 flex items-center justify-center"><EmptyState Icon={Newspaper} title="오류 발생" description="뉴스를 불러오는 데 실패했습니다." /></div>
+            <div className="h-96 flex items-center justify-center">
+              <EmptyState Icon={Newspaper} title="오류 발생" description="뉴스를 불러오는 데 실패했습니다." />
+            </div>
           ) : filteredArticles.length === 0 ? (
             <div className="py-20">
               <EmptyState Icon={Newspaper} title="기사 없음" description="해당 언론사의 뉴스가 없습니다." />
@@ -135,7 +127,11 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
                 categoryTheme={theme}
               />
               {totalPages > 1 && (
-                <ClientPaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                <ClientPaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
               )}
             </div>
           )}

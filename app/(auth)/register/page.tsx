@@ -269,7 +269,7 @@ export default function RegisterPage() {
             type="submit"
             disabled={isLoading} // 로딩 중 비활성화
             // 버튼 스타일 (빨간색 배경, hover 효과 등)
-            className="w-full mt-4 px-4 py-3.5 font-black text-white bg-gradient-to-r from-red-600 to-red-500 rounded-lg hover:from-red-500 hover:to-red-400 disabled:from-zinc-600 disabled:to-zinc-600 disabled:cursor-not-allowed shadow-lg shadow-red-500/30 hover:shadow-red-500/50 active:scale-[0.98] transition-all duration-200 uppercase tracking-widest"
+            className="w-full mt-4 px-4 py-3.5 font-black text-white bg-linear-to-r from-red-600 to-red-500 rounded-lg hover:from-red-500 hover:to-red-400 disabled:from-zinc-600 disabled:to-zinc-600 disabled:cursor-not-allowed shadow-lg shadow-red-500/30 hover:shadow-red-500/50 active:scale-[0.98] transition-all duration-200 uppercase tracking-widest"
           >
             {isLoading ? "가입하는 중..." : "FIGHT START"}
           </button>

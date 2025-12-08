@@ -2,19 +2,24 @@
 "use client";
 
 import ClientPaginationControls from "@/app/components/common/ClientPaginationControls";
-import { EmptyState } from "@/app/components/common/EmptyState";
 import ConfirmationPopover from "@/app/components/common/ConfirmationPopover";
+import { EmptyState } from "@/app/components/common/EmptyState";
 import { useAuth } from "@/app/context/AuthContext";
 import { useNotifications as useNotificationContext } from "@/app/context/NotificationContext";
-import { getNotifications, markAllAsRead, markAsRead, deleteNotification } from "@/lib/api/notifications";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { deleteNotification, getNotifications, markAllAsRead, markAsRead } from "@/lib/api/notifications";
 import { Notification, NotificationType } from "@/lib/types/notification";
-import { AlertCircle, Bell, Clock, Loader2, Megaphone, Star, Trash2, UserPlus, X, Zap } from "lucide-react";
+import { cn, formatRelativeTime } from "@/lib/utils";
+import { AlertCircle, Bell, Clock, Loader2, Megaphone, Star, UserPlus, X, Zap } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-const NotificationItem = ({ notification, onRead, onDelete, token }: {
+const NotificationItem = ({
+  notification,
+  onRead,
+  onDelete,
+  token,
+}: {
   notification: Notification;
   onRead: (id: number) => void;
   onDelete: (id: number) => void;
@@ -30,10 +35,10 @@ const NotificationItem = ({ notification, onRead, onDelete, token }: {
     if (!notification.is_read && token) {
       markAsRead(token, notification.id)
         .then(() => onRead(notification.id))
-        .catch(error => console.error("Failed to mark notification as read in background:", error));
+        .catch((error) => console.error("Failed to mark notification as read in background:", error));
     }
   };
-  
+
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
     onDelete(notification.id);
@@ -78,17 +83,11 @@ const NotificationItem = ({ notification, onRead, onDelete, token }: {
       </button>
 
       {notification.metadata?.thumbnail_url ? (
-        <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden relative border border-border">
-          <Image
-            src={notification.metadata.thumbnail_url}
-            alt="Thumbnail"
-            fill
-            sizes="64px"
-            className="object-cover"
-          />
+        <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden relative border border-border">
+          <Image src={notification.metadata.thumbnail_url} alt="Thumbnail" fill sizes="64px" className="object-cover" />
         </div>
       ) : (
-        <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg bg-secondary">
+        <div className="shrink-0 w-12 h-12 flex items-center justify-center rounded-lg bg-secondary">
           {getIcon(notification.type)}
         </div>
       )}
@@ -96,10 +95,13 @@ const NotificationItem = ({ notification, onRead, onDelete, token }: {
         <p className="font-semibold text-foreground line-clamp-2 pr-6">{notification.message}</p>
         <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
           {notification.metadata?.source_domain && (
-            <img
+            <Image
               src={`https://www.google.com/s2/favicons?domain=${notification.metadata.source_domain}&sz=16`}
               alt=""
+              width={16}
+              height={16}
               className="w-4 h-4"
+              unoptimized
             />
           )}
           {notification.metadata?.source && <span>{notification.metadata.source}</span>}
@@ -113,15 +115,15 @@ const NotificationItem = ({ notification, onRead, onDelete, token }: {
 export default function NotificationsPage() {
   const { token } = useAuth();
   const { markAsRead: markAsReadInContext, markAllAsRead: markAllAsReadInContext } = useNotificationContext();
-  
+
   const [allNotifications, setAllNotifications] = useState<Notification[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [filter, setFilter] = useState<"all" | "unread">("all");
   const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
 
   const fetchNotifications = useCallback(async () => {
@@ -148,10 +150,10 @@ export default function NotificationsPage() {
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
-  
+
   const filteredNotifications = useMemo(() => {
-    if (filter === 'unread') {
-      return allNotifications.filter(n => !n.is_read);
+    if (filter === "unread") {
+      return allNotifications.filter((n) => !n.is_read);
     }
     return allNotifications;
   }, [allNotifications, filter]);
@@ -160,10 +162,10 @@ export default function NotificationsPage() {
     const count = filteredNotifications.length;
     setTotalPages(Math.ceil(count / limit));
     if (currentPage > Math.ceil(count / limit)) {
-        setCurrentPage(1);
+      setCurrentPage(1);
     }
   }, [filteredNotifications, limit, currentPage]);
-  
+
   const paginatedNotifications = useMemo(() => {
     const startIndex = (currentPage - 1) * limit;
     return filteredNotifications.slice(startIndex, startIndex + limit);
@@ -183,18 +185,16 @@ export default function NotificationsPage() {
   };
 
   const handleNotificationRead = (id: number) => {
-    setAllNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-    );
+    setAllNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
     markAsReadInContext(id);
   };
 
   const handleConfirmDelete = async () => {
     if (!token || deleteConfirmationId === null) return;
-    
+
     try {
       await deleteNotification(token, deleteConfirmationId);
-      setAllNotifications((prev) => prev.filter(n => n.id !== deleteConfirmationId));
+      setAllNotifications((prev) => prev.filter((n) => n.id !== deleteConfirmationId));
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error("Failed to delete notification:", err);
@@ -204,8 +204,8 @@ export default function NotificationsPage() {
       setDeleteConfirmationId(null);
     }
   };
-  
-  const unreadCount = useMemo(() => allNotifications.filter(n => !n.is_read).length, [allNotifications]);
+
+  const unreadCount = useMemo(() => allNotifications.filter((n) => !n.is_read).length, [allNotifications]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 md:py-12">
@@ -216,20 +216,24 @@ export default function NotificationsPage() {
 
       <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setFilter('all')}
+          <button
+            onClick={() => setFilter("all")}
             className={cn(
               "px-4 py-2 rounded-lg font-semibold text-sm transition-colors",
-              filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground hover:bg-accent'
+              filter === "all"
+                ? "bg-primary text-primary-foreground"
+                : "bg-transparent text-muted-foreground hover:bg-accent"
             )}
           >
             전체
           </button>
-          <button 
-            onClick={() => setFilter('unread')}
+          <button
+            onClick={() => setFilter("unread")}
             className={cn(
               "px-4 py-2 rounded-lg font-semibold text-sm transition-colors relative",
-              filter === 'unread' ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground hover:bg-accent'
+              filter === "unread"
+                ? "bg-primary text-primary-foreground"
+                : "bg-transparent text-muted-foreground hover:bg-accent"
             )}
           >
             안 읽음
@@ -250,13 +254,13 @@ export default function NotificationsPage() {
       </div>
 
       {deleteConfirmationId !== null && (
-        <ConfirmationPopover 
-            title="알림 삭제"
-            message="이 알림을 영구적으로 삭제하시겠습니까?"
-            confirmText="삭제"
-            cancelText="취소"
-            onConfirm={handleConfirmDelete}
-            onCancel={() => setDeleteConfirmationId(null)}
+        <ConfirmationPopover
+          title="알림 삭제"
+          message="이 알림을 영구적으로 삭제하시겠습니까?"
+          confirmText="삭제"
+          cancelText="취소"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeleteConfirmationId(null)}
         />
       )}
 
@@ -266,19 +270,13 @@ export default function NotificationsPage() {
         </div>
       )}
 
-      {error && (
-        <EmptyState 
-            Icon={AlertCircle}
-            title="오류 발생"
-            description={error}
-        />
-      )}
+      {error && <EmptyState Icon={AlertCircle} title="오류 발생" description={error} />}
 
       {!loading && !error && paginatedNotifications.length === 0 && (
-        <EmptyState 
-            Icon={Bell}
-            title="알림이 없습니다"
-            description={filter === 'unread' ? "모든 알림을 확인했습니다." : "새로운 활동이 없습니다."}
+        <EmptyState
+          Icon={Bell}
+          title="알림이 없습니다"
+          description={filter === "unread" ? "모든 알림을 확인했습니다." : "새로운 활동이 없습니다."}
         />
       )}
 
@@ -296,11 +294,7 @@ export default function NotificationsPage() {
             ))}
           </div>
 
-          <ClientPaginationControls 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          <ClientPaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </>
       )}
     </div>

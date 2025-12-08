@@ -18,7 +18,6 @@ export interface ApiChatMessage {
  * @returns 최신 토픽 목록 (Topic[] 타입)
  */
 export async function getLatestTopics(): Promise<Topic[]> {
-
   try {
     const response = await fetchWrapper(`/api/topics/latest`, {
       method: "GET",
@@ -36,17 +35,13 @@ export async function getLatestTopics(): Promise<Topic[]> {
   }
 }
 
-/**
- * 모든 토픽을 최신순으로 가져옵니다.
- * @returns 모든 토픽 목록 (Topic[] 타입)
- */
 export async function getAllTopics(): Promise<Topic[]> {
   // This function is not used on the main page, so we can leave it or mock it simply
 
   try {
     const response = await fetchWrapper(`/api/topics`, {
       method: "GET",
-      cache: 'no-store', // Disable caching to avoid 2MB limit warning for potentially large lists
+      cache: "no-store", // Disable caching to avoid 2MB limit warning for potentially large lists
     });
     if (!response.ok) {
       console.error("Failed to fetch all topics");
@@ -59,16 +54,11 @@ export async function getAllTopics(): Promise<Topic[]> {
   }
 }
 
-/**
- * 모든 토픽을 인기순으로 가져옵니다.
- * @returns 모든 토픽 목록 (Topic[] 타입)
- */
 export async function getPopularTopicsAll(): Promise<Topic[]> {
-
   try {
     const response = await fetchWrapper(`/api/topics/popular-all`, {
       method: "GET",
-      cache: 'no-store', // Disable caching to avoid 2MB limit warning for potentially large lists
+      cache: "no-store", // Disable caching to avoid 2MB limit warning for potentially large lists
     });
     if (!response.ok) {
       console.error("Failed to fetch all popular topics");
@@ -82,14 +72,12 @@ export async function getPopularTopicsAll(): Promise<Topic[]> {
 }
 
 export async function getTopicDetail(topicId: string, token?: string): Promise<TopicDetail> {
-
-
   const headers: HeadersInit = {};
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
   const response = await fetchWrapper(`/api/topics/${topicId}`, {
-    cache: 'no-store', // Disable caching to avoid 2MB limit warning for potentially large topic details
+    cache: "no-store", // Disable caching to avoid 2MB limit warning for potentially large topic details
     headers: headers,
   });
 
@@ -105,11 +93,14 @@ export async function getTopicDetail(topicId: string, token?: string): Promise<T
     }
     throw new Error(errorMessage);
   }
-  return response.json();
+  const data = await response.json();
+  if (data.articles) {
+    data.articles = data.articles.map((article: Article) => ({ ...article, articleType: "topic" }));
+  }
+  return data;
 }
 
 export async function incrementTopicView(topicId: string): Promise<void> {
-
   try {
     const response = await fetchWrapper(`/api/topics/${topicId}/view`, {
       method: "POST",
@@ -124,7 +115,6 @@ export async function incrementTopicView(topicId: string): Promise<void> {
 }
 
 export async function getPopularTopics(): Promise<Topic[]> {
-
   try {
     const response = await fetchWrapper(`/api/topics/popular-ranking`, { next: { revalidate: 0 } });
     if (!response.ok) {
@@ -173,15 +163,15 @@ export async function getChatHistory(
     }
 
     const rawMessages: RawChatMessage[] = await response.json();
-    
+
     return rawMessages.map((rawMsg: RawChatMessage) => ({
-        id: rawMsg.id,
-        message: rawMsg.content, // 'content' from backend maps to 'message' here
-        created_at: rawMsg.created_at,
-        author: rawMsg.nickname,
-        profile_image_url: rawMsg.profile_image_url,
-        article_preview: rawMsg.article_preview,
-        topic_preview: rawMsg.topic_preview,
+      id: rawMsg.id,
+      message: rawMsg.content, // 'content' from backend maps to 'message' here
+      created_at: rawMsg.created_at,
+      author: rawMsg.nickname,
+      profile_image_url: rawMsg.profile_image_url,
+      article_preview: rawMsg.article_preview,
+      topic_preview: rawMsg.topic_preview,
     }));
   } catch (error) {
     if ((error as Error).message === "Session expired") return [];
@@ -230,7 +220,6 @@ export async function sendChatMessage(
  * @param token The user's authentication token.
  */
 export async function deleteChatMessage(messageId: number, token: string): Promise<void> {
-
   const response = await fetchWrapper(`/api/chat/${messageId}`, {
     method: "DELETE",
     headers: {
@@ -257,7 +246,6 @@ export async function getPresignedUrlForChat(
   fileName: string,
   fileType: string
 ): Promise<{ uploadUrl: string; fileUrl: string }> {
-
   const response = await fetchWrapper(`/api/chat/presigned-url`, {
     method: "POST",
     headers: {
@@ -296,7 +284,6 @@ export async function reportChatMessage(
   reason: string,
   token: string
 ): Promise<{ message: string }> {
-
   const response = await fetchWrapper(`/api/chat/${messageId}/report`, {
     method: "POST",
     headers: {
@@ -323,18 +310,17 @@ export async function reportChatMessage(
  */
 export async function castTopicVote(
   topicId: number,
-  stance: 'LEFT' | 'RIGHT',
+  stance: "LEFT" | "RIGHT",
   token: string
 ): Promise<{ message: string; voteCountLeft?: number; voteCountRight?: number }> {
-
   try {
     // Bypassing fetchWrapper to call the local API route directly
     const response = await fetch(`/api/topics/${topicId}/vote`, {
       method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify({ side: stance }),
     });
@@ -352,4 +338,3 @@ export async function castTopicVote(
     throw new Error("An unknown error occurred during vote casting.");
   }
 }
-

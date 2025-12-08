@@ -1,15 +1,14 @@
 "use client";
 
+import ArticleSaveButton from "@/app/components/ArticleSaveButton";
+import ClientOnlyTime from "@/app/components/common/ClientOnlyTime";
+import Favicon from "@/app/components/common/Favicon";
+import { getCategoryTheme } from "@/lib/categoryColors";
 import { Article } from "@/lib/types/article";
-import { MessageSquare, Eye } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import ArticleSaveButton from "@/app/components/ArticleSaveButton"; // Note: adjusted path
-import ClientOnlyTime from "@/app/components/common/ClientOnlyTime"; // Note: adjusted path
-import Favicon from "@/app/components/common/Favicon"; // Note: adjusted path
-import { getCategoryTheme } from "@/lib/categoryColors"; // To get theme for hover classes
+import Image from "next/image";
+import Link from "next/link";
 
 interface CategoryArticleCardProps {
   article: Article;
@@ -48,11 +47,6 @@ export default function CategoryArticleCard({
     case "hero":
       return (
         <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
-          <div className="absolute top-4 right-4 z-10">
-            {!!token && article.isSaved !== undefined && (
-              <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-            )}
-          </div>
           <div className="relative w-full h-2/3 md:h-3/5 overflow-hidden">
             <Image
               src={thumbnail_url || "/placeholder.png"}
@@ -68,20 +62,20 @@ export default function CategoryArticleCard({
           </div>
           <div className="p-4 flex flex-col justify-between grow">
             <h3
-              className={cn(
-                "font-bold text-xl leading-tight line-clamp-2 mb-2 transition-colors",
-                hoverAccentClasses
-              )}
+              className={cn("font-bold text-xl leading-tight line-clamp-2 mb-2 transition-colors", hoverAccentClasses)}
             >
               {title}
             </h3>
             <p className="text-sm text-muted-foreground line-clamp-3 mb-3 grow">
               {article.description || article.summary}
             </p>
-            <div className="flex items-center text-xs text-muted-foreground">
-              <ClientOnlyTime date={article.published_at} />
-              <span className="mx-2">•</span>
-              <span>{view_count?.toLocaleString() || 0} 조회</span>
+            <div className="flex items-center justify-between mt-auto">
+              <div className="flex items-center text-xs text-muted-foreground">
+                <ClientOnlyTime date={article.published_at} />
+                <span className="mx-2">•</span>
+                <span>{view_count?.toLocaleString() || 0} 조회</span>
+              </div>
+              <ArticleSaveButton isSaved={article.isSaved || false} onClick={handleSaveClick} />
             </div>
           </div>
         </Link>
@@ -89,11 +83,6 @@ export default function CategoryArticleCard({
     case "standard":
       return (
         <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
-          <div className="absolute top-2 right-2 z-10">
-            {!!token && article.isSaved !== undefined && (
-              <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-            )}
-          </div>
           <div className="relative w-full aspect-video overflow-hidden rounded-t-xl">
             <Image
               src={thumbnail_url || "/placeholder.png"}
@@ -114,9 +103,12 @@ export default function CategoryArticleCard({
               {title}
             </h3>
             <p className="text-xs text-muted-foreground line-clamp-3 grow">{article.summary}</p>
-            <div className="flex items-center text-xs text-muted-foreground mt-3">
-              <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
-              <span className="ml-1">{article.source}</span>
+            <div className="flex items-center justify-between mt-3">
+              <div className="flex items-center text-xs text-muted-foreground">
+                <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
+                <span className="ml-1">{article.source}</span>
+              </div>
+              <ArticleSaveButton isSaved={article.isSaved || false} onClick={handleSaveClick} />
             </div>
           </div>
         </Link>
@@ -124,11 +116,6 @@ export default function CategoryArticleCard({
     case "compact":
       return (
         <div className="relative">
-          <div className="absolute top-2 right-2 z-10">
-            {!!token && article.isSaved !== undefined && (
-              <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-            )}
-          </div>
           <Link
             href={article.url}
             target="_blank"
@@ -141,9 +128,12 @@ export default function CategoryArticleCard({
             <h3 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
               {article.title}
             </h3>
-            <div className="flex items-center text-xs text-muted-foreground mt-2">
-              <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
-              <span className="ml-1">{article.source}</span>
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center text-xs text-muted-foreground">
+                <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
+                <span className="ml-1">{article.source}</span>
+              </div>
+              <ArticleSaveButton isSaved={article.isSaved || false} onClick={handleSaveClick} />
             </div>
           </Link>
         </div>
@@ -151,11 +141,6 @@ export default function CategoryArticleCard({
     case "horizontal":
       return (
         <div className="relative">
-          <div className="absolute top-2 right-2 z-10">
-            {!!token && article.isSaved !== undefined && (
-              <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-            )}
-          </div>
           <Link
             href={article.url}
             target="_blank"
@@ -176,9 +161,12 @@ export default function CategoryArticleCard({
               <h3 className={cn("font-bold text-base leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
                 {title}
               </h3>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
-                <span className="ml-1">{source}</span>
+              <div className="flex items-center justify-between mt-1">
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <Favicon src={article.favicon_url || ""} alt={`${article.source} favicon`} size={12} />
+                  <span className="ml-1">{source}</span>
+                </div>
+                <ArticleSaveButton isSaved={article.isSaved || false} onClick={handleSaveClick} />
               </div>
             </div>
           </Link>
@@ -187,11 +175,6 @@ export default function CategoryArticleCard({
     case "title-only":
       return (
         <div className="relative">
-          <div className="absolute top-2 right-2 z-10">
-            {!!token && article.isSaved !== undefined && (
-              <ArticleSaveButton isSaved={article.isSaved} onClick={handleSaveClick} />
-            )}
-          </div>
           <Link
             href={article.url}
             target="_blank"
@@ -201,9 +184,14 @@ export default function CategoryArticleCard({
               hoverBorderClasses
             )}
           >
-            <h3 className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}>
-              {article.title}
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3
+                className={cn("font-semibold text-sm leading-snug line-clamp-2 transition-colors", hoverAccentClasses)}
+              >
+                {article.title}
+              </h3>
+              <ArticleSaveButton isSaved={article.isSaved || false} onClick={handleSaveClick} />
+            </div>
           </Link>
         </div>
       );

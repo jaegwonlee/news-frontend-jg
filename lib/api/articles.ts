@@ -6,10 +6,9 @@
  */
 
 import { Article } from "@/lib/types/article";
+import { SearchResult } from "@/lib/types/search";
 import { ToggleSaveResponse } from "@/lib/types/shared";
 import { fetchWrapper } from "./fetchWrapper";
-import { SearchResult } from "@/lib/types/search";
-
 
 /**
  * @function getBreakingNews
@@ -21,7 +20,7 @@ import { SearchResult } from "@/lib/types/search";
 export async function getBreakingNews(token?: string): Promise<Article[]> {
   const headers: HeadersInit = {};
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const fetchOptions: RequestInit = {
@@ -29,7 +28,7 @@ export async function getBreakingNews(token?: string): Promise<Article[]> {
   };
 
   if (token) {
-    fetchOptions.cache = 'no-store';
+    fetchOptions.cache = "no-store";
   } else {
     fetchOptions.next = { revalidate: 300 }; // 5분마다 캐시 갱신
   }
@@ -37,10 +36,11 @@ export async function getBreakingNews(token?: string): Promise<Article[]> {
   try {
     const res = await fetchWrapper(`/api/articles/breaking?limit=10&offset=0`, fetchOptions);
     if (!res.ok) return []; // API 응답이 실패하면 빈 배열 반환
-    return await res.json();
+    const articles = await res.json();
+    return articles.map((article: Article) => ({ ...article, articleType: "home" }));
   } catch (error) {
     // fetchWrapper에서 'Session expired' 에러를 throw하면, 전역 처리가 이미 되었으므로 빈 배열만 반환합니다.
-    if ((error as Error).message === 'Session expired') return [];
+    if ((error as Error).message === "Session expired") return [];
     console.error("Failed to fetch breaking news:", error);
     return []; // 그 외 다른 에러 발생 시에도 빈 배열 반환
   }
@@ -53,21 +53,19 @@ export async function getBreakingNews(token?: string): Promise<Article[]> {
  * @cache 5분(300초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getExclusiveNews(): Promise<Article[]> {
-
   try {
-    const res = await fetchWrapper(`/api/articles/exclusives?limit=10&offset=0`, { 
-      next: { revalidate: 300 } // 5분마다 캐시 갱신
+    const res = await fetchWrapper(`/api/articles/exclusives?limit=10&offset=0`, {
+      next: { revalidate: 300 }, // 5분마다 캐시 갱신
     });
     if (!res.ok) return [];
-    return await res.json();
+    const articles = await res.json();
+    return articles.map((article: Article) => ({ ...article, articleType: "home" }));
   } catch (error) {
-    if ((error as Error).message === 'Session expired') return [];
+    if ((error as Error).message === "Session expired") return [];
     console.error("Failed to fetch exclusive news:", error);
     return [];
   }
 }
-
-
 
 /**
  * @function getCategoryNews
@@ -79,24 +77,23 @@ export async function getExclusiveNews(): Promise<Article[]> {
  * @returns {Promise<Article[]>} - 해당 카테고리의 기사 객체 배열을 반환하는 프로미스.
  */
 export async function getCategoryNews(categoryName: string, limit?: number, token?: string): Promise<Article[]> {
-
   // 프로덕션 환경에서는 실제 API를 호출합니다.
   const encodedCategoryName = encodeURIComponent(categoryName);
   let apiUrl = `/articles/by-category?name=${encodedCategoryName}`;
-  
+
   if (limit) {
     apiUrl += `&limit=${limit}`;
   }
-  
+
   const headers: HeadersInit = {};
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   try {
     const response = await fetchWrapper(apiUrl, {
-      cache: 'no-store', // 데이터가 2MB를 초과하여 캐시 오류가 발생하므로 캐시를 사용하지 않음
-      headers: headers
+      cache: "no-store", // 데이터가 2MB를 초과하여 캐시 오류가 발생하므로 캐시를 사용하지 않음
+      headers: headers,
     });
     if (!response.ok) {
       if (response.status === 404) {
@@ -106,9 +103,10 @@ export async function getCategoryNews(categoryName: string, limit?: number, toke
         throw new Error(`API 호출 실패 (${categoryName}): ${response.status}`);
       }
     }
-    return await response.json();
+    const articles = await response.json();
+    return articles.map((article: Article) => ({ ...article, articleType: "home" }));
   } catch (error) {
-    if ((error as Error).message === 'Session expired') return [];
+    if ((error as Error).message === "Session expired") return [];
     console.error(`${categoryName} 뉴스 로드 실패:`, error);
     return [];
   }
@@ -135,20 +133,20 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
     const results = await Promise.all(promises);
 
     const allArticles = results.flat(); // 2차원 배열을 1차원 배열로 평탄화
-    
+
     // Map을 이용해 중복 기사 제거 (ID 기준)
     const uniqueArticlesMap = new Map<number, Article>();
     allArticles.forEach((article) => {
       uniqueArticlesMap.set(article.id, article);
     });
-    
+
     const uniqueArticles = Array.from(uniqueArticlesMap.values());
     // 최신순으로 정렬
     uniqueArticles.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 
     return uniqueArticles.slice(0, limit); // 지정된 개수만큼 잘라서 반환
   } catch (error) {
-    if ((error as Error).message === 'Session expired') return [];
+    if ((error as Error).message === "Session expired") return [];
     console.error("최신 뉴스 종합 실패:", error);
     return [];
   }
@@ -163,8 +161,8 @@ export async function getLatestNews(limit: number = 10, token?: string): Promise
 export async function getAllLatestNews(): Promise<Article[]> {
   // This function now uses the mocked getCategoryNews, so it will work automatically.
   const categories = ["정치", "경제", "사회", "문화"];
-  const newsPromises = categories.map(category => 
-    getCategoryNews(category, 50).catch(err => {
+  const newsPromises = categories.map((category) =>
+    getCategoryNews(category, 50).catch((err) => {
       console.error(`Error fetching latest news for category ${category}:`, err);
       return []; // 특정 카테고리 로드 실패 시에도 전체가 실패하지 않도록 빈 배열 반환
     })
@@ -172,19 +170,18 @@ export async function getAllLatestNews(): Promise<Article[]> {
 
   const results = await Promise.all(newsPromises);
   const allArticles = results.flat();
-  
+
   const uniqueArticlesMap = new Map<number, Article>();
   allArticles.forEach((article) => {
     uniqueArticlesMap.set(article.id, article);
   });
 
-  const sortedArticles = Array.from(uniqueArticlesMap.values())
-    .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+  const sortedArticles = Array.from(uniqueArticlesMap.values()).sort(
+    (a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+  );
 
   return sortedArticles;
 }
-
-
 
 /**
  * @function getSearchArticles
@@ -196,25 +193,25 @@ export async function getAllLatestNews(): Promise<Article[]> {
  * @cache 1분(60초) 주기로 ISR을 통해 캐시를 갱신합니다.
  */
 export async function getSearchArticles(q: string, token?: string): Promise<SearchResult> {
-    const encodedQuery = encodeURIComponent(q);
+  const encodedQuery = encodeURIComponent(q);
   const headers: HeadersInit = {};
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
   const response = await fetchWrapper(`/articles/search?q=${encodedQuery}`, {
-    method: 'GET',
+    method: "GET",
     headers: headers,
-    next: { revalidate: 60 } // 1분마다 캐시 갱신
+    next: { revalidate: 60 }, // 1분마다 캐시 갱신
   });
 
   if (!response.ok) {
-    throw new Error('검색 결과를 가져오는데 실패했습니다.');
+    throw new Error("검색 결과를 가져오는데 실패했습니다.");
   }
 
   const data = await response.json();
-  
+
   return {
-    articles: data.articles || [],
+    articles: (data.articles || []).map((article: Article) => ({ ...article, articleType: "home" })),
     relatedTopics: data.relatedTopics || [],
   };
 }
@@ -231,26 +228,26 @@ export async function getSearchArticles(q: string, token?: string): Promise<Sear
  *   중복을 제거하고 '좋아요' 수(`like_count`) 기준으로 내림차순 정렬하여 상위 20개를 반환합니다.
  */
 export async function getPopularNews(category?: string, token?: string): Promise<Article[]> {
-
   // 단일 카테고리에 대한 인기 기사를 가져오는 내부 함수
   const fetchByCategory = async (cat: string): Promise<Article[]> => {
     const url = `/api/articles/popular?category=${encodeURIComponent(cat)}`;
     const headers: HeadersInit = {};
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
     try {
       const response = await fetchWrapper(url, {
-        cache: 'no-store',
+        cache: "no-store",
         headers: headers,
       });
       if (!response.ok) {
         console.error(`API 호출 실패 (인기 기사 - ${cat}): ${response.status}`);
         return [];
       }
-      return await response.json();
+      const articles = await response.json();
+      return articles.map((article: Article) => ({ ...article, articleType: "home" }));
     } catch (error) {
-      if ((error as Error).message === 'Session expired') return [];
+      if ((error as Error).message === "Session expired") return [];
       console.error(`인기 기사 로드 실패 (${cat}):`, error);
       return [];
     }
@@ -280,9 +277,8 @@ export async function getPopularNews(category?: string, token?: string): Promise
     uniqueArticles.sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
 
     return uniqueArticles.slice(0, 20); // 상위 20개 반환
-
   } catch (error) {
-    if ((error as Error).message === 'Session expired') return [];
+    if ((error as Error).message === "Session expired") return [];
     console.error("전체 인기 뉴스 종합 실패:", error);
     return [];
   }
@@ -294,31 +290,47 @@ export async function getPopularNews(category?: string, token?: string): Promise
  * @param {string} token - 사용자 인증 토큰 (필수).
  * @param {number} articleId - 저장할 기사의 ID.
  * @param {boolean} currentIsSaved - 현재 저장 상태. true이면 저장 취소(DELETE), false이면 저장(POST)합니다.
+ * @param {string} articleType - 기사 유형 ('home' | 'topic').
  * @returns {Promise<any>} - 성공 시 API의 응답을 그대로 반환합니다. 204 No Content의 경우 성공 객체를 반환합니다.
  * @throws {Error} - API 호출 실패 시 에러를 발생시킵니다.
  */
-export async function toggleArticleSave(token: string, articleId: number, currentIsSaved: boolean): Promise<ToggleSaveResponse> {
-
-  const method = currentIsSaved ? 'DELETE' : 'POST';
-  const response = await fetchWrapper(`/api/articles/${articleId}/save`, {
+export async function toggleArticleSave(
+  token: string,
+  articleId: number,
+  currentIsSaved: boolean,
+  articleType: "home" | "topic"
+): Promise<ToggleSaveResponse> {
+  const method = currentIsSaved ? "DELETE" : "POST";
+  // DELETE 요청 시에는 query param으로, POST 요청 시에는 body로 articleType을 전달해야 함
+  let url = `/articles/${articleId}/save`;
+  const options: RequestInit = {
     method: method,
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
-  });
+  };
+
+  if (method === "DELETE") {
+    url += `?articleType=${articleType}`;
+  } else {
+    options.body = JSON.stringify({ articleType });
+    // body를 보낼 때는 Content-Type 헤더가 필요할 수 있음 (fetchWrapper가 처리하는지 확인 필요하지만 명시적으로 추가)
+    options.headers = {
+      ...options.headers,
+      "Content-Type": "application/json",
+    };
+  }
+
+  const response = await fetchWrapper(url, options);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(errorData.message || '기사 저장 상태 업데이트에 실패했습니다.');
+    // 409 Conflict is expected when saving an already saved article, treat as success or handle in UI
+    if (response.status === 409 && !currentIsSaved) {
+      throw new Error("이미 저장된 기사입니다.");
+    }
+    throw new Error(errorData.message || "기사 저장/취소에 실패했습니다.");
   }
 
-  // DELETE 요청 성공 시 204 No Content를 반환하는 경우가 많으므로, 이를 처리합니다.
-  if (response.status === 204) {
-    return { success: true };
-  }
-
-    return response.json();
-
-  }
-
-  
+  return response.json();
+}

@@ -1,7 +1,6 @@
-import { formatRelativeTime } from "@/lib/utils";
 import { Topic } from "@/lib/types/topic";
+import { cn, formatRelativeTime } from "@/lib/utils";
 import { ArrowRight, Eye } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface TrendingTopicsProps {
   topics: Topic[];
@@ -70,7 +69,7 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
                 }}
               >
                 <div className={cardClasses}>
-                  <div className="w-8 flex-shrink-0 text-center">
+                  <div className="w-8 shrink-0 text-center">
                     <span className={rankTextClasses}>{isPopular ? rank : "•"}</span>
                   </div>
                   <div className="flex-1 min-w-0">
