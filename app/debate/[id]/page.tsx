@@ -54,15 +54,16 @@ export default function TopicDetailPage() {
     (newVoteCounts: { left: number; right: number }, newUserStance: "LEFT" | "RIGHT") => {
       setVoteCounts(newVoteCounts);
       setUserVoteStance(newUserStance);
+      // Optimistically update topic detail as well if needed
       setTopicDetail((prev) => {
         if (!prev) return null;
         return {
           ...prev,
           topic: {
             ...prev.topic,
+            my_vote: newUserStance,
             vote_count_left: newVoteCounts.left,
             vote_count_right: newVoteCounts.right,
-            my_vote: newUserStance,
           },
         };
       });
@@ -116,10 +117,17 @@ export default function TopicDetailPage() {
               initialVoteCounts={voteCounts}
               userStance={userVoteStance}
               onVoteSuccess={handleVoteSuccess}
+              stanceLeft={topic.stance_left || "찬성"}
+              stanceRight={topic.stance_right || "반대"}
             />
           )}
 
-          <TopicCommentSection topicId={id as string} />
+          <TopicCommentSection
+            topicId={id as string}
+            userVoteStance={userVoteStance}
+            stanceLeft={topic.stance_left || "찬성"}
+            stanceRight={topic.stance_right || "반대"}
+          />
         </main>
 
         {/* Side Panel: Articles with Tabs */}

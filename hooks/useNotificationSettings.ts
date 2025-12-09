@@ -1,8 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/app/context/AuthContext';
-import { getNotificationSettings, updateNotificationSettings } from '@/lib/api';
-import { NotificationSetting, NotificationType } from '@/lib/types/shared';
+import { useAuth } from '../app/context/AuthContext';
+import { getNotificationSettings, updateNotificationSettings } from '../lib/api';
+import { NotificationSetting, NotificationType } from '../lib/types/shared';
 
 const ALL_NOTIFICATION_TYPES: NotificationType[] = [
   "NEW_TOPIC",

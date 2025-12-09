@@ -1,10 +1,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/app/context/AuthContext';
+import { useAuth } from '../app/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { User, UserUpdate } from '@/lib/types/user';
-import { getUserProfile, getAvatars, updateUserProfile } from '@/lib/api';
-import { BACKEND_BASE_URL } from "@/lib/constants";
+import { User, UserUpdate } from '../lib/types/user';
+import { getUserProfile, getAvatars, updateUserProfile } from '../lib/api';
+import { BACKEND_BASE_URL } from "../lib/constants";
 
 export const useUserProfile = () => {
   const { token, logout, login, isLoading: isAuthLoading } = useAuth();

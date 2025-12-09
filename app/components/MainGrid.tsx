@@ -2,10 +2,10 @@
 
 import { Article } from "@/lib/types/article";
 import { Topic, TrendingKeyword } from "@/lib/types/topic";
-import { useTheme } from "next-themes";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import BreakingNewsTabs from "./BreakingNewsTabs";
 import ChatRoom from "./ChatRoom";
 import TrendingKeywords from "./TrendingKeywords";
@@ -19,8 +19,6 @@ interface MainGridProps {
   breakingNews?: Article[];
   exclusiveNews?: Article[];
 }
-
-
 
 export default function MainGrid({
   mainTopic,

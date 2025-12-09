@@ -1,17 +1,17 @@
 "use client";
 
-import { useAuth } from "@/app/context/AuthContext";
-import { toggleArticleSave } from "@/lib/api/articles";
+import { useAuth } from "../app/context/AuthContext";
+import { toggleArticleSave } from "../lib/api/articles";
 import {
   createCategory,
   deleteCategory,
   getCategories,
   updateArticleCategory,
   updateCategory,
-} from "@/lib/api/categories";
-import { getSavedArticles } from "@/lib/api/user";
-import { SavedArticle } from "@/lib/types/article";
-import { SavedArticleCategory } from "@/lib/types/shared";
+} from "../lib/api/categories";
+import { getSavedArticles } from "../lib/api/user";
+import { SavedArticle } from "../lib/types/article";
+import { SavedArticleCategory } from "../lib/types/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export const useSavedArticlesManager = () => {

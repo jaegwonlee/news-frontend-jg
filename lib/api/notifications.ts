@@ -4,8 +4,8 @@
  * 알림 목록 조회, 읽음 처리, 설정 조회 및 수정 등의 기능을 제공합니다.
  */
 
-import { fetchWrapper } from "./fetchWrapper";
 import { Notification as NotificationItem } from "@/lib/types/notification"; // Import from single source of truth
+import { fetchWrapper } from "./fetchWrapper";
 
 export interface PaginatedNotifications {
   notifications: NotificationItem[];
@@ -23,7 +23,11 @@ export interface PaginatedNotifications {
  * @param {number} [limit=10] - 페이지당 알림 개수
  * @returns {Promise<PaginatedNotifications>} 알림 목록과 페이지 정보
  */
-export async function getNotifications(token: string, page: number = 1, limit: number = 10): Promise<PaginatedNotifications> {
+export async function getNotifications(
+  token: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<PaginatedNotifications> {
   const response = await fetchWrapper(`/api/notifications?page=${page}&limit=${limit}`, {
     method: "GET",
     headers: {
@@ -37,11 +41,11 @@ export async function getNotifications(token: string, page: number = 1, limit: n
   }
 
   const data = await response.json();
-  
-  // Map the API response to the frontend Notification type
-  const mappedNotifications = (data.notifications || []).map((notif: NotificationItem) => ({
-    ...notif,
 
+  // Map the API response to the frontend Notification type
+  const mappedNotifications = (data.notifications || []).map((notif: any) => ({
+    ...notif,
+    url: notif.related_url || notif.url || notif.link || notif.metadata?.url || notif.data?.url || "",
   }));
 
   return {

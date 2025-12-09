@@ -34,15 +34,23 @@ export async function getBreakingNews(token?: string): Promise<Article[]> {
   }
 
   try {
-    const res = await fetchWrapper(`/api/articles/breaking?limit=5&offset=0`, fetchOptions);
-    if (!res.ok) return []; // API 응답이 실패하면 빈 배열 반환
+    const res = await fetchWrapper(`/articles/breaking?limit=5&offset=0`, fetchOptions);
+    console.log("getBreakingNews - API Response Status:", res.status, "OK:", res.ok);
+    if (!res.ok) {
+      console.error("getBreakingNews - API Response not OK:", res.status, res.statusText);
+      return []; // API 응답이 실패하면 빈 배열 반환
+    }
     const articles = await res.json();
-    return articles.map((article: Article) => ({ ...article, articleType: "home" }));
+    console.log("getBreakingNews - Parsed Articles:", articles);
+    const sortedArticles = articles
+      .map((article: Article) => ({ ...article, articleType: "home" }))
+      .sort((a: Article, b: Article) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+
+    return sortedArticles;
   } catch (error) {
-    // fetchWrapper에서 'Session expired' 에러를 throw하면, 전역 처리가 이미 되었으므로 빈 배열만 반환합니다.
     if ((error as Error).message === "Session expired") return [];
-    console.error("Failed to fetch breaking news:", error);
-    return []; // 그 외 다른 에러 발생 시에도 빈 배열 반환
+    console.error("getBreakingNews - Failed to fetch breaking news:", error);
+    return [];
   }
 }
 
@@ -54,15 +62,23 @@ export async function getBreakingNews(token?: string): Promise<Article[]> {
  */
 export async function getExclusiveNews(): Promise<Article[]> {
   try {
-    const res = await fetchWrapper(`/api/articles/exclusives?limit=10&offset=0`, {
+    const res = await fetchWrapper(`/articles/exclusives?limit=5&offset=0`, {
       next: { revalidate: 300 }, // 5분마다 캐시 갱신
     });
-    if (!res.ok) return [];
+    console.log("getExclusiveNews - API Response Status:", res.status, "OK:", res.ok);
+    if (!res.ok) {
+      console.error("getExclusiveNews - API Response not OK:", res.status, res.statusText);
+      return [];
+    }
     const articles = await res.json();
-    return articles.map((article: Article) => ({ ...article, articleType: "home" }));
+    console.log("getExclusiveNews - Parsed Articles:", articles);
+    const sortedArticles = articles
+      .map((article: Article) => ({ ...article, articleType: "home" }))
+      .sort((a: Article, b: Article) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+    return sortedArticles;
   } catch (error) {
     if ((error as Error).message === "Session expired") return [];
-    console.error("Failed to fetch exclusive news:", error);
+    console.error("getExclusiveNews - Failed to fetch exclusive news:", error);
     return [];
   }
 }
@@ -230,7 +246,7 @@ export async function getSearchArticles(q: string, token?: string): Promise<Sear
 export async function getPopularNews(category?: string, token?: string): Promise<Article[]> {
   // 단일 카테고리에 대한 인기 기사를 가져오는 내부 함수
   const fetchByCategory = async (cat: string): Promise<Article[]> => {
-    const url = `/api/articles/popular?category=${encodeURIComponent(cat)}`;
+    const url = `/articles/popular?category=${encodeURIComponent(cat)}`;
     const headers: HeadersInit = {};
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;

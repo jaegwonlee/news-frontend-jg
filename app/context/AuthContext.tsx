@@ -4,8 +4,6 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useCa
 import { User } from '@/lib/types/user';
 import { addSessionExpiredListener } from '@/lib/api/fetchWrapper';
 
-const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true'; // Set to true to use mock data in AuthContext
-
 // Helper function to decode JWT
 const parseJwt = (token: string) => {
   try {
@@ -48,14 +46,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (storedToken) {
         let isValidToken = false;
         
-        if (USE_MOCKS && storedToken.startsWith('mock-jwt-token')) {
-            isValidToken = true; // Mock token is always valid for development
-            console.log("--- AuthContext: Using Mock Token from localStorage ---");
-        } else {
-            const decodedToken = parseJwt(storedToken);
-            if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
-                isValidToken = true;
-            }
+        const decodedToken = parseJwt(storedToken);
+        if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
+            isValidToken = true;
         }
 
         if (isValidToken) {
@@ -78,13 +71,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const storedToken = localStorage.getItem('authToken');
       if (storedToken) {
         let isValidToken = false;
-        if (USE_MOCKS && storedToken.startsWith('mock-jwt-token')) {
-            isValidToken = true; // Mock token is always valid for development
-        } else {
-            const decodedToken = parseJwt(storedToken);
-            if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
-                isValidToken = true;
-            }
+        const decodedToken = parseJwt(storedToken);
+        if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
+            isValidToken = true;
         }
         if (!isValidToken) {
           logout();
@@ -103,14 +92,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (newToken: string, newUser: User) => {
     let isValidToken = false;
 
-    if (USE_MOCKS && newToken.startsWith('mock-jwt-token')) {
-        isValidToken = true; // Mock token is always valid for development
-        console.log("--- AuthContext: Mock Login successful ---");
-    } else {
-        const decodedToken = parseJwt(newToken);
-        if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
-            isValidToken = true;
-        }
+    const decodedToken = parseJwt(newToken);
+    if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
+        isValidToken = true;
     }
 
     if (isValidToken) {

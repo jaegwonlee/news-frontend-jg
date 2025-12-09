@@ -1,25 +1,11 @@
-'use client';
+"use client";
 
-import Link from "next/link";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import React, { useState, useEffect } from "react";
+import Link from "next/link";
 
 const Footer = () => {
-  const { theme } = useTheme();
-
-  const isDarkMode = theme === "dark";
-  const footerTextColor = isDarkMode ? "#ffffff" : "#000000";
-  const footerBorderColor = isDarkMode ? "#27272a" : "#e5e5e5";
-
   return (
-    <footer
-      className={cn(
-        "w-full mt-24",
-        "bg-carbon-fiber" // Apply carbon fiber unconditionally
-      )}
-      style={{ color: footerTextColor }}
-    >
+    <footer className={cn("w-full mt-24", "bg-carbon-fiber", "text-black dark:text-white")}>
       <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -87,7 +73,7 @@ const Footer = () => {
             <p className="text-muted-foreground">최신 뉴스와 심도 있는 토론을 한 곳에서 만나보세요.</p>
           </div>
         </div>
-        <div className="mt-2 pt-2 border-t text-center" style={{borderColor: footerBorderColor}}>
+        <div className="mt-2 pt-2 border-t text-center border-[#e5e5e5] dark:border-[#27272a]">
           <p className="text-muted-foreground">&copy; {new Date().getFullYear()} Gemini News. All rights reserved.</p>
         </div>
       </div>

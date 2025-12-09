@@ -31,6 +31,7 @@ const NotificationItem = ({
   const router = useRouter();
 
   const handleNotificationClick = () => {
+    // console.log("Notification clicked:", notification);
     onClosePanel();
     if (notification.url) {
       router.push(notification.url);

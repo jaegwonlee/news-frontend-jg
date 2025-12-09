@@ -317,13 +317,10 @@ export async function castTopicVote(
   token: string
 ): Promise<{ message: string; voteCountLeft?: number; voteCountRight?: number }> {
   try {
-    // Bypassing fetchWrapper to call the local API route directly
-    const response = await fetch(`/api/topics/${topicId}/vote`, {
+    const response = await fetchWrapper(`/api/topics/${topicId}/stance-vote`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
       },
       body: JSON.stringify({ side: stance }),
     });

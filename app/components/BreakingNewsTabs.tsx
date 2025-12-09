@@ -4,7 +4,7 @@ import { Article } from "@/lib/types/article";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Star } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState, useMemo } from "react";
+import { useState } from "react";
 import ArticleCard from "./ArticleCard";
 
 interface BreakingNewsTabsProps {
@@ -16,24 +16,16 @@ export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = []
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
   const [activeTab, setActiveTab] = useState<"breaking" | "exclusive">("breaking");
-  
-  const currentArticles = useMemo(() => {
-    return activeTab === "breaking" ? breakingNews : exclusiveNews;
-  }, [activeTab, breakingNews, exclusiveNews]);
 
-  const [articles, setArticles] = useState<Article[]>(currentArticles);
-
-  useEffect(() => {
-    setArticles(currentArticles);
-  }, [currentArticles]);
+  const currentArticles = activeTab === "breaking" ? breakingNews : exclusiveNews;
 
   const handleSaveToggle = (updatedArticle: Article) => {
-    setArticles(prevArticles => 
-      prevArticles.map(a => a.id === updatedArticle.id ? updatedArticle : a)
-    );
+    // The `isSaved` state is managed within ArticleCard itself.
+    // If the parent needs to react to a save toggle, a prop should be passed to update parent state.
+    // For now, this function is a no-op for internal state updates here.
   };
 
-  const displayArticles = articles;
+  const displayArticles = currentArticles;
 
   return (
     <div className="flex flex-col h-full">
@@ -47,7 +39,11 @@ export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = []
               <Star className="w-5 h-5 text-blue-500" />
             )}
             <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>
-              {activeTab === "breaking" ? <span className="text-red-500">속보</span> : <span className="text-blue-500">단독</span>}
+              {activeTab === "breaking" ? (
+                <span className="text-red-500">속보</span>
+              ) : (
+                <span className="text-blue-500">단독</span>
+              )}
             </h2>
           </div>
           <div className="flex items-center space-x-2">
@@ -85,14 +81,11 @@ export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = []
             {activeTab === "breaking" ? "속보 뉴스가 없습니다." : "단독 뉴스가 없습니다."}
           </p>
         ) : (
-          displayArticles.slice(0, 5).map((article) => (
-            <ArticleCard 
-              key={article.id}
-              article={article}
-              variant="compact"
-              onSaveToggle={handleSaveToggle}
-            />
-          ))
+          displayArticles
+            .slice(0, 5)
+            .map((article) => (
+              <ArticleCard key={article.id} article={article} variant="compact" onSaveToggle={handleSaveToggle} />
+            ))
         )}
       </div>
     </div>

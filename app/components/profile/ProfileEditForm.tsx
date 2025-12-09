@@ -4,7 +4,8 @@ import { User } from '@/lib/types/user';
 import FormField from '@/app/components/auth/FormField';
 import { useSavedArticlesManager } from '@/hooks/useSavedArticles';
 import { Bookmark, User as UserIcon, Phone, Edit3 } from 'lucide-react';
-import ProfileTabButton from './TabButton'; // Import the new ProfileTabButton
+import TabButton from '../common/TabButton';
+import { Button } from '../common/Button';
 
 interface ProfileEditFormProps {
   profile: User;
@@ -85,8 +86,24 @@ export default function ProfileEditForm({
 
       {/* Inner Tab Switcher */}
       <div className="flex justify-center my-8 p-1 bg-card rounded-full">
-        <ProfileTabButton tab="info" label="프로필 정보" activeTab={innerTab} onClick={setInnerTab} />
-        <ProfileTabButton tab="activity" label="나의 활동" activeTab={innerTab} onClick={setInnerTab} />
+        <TabButton
+          id="info"
+          label="프로필 정보"
+          activeId={innerTab}
+          onClick={setInnerTab}
+          baseClassName="px-6 py-2.5 text-sm font-bold rounded-full transition-all duration-300"
+          activeClassName="bg-red-600 text-white"
+          inactiveClassName="bg-card text-muted-foreground hover:bg-muted"
+        />
+        <TabButton
+          id="activity"
+          label="나의 활동"
+          activeId={innerTab}
+          onClick={setInnerTab}
+          baseClassName="px-6 py-2.5 text-sm font-bold rounded-full transition-all duration-300"
+          activeClassName="bg-red-600 text-white"
+          inactiveClassName="bg-card text-muted-foreground hover:bg-muted"
+        />
       </div>
 
       {/* Tab Content */}
@@ -141,12 +158,12 @@ export default function ProfileEditForm({
       
       {/* Global Action Buttons */}
       <div className="flex justify-end gap-4 pt-8 mt-8 border-t border-zinc-700">
-        <button type="button" onClick={onCancelEdit} className="px-6 py-3 text-sm font-semibold text-white bg-muted rounded-lg hover:bg-zinc-700 transition-colors">
+        <Button type="button" variant="secondary" onClick={onCancelEdit} className="px-6 py-3 text-sm font-semibold rounded-lg">
           취소
-        </button>
-        <button form="profile-form" type="submit" disabled={isUpdating} className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-muted transition-colors">
+        </Button>
+        <Button form="profile-form" type="submit" disabled={isUpdating} className="px-6 py-3 text-sm font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white">
           {isUpdating ? "저장 중..." : "변경사항 저장"}
-        </button>
+        </Button>
       </div>
        {error && (
         <div className="mt-4 text-red-400 text-sm text-center p-3 bg-red-900/50 rounded-md">{error}</div>

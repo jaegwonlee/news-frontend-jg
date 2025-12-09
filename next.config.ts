@@ -57,18 +57,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "img.megazonesoft.com",
       },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com", // 목업 데이터용 Unsplash 이미지
-      },
-      {
-        protocol: "https",
-        hostname: "picsum.photos", // 목업 데이터용 picsum.photos 이미지
-      },
-      {
-        protocol: "https",
-        hostname: "via.placeholder.com", // 목업 데이터용 via.placeholder.com 이미지
-      },
+
       {
         protocol: "https",
         hostname: "*.yna.co.kr", // 연합뉴스 이미지 (와일드카드 서브도메인)

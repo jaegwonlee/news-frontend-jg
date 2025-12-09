@@ -106,7 +106,7 @@ export default function EditCategoryModal({ category, articlesInCategory, uncate
             {/* Right Side: Articles to Remove */}
             <div>
               <h3 className="text-base md:text-lg font-semibold text-white mb-3">현재 포함된 기사 ({articlesInCategory.length})</h3>
-              <div className="bg-card/50 rounded-lg p-2 md:p-3 border border-border h-48 md:h-[20.5rem] overflow-y-auto space-y-2">
+              <div className="bg-card/50 rounded-lg p-2 md:p-3 border border-border h-48 md:h-82 overflow-y-auto space-y-2">
                 {articlesInCategory.length > 0 ? (
                   articlesInCategory.map(article => (
                     <ArticleItem key={article.saved_article_id} article={article} onToggle={toggleArticleToRemove} isSelected={articlesToRemove.includes(article.saved_article_id!)} action="remove" />

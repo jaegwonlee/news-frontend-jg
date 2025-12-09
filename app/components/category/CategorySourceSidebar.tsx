@@ -20,7 +20,7 @@ export default function CategorySourceSidebar({
   categoryTheme,
 }: CategorySourceSidebarProps) {
   return (
-    <div className="w-56 flex-shrink-0 pr-6 border-r border-border/50 hidden lg:block"> {/* Hidden on small screens */}
+    <div className="w-56 shrink-0 pr-6 border-r border-border/50 hidden lg:block"> {/* Hidden on small screens */}
       <h3 className="text-lg font-bold text-foreground mb-4">언론사 필터</h3>
       <nav className="flex flex-col space-y-2">
         {sources.map((source) => (

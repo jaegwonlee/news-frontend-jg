@@ -66,7 +66,7 @@ export default function ManageCategoriesModal({ categories, onClose, onCreate, o
               onChange={(e) => setCreateCategoryName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
               placeholder="새 카테고리 이름..."
-              className="flex-grow bg-input text-foreground px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="grow bg-input text-foreground px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button onClick={handleCreateCategory} className="p-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-zinc-700 disabled:cursor-not-allowed" disabled={!createCategoryName.trim() || loadingState?.type === 'create'}>
               {loadingState?.type === 'create' ? <Loader size={18} className="animate-spin" /> : <Plus size={18} />}
@@ -83,7 +83,7 @@ export default function ManageCategoriesModal({ categories, onClose, onCreate, o
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveRename(cat.id)}
-                  className="flex-grow bg-input text-foreground px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="grow bg-input text-foreground px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   autoFocus
                 />
               ) : (

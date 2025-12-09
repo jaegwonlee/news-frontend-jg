@@ -12,6 +12,9 @@ export interface Comment {
   parent_id?: number | null; // Mapped from API's parent_comment_id
   stance?: "LEFT" | "RIGHT" | "NEUTRAL"; // For topic comments
   children?: Comment[]; // Mapped from API's replies
+  like_count?: number;
+  dislike_count?: number;
+  my_reaction?: "LIKE" | "DISLIKE" | null;
 }
 
 // Interface for raw API comment response, including nested replies
