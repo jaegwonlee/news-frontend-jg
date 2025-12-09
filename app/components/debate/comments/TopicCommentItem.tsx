@@ -92,11 +92,11 @@ export default function TopicCommentItem({
   return (
     <div className={`relative ${level > 0 ? "mt-4" : ""}`}>
       {/* Connector Line for replies */}
-      {level > 0 && <div className="absolute top-0 -left-4 w-4 h-[1px] bg-border" />}
+      {level > 0 && <div className="absolute top-0 -left-4 w-4 h-px bg-border" />}
 
       <div className={`flex gap-4 group ${level > 0 ? "ml-4" : ""}`}>
         {/* Avatar */}
-        <div className="flex-shrink-0 pt-1">
+        <div className="shrink-0 pt-1">
           <Image
             src={getFullImageUrl(comment.profile_image_url)}
             alt={comment.author_name}

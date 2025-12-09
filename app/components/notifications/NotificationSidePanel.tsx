@@ -2,6 +2,7 @@
 "use client";
 
 import ConfirmationPopover from "@/app/components/common/ConfirmationPopover";
+import Favicon from "@/app/components/common/Favicon";
 import { useAuth } from "@/app/context/AuthContext";
 import { useNotifications as useNotificationContext } from "@/app/context/NotificationContext";
 import { deleteNotification, getNotifications, markAllAsRead, markAsRead } from "@/lib/api/notifications";
@@ -99,12 +100,11 @@ const NotificationItem = ({
         <p className="text-sm font-medium text-foreground line-clamp-3 pr-4">{notification.message}</p>
         <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
           {notification.metadata?.source_domain && (
-            <Image
+            <Favicon
               src={`https://www.google.com/s2/favicons?domain=${notification.metadata.source_domain}&sz=16`}
               alt=""
-              width={16} // Explicit width
-              height={16} // Explicit height
-              className="w-4 h-4"
+              size={16}
+              className="w-4 h-4 rounded-sm"
             />
           )}
           {notification.metadata?.source && (

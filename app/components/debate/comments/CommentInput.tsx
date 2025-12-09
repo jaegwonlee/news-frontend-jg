@@ -53,7 +53,7 @@ export default function CommentInput({
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-4 items-start">
-      <div className="flex-shrink-0 pt-1">
+      <div className="shrink-0 pt-1">
         <Image
           src={user.profile_image_url || "/user-placeholder.svg"}
           alt={user.nickname || "user"}
@@ -62,8 +62,8 @@ export default function CommentInput({
           className="rounded-full border border-border/50 shadow-sm"
         />
       </div>
-      <div className="flex-grow group relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-focus-within:opacity-100 rounded-xl transition-opacity pointer-events-none" />
+      <div className="grow group relative">
+        <div className="absolute inset-0 bg-linear-to-b from-primary/5 to-transparent opacity-0 group-focus-within:opacity-100 rounded-xl transition-opacity pointer-events-none" />
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}

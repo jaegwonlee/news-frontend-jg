@@ -11,7 +11,6 @@ export default function DebateArenaPage() {
   const [allTopics, setAllTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   // Sort state is kept, but popularity sort is removed. Defaulting to 'latest'.
-  const [sortBy, setSortBy] = useState<"latest">("latest");
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -38,7 +37,7 @@ export default function DebateArenaPage() {
     // Sorting logic is simplified as popularity data is no longer available.
     // The component will always sort by latest.
     processedTopics.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
-    
+
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const ongoingTopics = processedTopics.filter((t) => new Date(t.published_at) > sevenDaysAgo);
     const pastTopics = processedTopics.filter((t) => new Date(t.published_at) <= sevenDaysAgo);
@@ -78,7 +77,7 @@ export default function DebateArenaPage() {
         </header>
 
         {/* Filter and Sort Controls are removed as their functionality depended on mock data */}
-        
+
         {/* Featured Debate (Center Stage) */}
         {featured && (
           <section className="mb-16">

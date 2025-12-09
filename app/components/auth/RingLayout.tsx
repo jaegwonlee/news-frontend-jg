@@ -19,34 +19,34 @@ const RingLayout: React.FC<RingLayoutProps> = ({ children, title }) => {
         {/* We create a 'cage' effect using absolute positioned lines around the content */}
         <div className="absolute -inset-4 pointer-events-none hidden sm:block">
           {/* Top Rope (Red) */}
-          <div className="absolute top-0 left-2 right-2 h-3 bg-gradient-to-b from-red-500 to-red-700 rounded-full shadow-md z-20"></div>
+          <div className="absolute top-0 left-2 right-2 h-3 bg-linear-to-b from-red-500 to-red-700 rounded-full shadow-md z-20"></div>
 
           {/* Middle Rope REMOVED as per user request */}
 
           {/* Bottom Rope (Blue) */}
-          <div className="absolute bottom-0 left-2 right-2 h-3 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full shadow-md z-20"></div>
+          <div className="absolute bottom-0 left-2 right-2 h-3 bg-linear-to-b from-blue-500 to-blue-700 rounded-full shadow-md z-20"></div>
 
           {/* Left Side Ropes (Vertical connectors) */}
-          <div className="absolute top-2 bottom-2 left-0 w-3 bg-gradient-to-b from-neutral-300 to-neutral-400 rounded-full shadow-md z-10"></div>
+          <div className="absolute top-2 bottom-2 left-0 w-3 bg-linear-to-b from-neutral-300 to-neutral-400 rounded-full shadow-md z-10"></div>
           {/* Right Side Ropes */}
-          <div className="absolute top-2 bottom-2 right-0 w-3 bg-gradient-to-b from-neutral-300 to-neutral-400 rounded-full shadow-md z-10"></div>
+          <div className="absolute top-2 bottom-2 right-0 w-3 bg-linear-to-b from-neutral-300 to-neutral-400 rounded-full shadow-md z-10"></div>
         </div>
 
         {/* --- CORNER PADS (Turnbuckles) --- */}
         {/* Top Left - Red */}
-        <div className="absolute -top-6 -left-6 w-12 h-12 bg-red-600 rounded-lg shadow-lg z-30 flex items-center justify-center border-2 border-red-800 hidden sm:flex">
+        <div className="absolute -top-6 -left-6 w-12 h-12 bg-red-600 rounded-lg shadow-lg z-30 items-center justify-center border-2 border-red-800 hidden sm:flex">
           <div className="w-8 h-8 rounded-full border-2 border-red-400/50"></div>
         </div>
         {/* Top Right - Red */}
-        <div className="absolute -top-6 -right-6 w-12 h-12 bg-red-600 rounded-lg shadow-lg z-30 flex items-center justify-center border-2 border-red-800 hidden sm:flex">
+        <div className="absolute -top-6 -right-6 w-12 h-12 bg-red-600 rounded-lg shadow-lg z-30 items-center justify-center border-2 border-red-800 hidden sm:flex">
           <div className="w-8 h-8 rounded-full border-2 border-red-400/50"></div>
         </div>
         {/* Bottom Left - Blue */}
-        <div className="absolute -bottom-6 -left-6 w-12 h-12 bg-blue-600 rounded-lg shadow-lg z-30 flex items-center justify-center border-2 border-blue-800 hidden sm:flex">
+        <div className="absolute -bottom-6 -left-6 w-12 h-12 bg-blue-600 rounded-lg shadow-lg z-30 items-center justify-center border-2 border-blue-800 hidden sm:flex">
           <div className="w-8 h-8 rounded-full border-2 border-blue-400/50"></div>
         </div>
         {/* Bottom Right - Blue */}
-        <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-blue-600 rounded-lg shadow-lg z-30 flex items-center justify-center border-2 border-blue-800 hidden sm:flex">
+        <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-blue-600 rounded-lg shadow-lg z-30 items-center justify-center border-2 border-blue-800 hidden sm:flex">
           <div className="w-8 h-8 rounded-full border-2 border-blue-400/50"></div>
         </div>
 
@@ -60,7 +60,7 @@ const RingLayout: React.FC<RingLayoutProps> = ({ children, title }) => {
             <div className="text-center mb-4">
               <h1 className="text-3xl font-black text-foreground uppercase tracking-tighter">{title}</h1>
               {/* Divider Line */}
-              <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent mt-4"></div>
+              <div className="w-full h-px bg-linear-to-r from-transparent via-border to-transparent mt-4"></div>
             </div>
 
             {/* Form Content */}

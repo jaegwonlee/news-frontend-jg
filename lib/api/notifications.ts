@@ -43,7 +43,7 @@ export async function getNotifications(
   const data = await response.json();
 
   // Map the API response to the frontend Notification type
-  const mappedNotifications = (data.notifications || []).map((notif: any) => ({
+  const mappedNotifications = (data.notifications || []).map((notif: Record<string, any>) => ({
     ...notif,
     url: notif.related_url || notif.url || notif.link || notif.metadata?.url || notif.data?.url || "",
   }));
