@@ -194,11 +194,15 @@ export async function sendChatMessage(
   topicId: number,
   content: string,
   token: string,
-  topicPreview?: TopicPreview | null // Add optional topicPreview parameter
+  topicPreview?: TopicPreview | null,
+  articlePreview?: Article | null
 ): Promise<ApiChatMessage> {
-  const body: { content: string; topic_preview?: TopicPreview | null } = { content };
+  const body: { content: string; topic_preview?: TopicPreview | null; article_preview?: Article | null } = { content };
   if (topicPreview) {
     body.topic_preview = topicPreview;
+  }
+  if (articlePreview) {
+    body.article_preview = articlePreview;
   }
 
   const response = await fetchWrapper(`/api/topics/${topicId}/chat`, {

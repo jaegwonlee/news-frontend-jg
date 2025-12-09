@@ -23,8 +23,6 @@ export default function CategoryArticleCard({
   handleSaveToggle,
   categoryTheme,
 }: CategoryArticleCardProps) {
-
-
   const { title, thumbnail_url, source, view_count } = article;
 
   const commonClasses = cn(
@@ -40,10 +38,22 @@ export default function CategoryArticleCard({
     handleSaveToggle(article);
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("application/json", JSON.stringify({ type: "article", ...article }));
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
   switch (variant) {
     case "hero":
       return (
-        <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
+        <Link
+          href={article.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={commonClasses}
+          draggable
+          onDragStart={handleDragStart}
+        >
           <div className="relative w-full h-2/3 md:h-3/5 overflow-hidden">
             <Image
               src={thumbnail_url || "/placeholder.png"}
@@ -78,7 +88,14 @@ export default function CategoryArticleCard({
       );
     case "standard":
       return (
-        <Link href={article.url} target="_blank" rel="noopener noreferrer" className={commonClasses}>
+        <Link
+          href={article.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={commonClasses}
+          draggable
+          onDragStart={handleDragStart}
+        >
           <div className="relative w-full aspect-video overflow-hidden rounded-t-xl">
             <Image
               src={thumbnail_url || "/placeholder.png"}
@@ -110,7 +127,7 @@ export default function CategoryArticleCard({
       );
     case "compact":
       return (
-        <div className="relative">
+        <div className="relative" draggable onDragStart={handleDragStart}>
           <Link
             href={article.url}
             target="_blank"
@@ -136,7 +153,7 @@ export default function CategoryArticleCard({
       );
     case "horizontal":
       return (
-        <div className="relative">
+        <div className="relative" draggable onDragStart={handleDragStart}>
           <Link
             href={article.url}
             target="_blank"
@@ -171,7 +188,7 @@ export default function CategoryArticleCard({
       );
     case "title-only":
       return (
-        <div className="relative">
+        <div className="relative" draggable onDragStart={handleDragStart}>
           <Link
             href={article.url}
             target="_blank"

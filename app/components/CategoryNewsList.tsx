@@ -1,27 +1,22 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { getCategoryNews } from "@/lib/api/articles"; // Import getCategoryNews
 import { DEFAULT_FAVICON_URL, FAVICON_URLS } from "@/lib/constants";
-import { formatRelativeTime } from "@/lib/utils";
 import { Article } from "@/lib/types/article";
+import { formatRelativeTime } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
-import ClientPaginationControls from './common/ClientPaginationControls';
-import LoadingSpinner from './common/LoadingSpinner';
-import { getCategoryNews } from '@/lib/api/articles'; // Import getCategoryNews
+import { useEffect, useMemo, useState } from "react";
+import ClientPaginationControls from "./common/ClientPaginationControls";
+import Favicon from "./common/Favicon"; // Import Favicon
+import LoadingSpinner from "./common/LoadingSpinner";
 
 const ARTICLES_PER_PAGE = 20;
 
-export default function CategoryNewsList({
-  categoryName,
-  className,
-}: {
-  categoryName: string;
-  className?: string;
-}) {
+export default function CategoryNewsList({ categoryName, className }: { categoryName: string; className?: string }) {
   const [newsList, setNewsList] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedSource, setSelectedSource] = useState<string | 'all'>('all');
+  const [selectedSource, setSelectedSource] = useState<string | "all">("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -36,15 +31,15 @@ export default function CategoryNewsList({
   }, [categoryName]);
 
   const sources = useMemo(() => {
-    const sourceSet = new Set(newsList.map(news => news.source));
-    return ['all', ...Array.from(sourceSet)];
+    const sourceSet = new Set(newsList.map((news) => news.source));
+    return ["all", ...Array.from(sourceSet)];
   }, [newsList]);
 
   const filteredNews = useMemo(() => {
-    if (selectedSource === 'all') {
+    if (selectedSource === "all") {
       return newsList;
     }
-    return newsList.filter(news => news.source === selectedSource);
+    return newsList.filter((news) => news.source === selectedSource);
   }, [newsList, selectedSource]);
 
   const totalPages = Math.ceil(filteredNews.length / ARTICLES_PER_PAGE);
@@ -57,7 +52,7 @@ export default function CategoryNewsList({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -73,7 +68,7 @@ export default function CategoryNewsList({
       ) : (
         <>
           <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-            {sources.map(source => (
+            {sources.map((source) => (
               <button
                 key={source}
                 onClick={() => {
@@ -81,11 +76,10 @@ export default function CategoryNewsList({
                   setCurrentPage(1);
                 }}
                 className={`px-3 py-1 text-sm rounded-full whitespace-nowrap transition-colors ${
-                  selectedSource === source
-                    ? 'bg-red-600 text-white'
-                    : 'bg-muted text-foreground hover:bg-muted'
-                }`}>
-                {source === 'all' ? '전체' : source}
+                  selectedSource === source ? "bg-red-600 text-white" : "bg-muted text-foreground hover:bg-muted"
+                }`}
+              >
+                {source === "all" ? "전체" : source}
               </button>
             ))}
           </div>
@@ -93,7 +87,8 @@ export default function CategoryNewsList({
           <div className="space-y-6 min-h-[500px]">
             {paginatedArticles.length > 0 ? (
               paginatedArticles.map((news) => {
-                const faviconUrl = FAVICON_URLS[news.source_domain || ""] || DEFAULT_FAVICON_URL(news.source_domain || "");
+                const faviconUrl =
+                  FAVICON_URLS[news.source_domain || ""] || DEFAULT_FAVICON_URL(news.source_domain || "");
 
                 return (
                   <article key={news.id} className="flex flex-col md:flex-row gap-4 group">
@@ -112,22 +107,18 @@ export default function CategoryNewsList({
                     </div>
 
                     <div className="flex flex-col flex-1">
-                      <Link 
-                        href={news.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                      >
-                        <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:underline">{news.title}</h3>
+                      <Link href={news.url} target="_blank" rel="noopener noreferrer">
+                        <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:underline">
+                          {news.title}
+                        </h3>
                       </Link>
                       <div className="flex items-center text-xs text-muted-foreground mt-auto pt-2">
                         {faviconUrl && (
-                          <Image
+                          <Favicon
                             src={faviconUrl}
                             alt={`${news.source} 파비콘`}
-                            width={16}
-                            height={16}
+                            size={16}
                             className="mr-1.5 rounded"
-                            unoptimized
                           />
                         )}
                         <span>{news.source}</span>
@@ -140,13 +131,13 @@ export default function CategoryNewsList({
               })
             ) : (
               <p className="text-muted-foreground text-center py-10">
-                {selectedSource === 'all' 
-                  ? '해당 카테고리에 뉴스가 없습니다.' 
+                {selectedSource === "all"
+                  ? "해당 카테고리에 뉴스가 없습니다."
                   : `'${selectedSource}' 출처의 뉴스가 없습니다.`}
               </p>
             )}
           </div>
-          
+
           {totalPages > 1 && (
             <ClientPaginationControls
               currentPage={currentPage}

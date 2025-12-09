@@ -1,16 +1,58 @@
-"use client";
-
 import { Article } from "@/lib/types/article";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Star } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useState } from "react";
-import ArticleCard from "./ArticleCard";
+import Favicon from "./common/Favicon"; // Import Favicon
 
 interface BreakingNewsTabsProps {
   breakingNews?: Article[];
   exclusiveNews?: Article[];
 }
+
+const ArticleItem = ({ article, type }: { article: Article; type: "breaking" | "exclusive" }) => {
+  // Remove existing [속보], [단독], (속보), (단독) etc from the title to avoid duplication
+  const cleanedTitle = article.title
+    .replace(/^\[(속보|단독)\]\s*/, "")
+    .replace(/^\((속보|단독)\)\s*/, "")
+    .trim();
+
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("application/json", JSON.stringify({ type: "article", ...article }));
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
+  return (
+    <a
+      href={article.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-3 group p-2 rounded-lg hover:bg-accent transition-colors bg-card"
+      draggable
+      onDragStart={handleDragStart}
+    >
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+          <span className={cn("mr-1.5", type === "breaking" ? "text-red-500" : "text-blue-500")}>
+            [{type === "breaking" ? "속보" : "단독"}]
+          </span>
+          {cleanedTitle}
+        </p>
+        <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
+          <Favicon
+            src={article.favicon_url || "/placeholder.png"}
+            alt=""
+            size={14}
+            className="w-3.5 h-3.5 rounded-sm"
+          />
+          <span className="truncate">{article.source}</span>
+          <span className="text-zinc-300 dark:text-zinc-700">•</span>
+          <span>{new Date(article.published_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+        </div>
+      </div>
+    </a>
+  );
+};
 
 export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = [] }: BreakingNewsTabsProps) {
   const { theme } = useTheme();
@@ -18,14 +60,6 @@ export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = []
   const [activeTab, setActiveTab] = useState<"breaking" | "exclusive">("breaking");
 
   const currentArticles = activeTab === "breaking" ? breakingNews : exclusiveNews;
-
-  const handleSaveToggle = (updatedArticle: Article) => {
-    // The `isSaved` state is managed within ArticleCard itself.
-    // If the parent needs to react to a save toggle, a prop should be passed to update parent state.
-    // For now, this function is a no-op for internal state updates here.
-  };
-
-  const displayArticles = currentArticles;
 
   return (
     <div className="flex flex-col h-full">
@@ -72,20 +106,17 @@ export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = []
           </div>
         </div>
       </div>
-      <hr className={isDarkMode ? "border-gray-700" : "border-gray-200"} />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-secondary">
-        {displayArticles.length === 0 ? (
+      <div className="flex-1 overflow-y-auto py-4 px-1 space-y-2 bg-secondary">
+        {currentArticles.length === 0 ? (
           <p className="text-center text-muted-foreground pt-10">
             {activeTab === "breaking" ? "속보 뉴스가 없습니다." : "단독 뉴스가 없습니다."}
           </p>
         ) : (
-          displayArticles
+          currentArticles
             .slice(0, 5)
-            .map((article) => (
-              <ArticleCard key={article.id} article={article} variant="compact" onSaveToggle={handleSaveToggle} />
-            ))
+            .map((article) => <ArticleItem key={article.id} article={article} type={activeTab} />)
         )}
       </div>
     </div>

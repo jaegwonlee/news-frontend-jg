@@ -13,35 +13,22 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, variant = "def
   return (
     <div className="min-h-screen w-full flex items-start justify-center p-4 pt-12 relative overflow-hidden">
       {/* Gloves Container - Positioned relative to screen */}
-      {variant === "gloves" && (
-        <>
-          {/* Blue Glove (Left) */}
-          <div
-            className={cn(
-              "absolute top-1/2 left-4 md:left-10 z-50 transition-all duration-300 pointer-events-none -translate-y-1/2",
-              focusedField === "email" ? "animate-punch-left" : "animate-float"
-            )}
-          >
-            <div className="relative w-40 h-40 md:w-52 md:h-52 drop-shadow-2xl">
-              <Image src="/blue--glove.svg" alt="Blue Glove" fill className="object-contain" priority />
-            </div>
-          </div>
+      {/* Blue Glove (Left) */}
+      <div className="absolute top-1/2 left-4 md:left-10 z-50 pointer-events-none -translate-y-1/2">
+        <div className="relative w-40 h-40 md:w-52 md:h-52 drop-shadow-2xl animate-final-punch-left">
+          <Image src="/blue--glove.svg" alt="Blue Glove" fill className="object-contain" priority />
+        </div>
+      </div>
 
-          {/* Red Glove (Right) */}
-          <div
-            className={cn(
-              "absolute top-1/2 right-4 md:right-10 z-50 transition-all duration-300 pointer-events-none -translate-y-1/2",
-              focusedField === "password" ? "animate-punch-right" : "animate-float",
-              "animation-delay-1000"
-            )}
-            style={{ animationDelay: "1s" }}
-          >
-            <div className="relative w-40 h-40 md:w-52 md:h-52 drop-shadow-2xl">
-              <Image src="/red--glove.svg" alt="Red Glove" fill className="object-contain" priority />
-            </div>
-          </div>
-        </>
-      )}
+      {/* Red Glove (Right) */}
+      <div className="absolute top-1/2 right-4 md:right-10 z-50 pointer-events-none -translate-y-1/2">
+        <div
+          className="relative w-40 h-40 md:w-52 md:h-52 drop-shadow-2xl animate-final-punch-right animation-delay-1000"
+          style={{ animationDelay: "1s" }}
+        >
+          <Image src="/red--glove.svg" alt="Red Glove" fill className="object-contain" priority />
+        </div>
+      </div>
 
       <div className="relative z-10 w-full max-w-md flex flex-col items-center group">
         {/* Chain / Hanging Mechanism */}

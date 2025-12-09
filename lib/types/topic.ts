@@ -1,13 +1,15 @@
 // lib/types/topic.ts
-import { Article } from './article';
+import { Article } from "./article";
 
 export interface TopicPreview {
   id: number;
   display_name: string;
+  summary?: string;
   status: string;
   left_count: number;
   right_count: number;
   vote_remaining_time: string | null;
+  vote_start_at?: string;
   vote_end_at?: string;
 }
 

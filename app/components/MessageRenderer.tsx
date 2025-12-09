@@ -5,10 +5,10 @@ import { Message } from "@/lib/types/shared";
 import { TopicPreview } from "@/lib/types/topic";
 import { useTheme } from "next-themes";
 import React, { useEffect, useState } from "react";
-import ArticleCard from "./ArticleCard";
+import ArticleEmbedCard from "./chat/ArticleEmbedCard";
+import TopicEmbedCard from "./chat/TopicEmbedCard"; // Use TopicEmbedCard instead of TopicPreviewCard
 import MediaRenderer from "./common/MediaRenderer";
 import UrlRenderer from "./common/UrlRenderer";
-import TopicPreviewCard from "./debate/TopicPreviewCard";
 
 interface MessageRendererProps {
   msg: Message;
@@ -109,7 +109,8 @@ export default function MessageRenderer({
             left_count: topic.vote_count_left || 0,
             right_count: topic.vote_count_right || 0,
             vote_remaining_time: null,
-            vote_end_at: topic.vote_end_at,
+            vote_start_at: topic.vote_start_at, // Map start date
+            vote_end_at: topic.vote_end_at, // Map end date
           };
           setClientResolvedTopic(constructedTopicPreview);
           setFetchError(null);
@@ -219,13 +220,33 @@ export default function MessageRenderer({
   const markdownMatch = trimmedMessage.match(markdownLinkRegex);
   const urlFromMarkdownLink = markdownMatch ? markdownMatch[1] : null;
 
+  // Normalize URLs for comparison (handle relative vs absolute)
+  const normalizeUrl = (url: string | null) => {
+    if (!url) return null;
+    try {
+      // If it's already absolute, return it
+      new URL(url);
+      return url;
+    } catch {
+      // If relative, prepend origin to make it absolute for comparison
+      if (typeof window !== "undefined" && url.startsWith("/")) {
+        return window.location.origin + url;
+      }
+      return url;
+    }
+  };
+
+  const normalizedMessage = normalizeUrl(trimmedMessage);
+  const normalizedPreviewUrl = normalizeUrl(urlFromPreview);
+  const normalizedMarkdownUrl = normalizeUrl(urlFromMarkdownLink);
+
   // Show the text bubble only if:
   // 1. There's no preview URL (no card is being shown for the message)
-  // 2. The trimmed message is not identical to the URL being previewed
+  // 2. The trimmed message is not identical to the URL being previewed (normalized)
   // 3. The trimmed message is not a Markdown link whose URL is being previewed
   const showTextBubble =
     trimmedMessage &&
-    (!urlFromPreview || (trimmedMessage !== urlFromPreview && urlFromMarkdownLink !== urlFromPreview));
+    (!urlFromPreview || (normalizedMessage !== normalizedPreviewUrl && normalizedMarkdownUrl !== normalizedPreviewUrl));
 
   const bubbleClass = isMyMessage
     ? "bg-blue-500 text-white rounded-2xl shadow-sm"
@@ -241,18 +262,18 @@ export default function MessageRenderer({
       )}
 
       {/* Part 2: Render backend-provided previews */}
-      {msg.topic_preview && <TopicPreviewCard topic={msg.topic_preview} />}
+      {msg.topic_preview && <TopicEmbedCard topic={msg.topic_preview} />}
 
       {msg.article_preview && (
-        <div className="mt-2 max-w-full">
-          <ArticleCard article={msg.article_preview} variant="chat" />
+        <div className="mt-1 max-w-[280px]">
+          <ArticleEmbedCard article={msg.article_preview} />
         </div>
       )}
 
       {/* Part 3: Render client-side resolved topic preview */}
       {clientResolvedTopic &&
         !msg.topic_preview && ( // Only render if not already from backend
-          <TopicPreviewCard topic={clientResolvedTopic} />
+          <TopicEmbedCard topic={clientResolvedTopic} />
         )}
 
       {/* Part 4: Render client-side external URL preview if no other preview exists */}

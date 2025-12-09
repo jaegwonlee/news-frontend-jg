@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/app/components/common/Button";
 import LoadingSpinner from "@/app/components/common/LoadingSpinner";
 import { useAuth } from "@/app/context/AuthContext";
 import {
@@ -12,6 +11,7 @@ import {
   updateTopicComment,
 } from "@/lib/api";
 import { Comment } from "@/lib/types/comment";
+import { cn } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 import CommentInput from "./CommentInput";
 import TopicCommentItem from "./TopicCommentItem";
@@ -33,16 +33,15 @@ export default function TopicCommentSection({
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stance, setStance] = useState<"LEFT" | "RIGHT" | "NEUTRAL">("NEUTRAL"); // Filter stance
-  const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"LATEST" | "OLDEST" | "LIKES" | "REPLIES">("LATEST");
 
-  // ... (fetchComments logic remains same)
+  const [error, setError] = useState<string | null>(null);
 
   const fetchComments = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await getTopicComments(topicId, token || undefined);
-
       setComments(data.comments);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
@@ -52,6 +51,7 @@ export default function TopicCommentSection({
     }
   }, [topicId, token]);
 
+  // Use useEffect to fetch comments on mount
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
@@ -94,7 +94,6 @@ export default function TopicCommentSection({
     }
 
     try {
-      // Always use the user's vote stance when posting
       await postTopicComment(topicId, content, parentId, userVoteStance, token);
       await fetchComments();
     } catch (error) {
@@ -125,7 +124,6 @@ export default function TopicCommentSection({
     if (!confirm("정말로 이 댓글을 삭제하시겠습니까?")) return;
     try {
       await deleteTopicComment(commentId, token);
-      // Instead of removing, we soft delete (mark as DELETED_BY_USER)
       softDeleteLocalComment(commentId);
     } catch (error) {
       console.error("Failed to delete comment:", error);
@@ -150,11 +148,9 @@ export default function TopicCommentSection({
           let newDislikeCount = item.dislike_count || 0;
 
           if (isSameReaction) {
-            // Cancel reaction
             if (type === "LIKE") newLikeCount--;
             else newDislikeCount--;
           } else {
-            // New reaction
             if (type === "LIKE") {
               newLikeCount++;
               if (item.my_reaction === "DISLIKE") newDislikeCount--;
@@ -196,7 +192,7 @@ export default function TopicCommentSection({
     }
 
     const reason = prompt("신고 사유를 입력해주세요:");
-    if (reason === null) return; // Cancelled
+    if (reason === null) return;
     if (!reason.trim()) {
       alert("신고 사유를 입력해야 합니다.");
       return;
@@ -211,31 +207,114 @@ export default function TopicCommentSection({
     }
   };
 
-  const filteredComments = comments.filter((c) => stance === "NEUTRAL" || c.stance === stance);
+  const filteredComments = comments
+    .filter((c) => stance === "NEUTRAL" || c.stance === stance)
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "LATEST":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "OLDEST":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "LIKES":
+          return (b.like_count || 0) - (a.like_count || 0);
+        case "REPLIES":
+          return (b.children?.length || 0) - (a.children?.length || 0);
+        default:
+          return 0;
+      }
+    });
+
+  const allCount = comments.length;
+  const leftCount = comments.filter((c) => c.stance === "LEFT").length;
+  const rightCount = comments.filter((c) => c.stance === "RIGHT").length;
 
   return (
     <div className="py-6 relative">
-      <div className="mb-8">
-        <h3 className="text-xl font-bold mb-4">의견 ({comments.length})</h3>
-        <div className="flex space-x-2 p-1 bg-background rounded-lg border border-border">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-2">
           {(["ALL", "LEFT", "RIGHT"] as const).map((s) => {
             const isActive = stance === s || (s === "ALL" && stance === "NEUTRAL");
-            const getVariant = () => {
-              if (s === "ALL") return isActive ? "secondary" : "ghost";
-              if (s === "LEFT") return isActive ? "default" : "ghost";
-              if (s === "RIGHT") return isActive ? "destructive" : "ghost";
-            };
+            let label = "";
+            let count = 0;
+            let activeClass = "";
+            const inactiveClass = "text-muted-foreground hover:bg-gray-100 dark:hover:bg-zinc-800";
+
+            if (s === "ALL") {
+              label = "전체";
+              count = allCount;
+              activeClass = "bg-gray-900 text-white dark:bg-white dark:text-black shadow-md md:scale-105";
+            } else if (s === "LEFT") {
+              label = stanceLeft;
+              count = leftCount;
+              activeClass = "bg-blue-600 text-white shadow-md md:scale-105";
+            } else {
+              label = stanceRight;
+              count = rightCount;
+              activeClass = "bg-red-600 text-white shadow-md md:scale-105";
+            }
+
             return (
-              <Button
+              <button
                 key={s}
-                variant={getVariant()}
                 onClick={() => setStance(s === "ALL" ? "NEUTRAL" : s)}
-                className="flex-1 text-center py-2 rounded-md font-medium transition-all"
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 border border-transparent",
+                  isActive ? activeClass : inactiveClass
+                )}
               >
-                {s === "LEFT" ? "이해한다" : s === "RIGHT" ? "민폐이다" : "전체"}
-              </Button>
+                {label} <span className="ml-1 opacity-80 text-xs">({count})</span>
+              </button>
             );
           })}
+        </div>
+
+        {/* Sort Controls */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-100 dark:bg-zinc-800/50 p-1 rounded-lg">
+          <button
+            onClick={() => setSortBy("LATEST")}
+            className={cn(
+              "px-3 py-1 rounded-md transition-all",
+              sortBy === "LATEST"
+                ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm font-bold"
+                : "hover:text-foreground"
+            )}
+          >
+            최신순
+          </button>
+          <button
+            onClick={() => setSortBy("OLDEST")}
+            className={cn(
+              "px-3 py-1 rounded-md transition-all",
+              sortBy === "OLDEST"
+                ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm font-bold"
+                : "hover:text-foreground"
+            )}
+          >
+            오래된순
+          </button>
+          <button
+            onClick={() => setSortBy("LIKES")}
+            className={cn(
+              "px-3 py-1 rounded-md transition-all",
+              sortBy === "LIKES"
+                ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm font-bold"
+                : "hover:text-foreground"
+            )}
+          >
+            좋아요순
+          </button>
+          <button
+            onClick={() => setSortBy("REPLIES")}
+            className={cn(
+              "px-3 py-1 rounded-md transition-all",
+              sortBy === "REPLIES"
+                ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm font-bold"
+                : "hover:text-foreground"
+            )}
+          >
+            답글순
+          </button>
         </div>
       </div>
 

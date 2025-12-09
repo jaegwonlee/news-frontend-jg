@@ -3,9 +3,9 @@
 import { Article } from "@/lib/types/article";
 import { formatRelativeTime } from "@/lib/utils";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import ArticleImageWithFallback from "../ArticleImageWithFallback";
+import Favicon from "../common/Favicon"; // Import Favicon
 import StyledArticleTitle from "../common/StyledArticleTitle";
 
 interface SearchResultCardProps {
@@ -41,13 +41,7 @@ export default function SearchResultCard({ article, index }: SearchResultCardPro
           <p className="text-muted-foreground text-sm line-clamp-2 grow">{article.description}</p>
           <div className="flex items-center text-xs text-muted-foreground mt-3">
             {article.favicon_url && (
-              <Image
-                src={article.favicon_url}
-                alt={article.source}
-                width={12}
-                height={12}
-                className="mr-1.5 rounded-sm"
-              />
+              <Favicon src={article.favicon_url} alt={article.source} size={12} className="mr-1.5 rounded-sm" />
             )}
             <span className="truncate max-w-[100px]">{article.source}</span>
             <span className="mx-1.5">·</span>

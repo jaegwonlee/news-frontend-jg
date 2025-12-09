@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { formatRelativeTime } from '@/lib/utils'; // Import the correct function
-import { format } from 'date-fns'; // Import date-fns format
+import { formatRelativeTime } from "@/lib/utils"; // Import the correct function
+import { format } from "date-fns"; // Import date-fns format
 
 interface ClientOnlyTimeProps {
   date: string;
@@ -10,12 +10,11 @@ interface ClientOnlyTimeProps {
 }
 
 export default function ClientOnlyTime({ date, format: formatStr, className }: ClientOnlyTimeProps) {
-  // To ensure the datetime attribute is a valid ISO string in KST
-  const getKstIsoString = (utcString: string) => {
+  // To ensure the datetime attribute is a valid ISO string
+  const getIsoString = (utcString: string) => {
     try {
-      const utcDate = new Date(utcString.includes('T') ? utcString : utcString.replace(' ', 'T') + 'Z');
-      const kstDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000));
-      return kstDate.toISOString();
+      const utcDate = new Date(utcString.includes("T") ? utcString : utcString.replace(" ", "T") + "Z");
+      return utcDate.toISOString();
     } catch {
       return utcString; // Fallback
     }
@@ -25,5 +24,9 @@ export default function ClientOnlyTime({ date, format: formatStr, className }: C
   const displayTime = formatStr ? format(dateObj, formatStr) : formatRelativeTime(date);
 
   // After mounting on the client, render the relative time or formatted time
-  return <time dateTime={getKstIsoString(date)} className={className}>{displayTime}</time>;
+  return (
+    <time dateTime={getIsoString(date)} className={className}>
+      {displayTime}
+    </time>
+  );
 }

@@ -53,17 +53,13 @@ const config: Config = {
         mono: ["var(--font-geist-mono)"],
       },
       keyframes: {
-        "punch-left": {
-          "0%": { transform: "translateX(0) rotate(0deg)" },
-          "20%": { transform: "translateX(-50px) rotate(-20deg)" },
-          "50%": { transform: "translateX(calc(50vw - 250px)) rotate(10deg) scale(1.2)" },
-          "100%": { transform: "translateX(0) rotate(0deg)" },
+        "final-punch-left": {
+          "0%, 100%": { transform: "translateX(0) rotate(0deg)" },
+          "50%": { transform: "translateX(35vw) rotate(10deg) scale(1.1)" },
         },
-        "punch-right": {
-          "0%": { transform: "translateX(0) rotate(0deg)" },
-          "20%": { transform: "translateX(50px) rotate(20deg)" },
-          "50%": { transform: "translateX(calc(-50vw + 250px)) rotate(-10deg) scale(1.2)" },
-          "100%": { transform: "translateX(0) rotate(0deg)" },
+        "final-punch-right": {
+          "0%, 100%": { transform: "translateX(0) rotate(0deg)" },
+          "50%": { transform: "translateX(-35vw) rotate(-10deg) scale(1.1)" },
         },
         shake: {
           "0%, 100%": { transform: "translateX(0) rotate(0)" },
@@ -78,8 +74,8 @@ const config: Config = {
         },
       },
       animation: {
-        "punch-left": "punch-left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
-        "punch-right": "punch-right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "final-punch-left": "final-punch-left 2s ease-in-out infinite",
+        "final-punch-right": "final-punch-right 2s ease-in-out infinite",
         shake: "shake 0.4s ease-in-out",
         float: "float 4s ease-in-out infinite",
       },

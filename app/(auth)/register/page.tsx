@@ -21,8 +21,9 @@ const VALIDATION_RULES: Record<string, { validate: (value: string, password?: st
     message: "올바른 이메일 형식을 입력해주세요.",
   },
   password: {
-    validate: (value) => /^(?=.*[a-zA-Z])(?=.*[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~])(?=.{8,20}$).*$/.test(value),
-    message: "영문/숫자/특수문자 조합해주세요. (8~20자)", // 글자 수 조정
+    validate: (value) =>
+      /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~])(?=.{10,16}$).*$/.test(value),
+    message: "영문+숫자+특수문자 10-16자리로 입력해주세요.",
   },
   passwordConfirm: {
     validate: (value, password) => value === password && value.length > 0,

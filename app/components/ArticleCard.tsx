@@ -71,6 +71,11 @@ export default function ArticleCard({
     }
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("application/json", JSON.stringify({ type: "article", ...article }));
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
   const [isSaved, setIsSaved] = useState(article.isSaved || false);
   const [isLoading, setIsLoading] = useState(false);
   const { token } = useAuth();
@@ -117,6 +122,8 @@ export default function ArticleCard({
         target="_blank"
         rel={rel}
         className={cn(cardBaseClasses, "block h-full min-h-[400px]", className)}
+        draggable
+        onDragStart={handleDragStart}
       >
         <div className="absolute inset-0">
           <Image
@@ -147,19 +154,14 @@ export default function ArticleCard({
             )}
           </div>
 
-                    <StyledArticleTitle
+          <StyledArticleTitle
+            title={title}
+            className={cn(
+              "text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3 drop-shadow-sm transition-colors",
 
-                      title={title}
-
-                      className={cn(
-
-                        "text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3 drop-shadow-sm transition-colors",
-
-                        finalHoverColorClass
-
-                      )}
-
-                    />
+              finalHoverColorClass
+            )}
+          />
 
           <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-3xl mb-4 opacity-90">{summary}</p>
 
@@ -197,6 +199,8 @@ export default function ArticleCard({
         target="_blank"
         rel={rel}
         className={cn(cardBaseClasses, "flex flex-row items-stretch h-32 md:h-40", className)}
+        draggable
+        onDragStart={handleDragStart}
       >
         {!hideImage && (
           <div className="relative w-1/3 md:w-48 shrink-0">
@@ -225,19 +229,14 @@ export default function ArticleCard({
               <ClientOnlyTime date={published_at} className="text-[10px] text-muted-foreground" />
             </div>
 
-                        <StyledArticleTitle
+            <StyledArticleTitle
+              title={title}
+              className={cn(
+                "font-bold text-base md:text-lg leading-snug line-clamp-2 transition-colors",
 
-                          title={title}
-
-                          className={cn(
-
-                            "font-bold text-base md:text-lg leading-snug line-clamp-2 transition-colors",
-
-                            finalHoverColorClass
-
-                          )}
-
-                        />
+                finalHoverColorClass
+              )}
+            />
           </div>
 
           <p className="text-xs text-muted-foreground line-clamp-1 hidden md:block mt-1">{summary}</p>
@@ -255,15 +254,17 @@ export default function ArticleCard({
         target="_blank"
         rel={rel}
         className={cn("block group py-3 border-b border-border/40 last:border-0", className)}
+        draggable
+        onDragStart={handleDragStart}
       >
         <div className="flex items-start justify-between gap-4">
-                    <StyledArticleTitle
-                      title={title}
-                      className={cn(
-                        "font-medium text-sm md:text-base leading-snug line-clamp-2 transition-colors",
-                        finalHoverColorClass
-                      )}
-                    />
+          <StyledArticleTitle
+            title={title}
+            className={cn(
+              "font-medium text-sm md:text-base leading-snug line-clamp-2 transition-colors",
+              finalHoverColorClass
+            )}
+          />
         </div>
 
         <div className="flex items-center gap-2 mt-1.5">
@@ -284,7 +285,14 @@ export default function ArticleCard({
   // --- Variant: Compact (For Bento Grid side items) ---
   if (variant === "compact") {
     return (
-      <Link href={url} target="_blank" rel={rel} className={cn(cardBaseClasses, "flex flex-col h-full", className)}>
+      <Link
+        href={url}
+        target="_blank"
+        rel={rel}
+        className={cn(cardBaseClasses, "flex flex-col h-full", className)}
+        draggable
+        onDragStart={handleDragStart}
+      >
         <div className="relative w-full aspect-video overflow-hidden">
           <Image
             src={thumbnail_url || "/placeholder.png"}
@@ -323,6 +331,8 @@ export default function ArticleCard({
         target="_blank"
         rel={rel}
         className={`group relative block w-full aspect-4/5 overflow-hidden rounded-xl ${className}`}
+        draggable
+        onDragStart={handleDragStart}
       >
         <Image
           src={article.thumbnail_url || "/placeholder.png"}
@@ -358,6 +368,8 @@ export default function ArticleCard({
         target="_blank"
         rel={rel}
         className={cn(cardBaseClasses, "block h-full min-h-[250px]", className)}
+        draggable
+        onDragStart={handleDragStart}
       >
         <Image
           src={thumbnail_url || "/placeholder.png"}
@@ -392,6 +404,8 @@ export default function ArticleCard({
         className={`group flex items-center rounded-lg ${
           isDarkMode ? "border border-gray-800 bg-black text-white" : "border border-gray-200 bg-white text-black"
         } transition-colors ${className}`}
+        draggable
+        onDragStart={handleDragStart}
       >
         <div className="relative w-16 h-16 shrink-0 overflow-hidden rounded-l-lg">
           <Image
@@ -416,7 +430,14 @@ export default function ArticleCard({
 
   // --- Variant: Standard (Default vertical card) ---
   return (
-    <Link href={url} target="_blank" rel={rel} className={cn(cardBaseClasses, "flex flex-col h-full", className)}>
+    <Link
+      href={url}
+      target="_blank"
+      rel={rel}
+      className={cn(cardBaseClasses, "flex flex-col h-full", className)}
+      draggable
+      onDragStart={handleDragStart}
+    >
       <div className="relative w-full aspect-video overflow-hidden">
         <Image
           src={thumbnail_url || "/placeholder.png"}

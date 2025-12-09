@@ -48,12 +48,12 @@ export default function MainGrid({
       {/* Left Column: Breaking News (top) + Issue NOW (bottom) */}
       <div className="hidden xl:flex flex-col gap-6 h-[600px] lg:h-[729px]">
         {/* Breaking News / Exclusive News - Top Half */}
-        <div className={cn(sectionClasses, "flex-1")}>
+        <div className="bg-card rounded-xl flex flex-col overflow-hidden flex-1">
           <BreakingNewsTabs breakingNews={breakingNews} exclusiveNews={exclusiveNews} />
         </div>
 
         {/* Issue NOW - Bottom Half */}
-        <div className={cn(sectionClasses, "flex-1")}>
+        <div className="bg-card rounded-xl flex flex-col overflow-hidden flex-1">
           <TrendingKeywords keywords={trendingKeywords} />
         </div>
       </div>

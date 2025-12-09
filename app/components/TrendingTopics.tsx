@@ -23,8 +23,6 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
             const proVotes = topic.vote_count_left || 0;
             const conVotes = topic.vote_count_right || 0;
             const totalVotes = topic.total_votes || proVotes + conVotes;
-            const proPercentage = totalVotes > 0 ? (proVotes / totalVotes) * 100 : 50;
-            const conPercentage = totalVotes > 0 ? (conVotes / totalVotes) * 100 : 50;
 
             // Medal colors for top 3
             const medalColors = [
@@ -54,10 +52,14 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
             // Format end date
             const formatEndDate = (dateString?: string) => {
               if (!dateString) return null;
-              const date = new Date(dateString);
+              const endDate = new Date(dateString);
               const now = new Date();
-              const diffTime = date.getTime() - now.getTime();
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+              // Calculate difference in milliseconds
+              const diffTime = endDate.getTime() - now.getTime();
+
+              // Convert to days (rounding down to calculate full days remaining)
+              const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
               if (diffDays < 0) return "마감";
               if (diffDays === 0) return "오늘 마감";
@@ -158,24 +160,7 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
                   </div>
 
                   {/* Vote Bar (for top 3 only) */}
-                  {isTopThree && totalVotes > 0 && (
-                    <div className="space-y-1">
-                      <div className="relative h-1.5 bg-black/30 rounded-full overflow-hidden">
-                        <div
-                          className="absolute left-0 top-0 h-full bg-blue-400 transition-all duration-500"
-                          style={{ width: `${proPercentage}%` }}
-                        />
-                        <div
-                          className="absolute right-0 top-0 h-full bg-red-400 transition-all duration-500"
-                          style={{ width: `${conPercentage}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[9px] font-bold">
-                        <span className="text-blue-200">{proPercentage.toFixed(0)}%</span>
-                        <span className="text-red-200">{conPercentage.toFixed(0)}%</span>
-                      </div>
-                    </div>
-                  )}
+                  {/* Vote Bar removed as per user request */}
 
                   {/* Arrow Icon */}
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 transform transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">

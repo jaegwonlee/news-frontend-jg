@@ -1,6 +1,7 @@
-import React from "react";
-import Image from "next/image";
 import { LinkMetadata } from "@/lib/types/shared";
+import Image from "next/image";
+import React from "react";
+import Favicon from "./Favicon"; // Import Favicon
 
 const LinkPreviewCard: React.FC<LinkMetadata> = ({ url, title, description, image, favicon }) => {
   return (
@@ -19,7 +20,7 @@ const LinkPreviewCard: React.FC<LinkMetadata> = ({ url, title, description, imag
         {title && <p className="text-sm font-medium text-foreground line-clamp-2">{title}</p>}
         {description && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{description}</p>}
         <div className="flex items-center mt-2">
-          {favicon && <Image src={favicon} alt="Favicon" width={16} height={16} className="mr-1" />}
+          {favicon && <Favicon src={favicon} alt="Favicon" size={16} className="mr-1" />}
           <span className="text-xs text-primary truncate">{new URL(url).hostname}</span>
         </div>
       </div>

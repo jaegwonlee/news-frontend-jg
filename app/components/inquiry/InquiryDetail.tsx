@@ -1,34 +1,19 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { DownloadCloud, ArrowLeft } from 'lucide-react';
-import { useAuth } from '@/app/context/AuthContext';
-import { getInquiryDetail } from '@/lib/api/inquiry';
-import { InquiryDetail as InquiryDetailType, InquiryStatus } from '@/lib/types/inquiry';
-import LoadingSpinner from '@/app/components/common/LoadingSpinner';
-import ErrorMessage from '@/app/components/common/ErrorMessage';
-import { Button } from '@/app/components/common/Button';
-
-import { cn } from '@/lib/utils';
+import { Button } from "@/app/components/common/Button";
+import ErrorMessage from "@/app/components/common/ErrorMessage";
+import LoadingSpinner from "@/app/components/common/LoadingSpinner";
+import { useAuth } from "@/app/context/AuthContext";
+import { getInquiryDetail } from "@/lib/api/inquiry";
+import { InquiryDetail as InquiryDetailType } from "@/lib/types/inquiry";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, Calendar, DownloadCloud, User } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface InquiryDetailProps {
   inquiryId: number;
   onBack: () => void;
 }
-
-const StatusBadge = ({ status }: { status: InquiryStatus }) => {
-    const statusMap = {
-      SUBMITTED: { text: '답변 대기', className: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
-      ANSWERED: { text: '답변 완료', className: 'bg-green-500/10 text-green-600 dark:text-green-400' },
-      CLOSED: { text: '종료됨', className: 'bg-secondary text-muted-foreground' },
-    };
-    const currentStatus = statusMap[status] || statusMap.CLOSED;
-    return (
-      <span className={cn('px-2.5 py-1 text-xs font-semibold rounded-full', currentStatus.className)}>
-        {currentStatus.text}
-      </span>
-    );
-};
 
 export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps) {
   const { token, logout } = useAuth();
@@ -38,7 +23,7 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
 
   useEffect(() => {
     const fetchDetail = async () => {
-      if (!token || !inquiryId) return;
+      if (!token || !inquiryId || isNaN(inquiryId)) return;
 
       setIsLoading(true);
       setError(null);
@@ -60,85 +45,144 @@ export default function InquiryDetail({ inquiryId, onBack }: InquiryDetailProps)
         setIsLoading(false);
       }
     };
-    
+
     fetchDetail();
   }, [token, inquiryId, logout]);
 
   const handleDownload = () => {
     if (!inquiry?.attachment_url) return;
-    // Simply open the URL in a new tab.
-    window.open(inquiry.attachment_url, '_blank', 'noopener,noreferrer');
+    window.open(inquiry.attachment_url, "_blank", "noopener,noreferrer");
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-48"><LoadingSpinner /></div>;
+    return (
+      <div className="flex h-full items-center justify-center min-h-[400px]">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-8"><ErrorMessage message={error} /></div>;
+    return (
+      <div className="p-8 flex items-center justify-center h-full min-h-[400px]">
+        <ErrorMessage message={error} />
+      </div>
+    );
   }
 
-  if (!inquiry) {
-    return <div className="p-8"><ErrorMessage message="문의 정보를 찾을 수 없습니다." /></div>;
-  }
+  if (!inquiry) return null;
 
   return (
-    <div className="p-6 sm:p-8 h-full">
-      <header className="pb-4 mb-6 border-b border-border relative">
-        <Button onClick={onBack} variant="ghost" size="icon" className="absolute -top-2 -left-2">
-            <ArrowLeft className="h-5 w-5" />
+    <div className="flex flex-col h-full bg-background min-h-[600px] overflow-y-auto custom-scrollbar">
+      {/* Navigation */}
+      <div className="p-4 border-b border-border/50 flex items-center gap-2 sticky top-0 bg-background/95 backdrop-blur z-10">
+        <Button
+          onClick={onBack}
+          variant="ghost"
+          size="sm"
+          className="gap-1 pl-0 hover:bg-transparent hover:text-primary"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="text-base font-semibold">목록으로</span>
         </Button>
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 pt-8 sm:pt-0 text-center sm:text-left">
-            <h2 className="text-2xl font-bold text-foreground flex-1">{inquiry.subject}</h2>
-            <StatusBadge status={inquiry.status} />
-        </div>
-        <p className="text-sm text-muted-foreground mt-2 text-center sm:text-left">
-          {new Date(inquiry.created_at).toLocaleString('ko-KR')}
-        </p>
-      </header>
+      </div>
 
-      <div className="space-y-8">
-        {/* User's Question */}
-        <div className="flex gap-4">
-          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-bold text-lg flex-shrink-0">Q</div>
-          <div className="flex-1">
-            <h3 className="font-bold text-foreground mb-2">내 문의 내용</h3>
-            <div className="prose prose-sm dark:prose-invert max-w-none bg-background p-4 border border-border rounded-lg">
-                <p className="whitespace-pre-wrap">{inquiry.content}</p>
+      <div className="p-4 sm:p-8 max-w-5xl mx-auto w-full">
+        {/* VIEW CONTAINER */}
+        <div className="border-t-2 border-primary">
+          {/* Header: Title */}
+          <div className="bg-muted/10 p-6 border-b border-border">
+            <div className="flex flex-col gap-3">
+              <span
+                className={cn(
+                  "w-fit px-2.5 py-0.5 rounded text-[11px] font-bold border",
+                  inquiry.status === "ANSWERED"
+                    ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
+                    : "bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
+                )}
+              >
+                {inquiry.status === "ANSWERED" ? "답변완료" : "답변대기"}
+              </span>
+              <h1 className="text-2xl font-bold text-foreground leading-snug break-keep">{inquiry.subject}</h1>
             </div>
-            {inquiry.attachment_url && (
-                <div className="mt-4">
-                    <h4 className="font-semibold text-muted-foreground text-sm mb-2">첨부 파일</h4>
-                    <Button onClick={handleDownload} variant="outline" size="sm">
-                        <DownloadCloud className="mr-2 h-4 w-4" />
-                        파일 다운로드
-                    </Button>
-                </div>
-            )}
           </div>
+
+          {/* Header: Meta */}
+          <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-background text-sm text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5">
+                <User className="w-4 h-4" />
+                <span>나 (작성자)</span>
+              </span>
+              <div className="h-3 w-px bg-border"></div>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4" />
+                <span>{inquiry.created_at ? new Date(inquiry.created_at).toLocaleString() : "-"}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Body: Content */}
+          <div className="p-8 min-h-[300px] text-foreground leading-relaxed whitespace-pre-wrap border-b border-border">
+            {inquiry.content}
+          </div>
+
+          {/* Footer: Attachments */}
+          {inquiry.attachment_url && (
+            <div className="px-6 py-4 bg-muted/20 border-b border-border flex items-center gap-3">
+              <span className="text-sm font-semibold text-muted-foreground w-16">첨부파일</span>
+              <Button onClick={handleDownload} variant="outline" size="sm" className="gap-2 h-9 bg-background">
+                <DownloadCloud className="w-4 h-4" />
+                <span className="text-sm">파일 다운로드</span>
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Admin's Answer */}
-        <div className="flex gap-4">
-          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg flex-shrink-0">A</div>
-          <div className="flex-1">
-             <h3 className="font-bold text-foreground mb-2">운영자 답변</h3>
-            {inquiry.answer ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none bg-background p-4 border border-border rounded-lg">
-                    <p className="whitespace-pre-wrap">{inquiry.answer.content}</p>
-                    <p className="text-xs text-muted-foreground mt-4 text-right">
-                        답변 일시: {new Date(inquiry.answer.created_at).toLocaleString('ko-KR')}
+        {/* Answer Area */}
+        <div className="mt-12 space-y-4">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <span>답변 상세</span>
+            <span className="text-xs font-normal text-muted-foreground ml-2">
+              {inquiry.answer ? "담당자가 답변을 등록했습니다." : "담당자가 내용을 확인하고 있습니다."}
+            </span>
+          </h3>
+
+          {inquiry.answer ? (
+            <div className="bg-primary/5 border border-primary/10 rounded-xl p-6 md:p-8">
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded bg-primary flex items-center justify-center shrink-0 mt-1">
+                  <span className="text-primary-foreground font-bold text-sm">A</span>
+                </div>
+                <div className="flex-1 space-y-4">
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <p className="whitespace-pre-wrap leading-relaxed text-foreground/90 font-medium">
+                      {inquiry.answer.content}
                     </p>
+                  </div>
+                  <div className="text-xs text-muted-foreground pt-2 border-t border-primary/10">
+                    답변 일시: {new Date(inquiry.answer.created_at).toLocaleString()}
+                  </div>
                 </div>
-            ) : (
-                <div className="bg-background p-4 border-2 border-dashed border-border rounded-lg text-center">
-                    <p className="text-muted-foreground">아직 답변이 등록되지 않았습니다.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-muted/10 border border-dashed border-border rounded-xl p-8 text-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-2">
+                  <span className="text-2xl">⏳</span>
                 </div>
-            )}
-          </div>
+                <p className="font-medium text-foreground">답변 대기중</p>
+                <p className="text-sm text-muted-foreground">
+                  관리자가 문의 내용을 검토하고 있습니다.
+                  <br />
+                  빠른 시일 내에 답변 드리겠습니다.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-

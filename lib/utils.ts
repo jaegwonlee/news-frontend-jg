@@ -1,9 +1,9 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { BACKEND_BASE_URL } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -30,7 +30,7 @@ export function formatRelativeTime(dateString: string): string {
   // Normalize the date string to ensure it's parsed as UTC.
   // The backend provides some dates with 'Z' and some without.
   // 'YYYY-MM-DD HH:mm:ss' should be treated as UTC.
-  const normalizedDateString = dateString.includes('T') ? dateString : dateString.replace(' ', 'T') + 'Z';
+  const normalizedDateString = dateString.includes("T") ? dateString : dateString.replace(" ", "T") + "Z";
   const date = new Date(normalizedDateString);
   const now = new Date();
 
@@ -53,9 +53,12 @@ export function formatRelativeTime(dateString: string): string {
   } else if (diffInDays === 1) {
     return "어제";
   } else {
-    // For older dates, display the KST date by adding 9 hours to the original UTC date.
-    const NINE_HOURS_IN_MS = 9 * 60 * 60 * 1000;
-    const kstDate = new Date(date.getTime() + NINE_HOURS_IN_MS);
-    return kstDate.toLocaleDateString("ko-KR");
+    // For older dates, display the KST date correctly using Timezone option.
+    return date.toLocaleDateString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
   }
 }

@@ -5,17 +5,9 @@ import { ArrowRight, Clock, TrendingUp } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 
-// Define the type based on the user's provided structure
-interface TopicPreview {
-  id: number;
-  display_name: string;
-  status: string;
-  left_count: number;
-  right_count: number;
-  vote_remaining_time: string | null;
-  vote_end_at?: string;
-  summary?: string;
-}
+import { TopicPreview } from "@/lib/types/topic";
+
+// Remove local interface definition
 
 interface TopicPreviewCardProps {
   topic?: TopicPreview | null;
