@@ -25,7 +25,7 @@ export default function ArticleSidePanel({ articles }: ArticleSidePanelProps) {
 
   return (
     <aside className="sticky top-[80px] h-[calc(100vh-100px)] flex flex-col">
-      <div className="bg-card dark:bg-black border border-border rounded-lg flex-1 flex flex-col overflow-hidden p-4">
+      <div className="bg-card dark:bg-card border border-border rounded-lg flex-1 flex flex-col overflow-hidden p-4">
         <div className="flex border-b border-border -mx-4 px-4 mb-4">
           {Object.entries(stanceConfig).map(([stanceKey, config]) => {
             const currentStance = stanceKey as Stance;

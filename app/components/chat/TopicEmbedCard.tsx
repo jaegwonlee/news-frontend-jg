@@ -75,7 +75,7 @@ export default function TopicEmbedCard({ topic, className }: TopicEmbedCardProps
     <Link
       href={`/debate/${topic.id}`}
       className={cn(
-        "group block relative w-[280px] h-[280px] rounded-2xl overflow-hidden transition-all duration-300",
+        "group block relative w-[280px] h-[210px] rounded-2xl overflow-hidden transition-all duration-300",
         "hover:scale-[1.02] hover:shadow-lg",
         "border border-white/20",
         className
@@ -94,7 +94,7 @@ export default function TopicEmbedCard({ topic, className }: TopicEmbedCardProps
       <div className="absolute inset-0 opacity-[0.05] mix-blend-overlay pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')]" />
 
       {/* Content Container */}
-      <div className="relative h-full flex flex-col p-4 text-white z-10">
+      <div className="relative h-full flex flex-col p-3 text-white z-10">
         {/* Top Badge */}
         <div className="flex justify-between items-start mb-2">
           <div className="bg-green-500/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-bold border border-white/30 shadow-lg flex items-center gap-1">
@@ -111,11 +111,11 @@ export default function TopicEmbedCard({ topic, className }: TopicEmbedCardProps
         </div>
 
         {/* Title & Summary */}
-        <div className="flex-1 flex flex-col justify-center mb-3">
-          <h3 className="text-xl font-black leading-tight drop-shadow-lg line-clamp-2 mb-1.5 break-keep">
+        <div className="flex-1 flex flex-col justify-center mb-2">
+          <h3 className="text-xl font-black leading-tight drop-shadow-lg line-clamp-2 mb-1 break-keep">
             {topic.display_name}
           </h3>
-          <p className="text-white/80 text-xs font-medium line-clamp-2 drop-shadow-md">
+          <p className="text-white/80 text-xs font-medium line-clamp-1 drop-shadow-md">
             {topic.summary || "당신의 의견을 들려주세요"}
           </p>
         </div>

@@ -270,14 +270,12 @@ export default function TopicCommentSection({
         </div>
 
         {/* Sort Controls */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-100 dark:bg-zinc-800/50 p-1 rounded-lg">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary p-1 rounded-lg">
           <button
             onClick={() => setSortBy("LATEST")}
             className={cn(
               "px-3 py-1 rounded-md transition-all",
-              sortBy === "LATEST"
-                ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm font-bold"
-                : "hover:text-foreground"
+              sortBy === "LATEST" ? "bg-background text-foreground shadow-sm font-bold" : "hover:text-foreground"
             )}
           >
             최신순
@@ -286,9 +284,7 @@ export default function TopicCommentSection({
             onClick={() => setSortBy("OLDEST")}
             className={cn(
               "px-3 py-1 rounded-md transition-all",
-              sortBy === "OLDEST"
-                ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm font-bold"
-                : "hover:text-foreground"
+              sortBy === "OLDEST" ? "bg-background text-foreground shadow-sm font-bold" : "hover:text-foreground"
             )}
           >
             오래된순
@@ -297,9 +293,7 @@ export default function TopicCommentSection({
             onClick={() => setSortBy("LIKES")}
             className={cn(
               "px-3 py-1 rounded-md transition-all",
-              sortBy === "LIKES"
-                ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm font-bold"
-                : "hover:text-foreground"
+              sortBy === "LIKES" ? "bg-background text-foreground shadow-sm font-bold" : "hover:text-foreground"
             )}
           >
             좋아요순
@@ -308,9 +302,7 @@ export default function TopicCommentSection({
             onClick={() => setSortBy("REPLIES")}
             className={cn(
               "px-3 py-1 rounded-md transition-all",
-              sortBy === "REPLIES"
-                ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm font-bold"
-                : "hover:text-foreground"
+              sortBy === "REPLIES" ? "bg-background text-foreground shadow-sm font-bold" : "hover:text-foreground"
             )}
           >
             답글순

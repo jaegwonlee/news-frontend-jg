@@ -2,6 +2,7 @@
 
 import { getTopicDetail } from "@/lib/api/topics";
 import { Topic } from "@/lib/types/topic";
+import { MessageSquare, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import CategoryNewsClientPage from "./CategoryNewsClientPage";
@@ -24,6 +25,7 @@ export default function CategoryPageLayout({ categoryName }: CategoryPageLayoutP
   const { token } = useAuth();
   const [topic, setTopic] = useState<Topic | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(true);
 
   const topicId = categoryTopicMap[categoryName];
 
@@ -55,28 +57,59 @@ export default function CategoryPageLayout({ categoryName }: CategoryPageLayoutP
     };
 
     fetchTopic();
-  }, [topicId]);
+  }, [topicId, categoryName]);
 
   if (!topicId) {
     return <CategoryNewsClientPage categoryName={categoryName} />;
   }
 
   return (
-    <div className="relative min-h-screen">
-      {/* Main Content Area */}
-      <CategoryNewsClientPage categoryName={categoryName} />
+    <div className="flex w-full min-h-screen">
+      {/* Left Margin Spacer for Center Alignment */}
+      {token && isChatOpen && <div className="hidden 2xl:block w-[340px] shrink-0" />}
 
-      {/* Fixed Chat Panel in the right margin, only shown if logged in */}
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0">
+        <CategoryNewsClientPage categoryName={categoryName} />
+      </div>
+
+      {/* Sticky Chat Panel in the right margin */}
+      {/* Sticky Chat Panel in the right margin */}
       {token && (
-        <div className="fixed hidden xl:block top-24 right-0 w-[320px] h-[calc(100vh-7rem)] pr-4 z-40">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full bg-card border border-border rounded-2xl">
-              <LoadingSpinner />
+        <>
+          {isChatOpen ? (
+            <div className="hidden 2xl:block w-[340px] shrink-0 bg-card shadow-xl z-20 relative mt-[100px]">
+              <div className="sticky top-[80px] h-[calc(100vh-250px)] flex flex-col">
+                <div className="absolute top-0 -left-10 z-50">
+                  <button
+                    onClick={() => setIsChatOpen(false)}
+                    className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors shadow-md"
+                    title="채팅방 닫기"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <LoadingSpinner />
+                  </div>
+                ) : (
+                  <ChatRoom topic={topic || undefined} />
+                )}
+              </div>
             </div>
           ) : (
-            <ChatRoom topic={topic || undefined} />
+            <div className="hidden 2xl:block fixed bottom-8 right-8 z-50 animate-fade-in-up">
+              <button
+                onClick={() => setIsChatOpen(true)}
+                className="flex items-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition-transform hover:scale-105 font-bold"
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span>실시간 채팅</span>
+              </button>
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );

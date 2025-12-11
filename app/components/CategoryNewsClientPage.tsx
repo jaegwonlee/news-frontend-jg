@@ -83,8 +83,8 @@ export default function CategoryNewsClientPage({ categoryName }: CategoryNewsCli
   }, [filteredArticles, currentPage]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in">
-      <header className="mb-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 animate-fade-in">
+      <header className="mb-4">
         <h1 className={`text-5xl font-extrabold text-foreground border-b-4 ${theme.border} pb-4 inline-block`}>
           {categoryName}
         </h1>
