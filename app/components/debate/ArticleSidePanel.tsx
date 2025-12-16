@@ -2,9 +2,9 @@
 
 import ArticleCard from "@/app/components/ArticleCard";
 import { Article } from "@/lib/types/article";
+import { cn } from "@/lib/utils";
 import { AlignCenter, AlignLeft, AlignRight } from "lucide-react";
 import { useState } from "react";
-import GenericTabButton from "../common/TabButton"; // Import generic TabButton
 
 interface ArticleSidePanelProps {
   articles: Article[];
@@ -24,42 +24,61 @@ export default function ArticleSidePanel({ articles }: ArticleSidePanelProps) {
   const filteredArticles = articles.filter((a) => a.side === activeStance);
 
   return (
-    <aside className="sticky top-[80px] h-[calc(100vh-100px)] flex flex-col">
-      <div className="bg-card dark:bg-card border border-border rounded-lg flex-1 flex flex-col overflow-hidden p-4">
-        <div className="flex border-b border-border -mx-4 px-4 mb-4">
+    <aside className="sticky top-[100px] h-fit">
+      {/* Header & Tabs */}
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          Match Briefing
+        </h3>
+
+        {/* Minimal Pill Tabs */}
+        <div className="flex p-1 bg-slate-200 dark:bg-slate-800 rounded-full">
           {Object.entries(stanceConfig).map(([stanceKey, config]) => {
             const currentStance = stanceKey as Stance;
-            const baseClass =
-              "flex-1 flex flex-col items-center justify-center gap-1 p-3 text-sm font-bold border-b-2 transition-all duration-200";
-            const activeClass = `text-${config.color}-500 border-${config.color}-500`;
-            const inactiveClass =
-              "text-muted-foreground border-transparent hover:text-foreground hover:border-gray-500/50";
+            const isActive = activeStance === currentStance;
 
             return (
-              <GenericTabButton<Stance>
+              <button
                 key={currentStance}
-                id={currentStance}
-                label={<span>{config.label}</span>}
-                activeId={activeStance}
-                onClick={setActiveStance}
-                baseClassName={baseClass}
-                activeClassName={activeClass}
-                inactiveClassName={inactiveClass}
-                Icon={config.Icon}
-                iconSize={20}
-              />
+                onClick={() => setActiveStance(currentStance)}
+                className={cn(
+                  "px-3 py-1 text-xs font-bold rounded-full transition-all duration-300",
+                  isActive
+                    ? "bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                )}
+              >
+                <span
+                  className={cn(
+                    "w-2 h-2 rounded-full inline-block mr-1.5",
+                    config.color === "blue" ? "bg-blue-500" : config.color === "red" ? "bg-red-500" : "bg-slate-400"
+                  )}
+                />
+                {config.label}
+              </button>
             );
           })}
         </div>
-        <div className="space-y-4 overflow-y-auto flex-1">
-          {filteredArticles.length > 0 ? (
-            filteredArticles.map((article) => <ArticleCard key={article.id} article={article} variant="horizontal" />)
-          ) : (
-            <div className="text-center text-muted-foreground pt-10">
-              <p>해당 성향의 기사가 없습니다.</p>
-            </div>
-          )}
-        </div>
+      </div>
+
+      {/* Content Grid (No Box) */}
+      <div className="space-y-4">
+        {filteredArticles.length > 0 ? (
+          filteredArticles.map((article) => (
+            <ArticleCard
+              key={article.id}
+              article={article}
+              variant="compact"
+              className="bg-transparent border-0 shadow-none rounded-xl transition-colors p-2"
+              hideImage={false}
+              disableHover={true}
+            />
+          ))
+        ) : (
+          <div className="text-center py-10 opacity-50">
+            <p className="text-xs font-bold">관련 브리핑이 존재하지 않습니다.</p>
+          </div>
+        )}
       </div>
     </aside>
   );

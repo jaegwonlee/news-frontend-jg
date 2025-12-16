@@ -109,62 +109,84 @@ export default function SavedArticles() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">내 보관함</h1>
-          <p className="text-muted-foreground mt-1">
-            총 <span className="font-semibold text-primary">{totalCount}</span>개의 기사가 저장되어 있습니다.
-          </p>
+    <div className="w-full">
+      {/* Article Stats Header */}
+      <div className="mb-10 p-6 md:p-8 rounded-3xl bg-zinc-900 text-white relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 p-12 opacity-5 font-black text-9xl italic leading-none select-none pointer-events-none">
+          SAVED
         </div>
-        <button
-          onClick={() => setIsManageModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-secondary/50 hover:bg-secondary text-secondary-foreground rounded-full transition-all duration-200 text-sm font-medium backdrop-blur-sm border border-border/50"
-        >
-          <Settings2 size={16} />
-          <span>카테고리 관리</span>
-        </button>
+        <div className="relative z-10">
+          <h1 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">
+            <span className="text-blue-500">MY</span> ARCHIVE
+          </h1>
+          <p className="text-zinc-400 font-medium max-w-md mb-6">
+            Manage your personal collection of fight cards and knowledge.
+          </p>
+
+          <div className="flex flex-wrap gap-4">
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 flex items-center gap-2">
+              <FolderOpen className="w-4 h-4 text-blue-400" />
+              <span className="font-bold">{categories.length} Categories</span>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 flex items-center gap-2">
+              <Bookmark className="w-4 h-4 text-red-500" />
+              <span className="font-bold">{totalCount} Saved Items</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Category Filter (Horizontal Scroll) */}
-      <div className="relative mb-10 group">
-        <div className="flex overflow-x-auto pb-4 gap-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 mask-linear-fade">
-          <CategoryChip
-            label="전체"
-            count={totalCount}
-            isActive={selectedCategoryId === "all"}
-            onClick={() => setSelectedCategoryId("all")}
-            icon={Layers}
-          />
-          <CategoryChip
-            label="미분류"
-            count={unclassifiedCount}
-            isActive={selectedCategoryId === null}
-            onClick={() => setSelectedCategoryId(null)}
-            icon={FolderOpen}
-          />
-          <div className="w-px h-8 bg-border mx-1 self-center shrink-0" />
-          {categories.map((category) => (
+      {/* Controls Bar */}
+      <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6 mb-8">
+        {/* Category Chips Scroll */}
+        <div className="w-full xl:w-auto overflow-hidden">
+          <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-hide mask-linear-fade">
             <CategoryChip
-              key={category.id}
-              label={category.name}
-              count={category.article_count ?? 0}
-              isActive={selectedCategoryId === category.id}
-              onClick={() => setSelectedCategoryId(category.id)}
+              label="ALL"
+              count={totalCount}
+              isActive={selectedCategoryId === "all"}
+              onClick={() => setSelectedCategoryId("all")}
+              icon={Layers}
             />
-          ))}
+            <CategoryChip
+              label="Unclassified"
+              count={unclassifiedCount}
+              isActive={selectedCategoryId === null}
+              onClick={() => setSelectedCategoryId(null)}
+              icon={FolderOpen}
+            />
+            <div className="w-px h-8 bg-zinc-200 dark:bg-zinc-800 mx-2 self-center shrink-0" />
+            {categories.map((category) => (
+              <CategoryChip
+                key={category.id}
+                label={category.name}
+                count={category.article_count ?? 0}
+                isActive={selectedCategoryId === category.id}
+                onClick={() => setSelectedCategoryId(category.id)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0 w-full xl:w-auto">
           <button
             onClick={() => setIsManageModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-dashed border-muted-foreground/30 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors text-sm font-medium shrink-0 whitespace-nowrap"
+            className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-xl transition-all font-bold text-sm"
           >
-            <Plus size={14} />
-            <span>새 카테고리</span>
+            <Settings2 size={16} />
+            <span>Manage</span>
+          </button>
+          <button
+            onClick={() => setIsManageModalOpen(true)}
+            className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-black dark:bg-white text-white dark:text-black hover:opacity-80 rounded-xl transition-all font-bold text-sm shadow-lg"
+          >
+            <Plus size={16} />
+            <span>New Category</span>
           </button>
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content Area */}
       <main className="min-h-[50vh]">{renderContent()}</main>
 
       {isManageModalOpen && (
@@ -206,19 +228,19 @@ function CategoryChip({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 shrink-0 whitespace-nowrap border",
+        "flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all duration-300 shrink-0 border-2 select-none",
         isActive
-          ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20 scale-105"
-          : "bg-card text-muted-foreground border-border hover:border-primary/50 hover:bg-accent hover:text-foreground"
+          ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20"
+          : "bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-blue-300 dark:hover:border-blue-700 hover:text-black dark:hover:text-white"
       )}
     >
-      {Icon && <Icon size={14} className={cn(isActive ? "text-primary-foreground" : "text-muted-foreground")} />}
-      <span>{label}</span>
+      {Icon && <Icon size={16} className={cn(isActive ? "text-white" : "text-zinc-400")} />}
+      <span className="uppercase tracking-tight">{label}</span>
       {count > 0 && (
         <span
           className={cn(
-            "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-            isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"
+            "ml-1 px-2 py-0.5 rounded-md text-[10px] font-black",
+            isActive ? "bg-white/20 text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
           )}
         >
           {count}

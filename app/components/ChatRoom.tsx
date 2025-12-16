@@ -27,7 +27,6 @@ import {
   Search,
   Send,
   Trash2,
-  Users,
   X,
 } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -62,7 +61,7 @@ interface ChatRoomProps {
 }
 
 export default function ChatRoom({ topic }: ChatRoomProps) {
-  const { socket, isConnected, error: socketError, userCount } = useSocket();
+  const { socket, isConnected, error: socketError } = useSocket();
   const { user, token } = useAuth();
   const { theme } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -461,10 +460,6 @@ export default function ChatRoom({ topic }: ChatRoomProps) {
           <h2 className="text-lg font-bold text-foreground truncate">
             {topic?.id === 1 ? "Round 1" : topic ? topic.display_name : "실시간 채팅"}
           </h2>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Users className="w-4 h-4 mr-1" />
-            <span>{userCount}</span>
-          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -562,7 +557,7 @@ full transition-colors"
         )}
 
       {/* Message List */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 space-y-4">
         {isLoadingHistory ? (
           <div className="flex justify-center items-center h-full text-muted-foreground">
             <Loader2 className="w-8 h-8 animate-spin" />

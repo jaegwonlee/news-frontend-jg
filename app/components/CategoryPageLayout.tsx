@@ -66,7 +66,7 @@ export default function CategoryPageLayout({ categoryName }: CategoryPageLayoutP
   return (
     <div className="flex w-full min-h-screen">
       {/* Left Margin Spacer for Center Alignment */}
-      {token && isChatOpen && <div className="hidden 2xl:block w-[340px] shrink-0" />}
+      {token && isChatOpen && <div className="hidden xl:block w-[320px] 2xl:w-[340px] shrink-0" />}
 
       {/* Main Content Area */}
       <div className="flex-1 min-w-0">
@@ -78,8 +78,8 @@ export default function CategoryPageLayout({ categoryName }: CategoryPageLayoutP
       {token && (
         <>
           {isChatOpen ? (
-            <div className="hidden 2xl:block w-[340px] shrink-0 bg-card shadow-xl z-20 relative mt-[100px]">
-              <div className="sticky top-[80px] h-[calc(100vh-250px)] flex flex-col">
+            <div className="hidden xl:block w-[320px] 2xl:w-[340px] shrink-0 bg-card shadow-xl z-20 relative mt-[60px] 2xl:mt-[100px]">
+              <div className="sticky top-[80px] h-[calc(100vh-140px)] 2xl:h-[calc(100vh-250px)] flex flex-col">
                 <div className="absolute top-0 -left-10 z-50">
                   <button
                     onClick={() => setIsChatOpen(false)}
@@ -99,7 +99,7 @@ export default function CategoryPageLayout({ categoryName }: CategoryPageLayoutP
               </div>
             </div>
           ) : (
-            <div className="hidden 2xl:block fixed bottom-8 right-8 z-50 animate-fade-in-up">
+            <div className="hidden xl:block fixed bottom-8 right-8 z-50 animate-fade-in-up">
               <button
                 onClick={() => setIsChatOpen(true)}
                 className="flex items-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition-transform hover:scale-105 font-bold"

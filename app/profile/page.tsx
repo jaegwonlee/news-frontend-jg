@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import ProfileSidebar from '@/app/components/profile/ProfileSidebar';
-import ProfileHeader from '@/app/components/profile/ProfileHeader';
-import ProfileEditForm from '@/app/components/profile/ProfileEditForm';
-import SavedArticles from '@/app/components/profile/SavedArticles';
-import NotificationSettings from '@/app/components/profile/NotificationSettings';
-import InquiryForm from '@/app/components/inquiry/InquiryForm';
-import ChangePasswordForm from '@/app/components/profile/ChangePasswordForm';
-import DeleteAccountSection from '@/app/components/profile/DeleteAccountSection';
-import InquiryHistory from '@/app/components/profile/InquiryHistory';
-import LoadingSpinner from '@/app/components/common/LoadingSpinner';
+import LoadingSpinner from "@/app/components/common/LoadingSpinner";
+import InquiryForm from "@/app/components/inquiry/InquiryForm";
+import ChangePasswordForm from "@/app/components/profile/ChangePasswordForm";
+import DeleteAccountSection from "@/app/components/profile/DeleteAccountSection";
+import InquiryHistory from "@/app/components/profile/InquiryHistory";
+import NotificationSettings from "@/app/components/profile/NotificationSettings";
+import ProfileEditForm from "@/app/components/profile/ProfileEditForm";
+import ProfileHeader from "@/app/components/profile/ProfileHeader";
+import ProfileSidebar from "@/app/components/profile/ProfileSidebar";
+import SavedArticles from "@/app/components/profile/SavedArticles";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 function ProfilePageContent() {
   const router = useRouter();
@@ -31,7 +31,7 @@ function ProfilePageContent() {
   } = useUserProfile();
 
   const searchParams = useSearchParams();
-  const activeTab = searchParams.get('tab') || 'profile';
+  const activeTab = searchParams.get("tab") || "profile";
 
   if (isLoading) {
     return (
@@ -50,11 +50,11 @@ function ProfilePageContent() {
   }
 
   const handleInquirySuccess = () => {
-    router.push('/profile?tab=inquiryHistory');
+    router.push("/profile?tab=inquiryHistory");
   };
 
   const renderContent = () => {
-    if (isEditing && activeTab === 'profile') {
+    if (isEditing && activeTab === "profile") {
       return (
         <ProfileEditForm
           profile={profile}
@@ -71,46 +71,43 @@ function ProfilePageContent() {
     }
 
     switch (activeTab) {
-      case 'profile':
+      case "profile":
         return <ProfileHeader profile={profile} onEditClick={() => setIsEditing(true)} />;
-      case 'saved':
+      case "saved":
         return <SavedArticles />;
-      case 'notifications':
+      case "notifications":
         return <NotificationSettings />;
-      case 'inquiry':
+      case "inquiry":
         return <InquiryForm onSuccess={handleInquirySuccess} />;
-      case 'inquiryHistory':
+      case "inquiryHistory":
         return <InquiryHistory />;
-      case 'changePassword':
+      case "changePassword":
         return <ChangePasswordForm />;
-      case 'deleteAccount':
+      case "deleteAccount":
         return <DeleteAccountSection />;
       default:
         return <div className="text-white">선택된 탭이 없습니다.</div>;
     }
   };
 
-  return (
-    <div className="flex-grow">
-      <div className="bg-card rounded-xl border border-border shadow-sm">
-        {renderContent()}
-      </div>
-    </div>
-  );
+  return <div className="flex-grow min-h-full">{renderContent()}</div>;
 }
 
 export default function ProfilePage() {
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row gap-12">
-        <aside className="md:w-64 flex-shrink-0">
-          <Suspense fallback={<div className="w-full h-96 bg-muted rounded-lg animate-pulse" />}>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <aside className="lg:w-72 flex-shrink-0">
+          <Suspense fallback={<div className="w-full h-96 bg-zinc-100 dark:bg-zinc-800 rounded-3xl animate-pulse" />}>
             <ProfileSidebar />
           </Suspense>
         </aside>
+
         <main className="flex-1 min-w-0">
-          <Suspense fallback={<div className="w-full h-96 bg-muted rounded-lg animate-pulse" />}>
-            <ProfilePageContent />
+          <Suspense fallback={<div className="w-full h-96 bg-zinc-100 dark:bg-zinc-800 rounded-3xl animate-pulse" />}>
+            <div className="min-h-[600px] transition-all duration-300">
+              <ProfilePageContent />
+            </div>
           </Suspense>
         </main>
       </div>

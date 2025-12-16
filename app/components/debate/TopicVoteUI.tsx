@@ -113,121 +113,158 @@ export default function TopicVoteUI({
   };
 
   return (
-    <div className="w-full mb-12">
-      {/* Round Header */}
-      <div className="flex justify-between items-center mb-4 px-2">
-        <span
-          className={cn(
-            "text-sm font-bold transition-all",
-            userStance === "LEFT" ? "text-blue-600 dark:text-blue-400 scale-110" : "text-blue-500 dark:text-blue-500/80"
-          )}
-        >
-          {stanceLeft}
-        </span>
-        <div className="flex flex-col items-center">
-          {/* Removed hardcoded Round 2 */}
-          <span className="text-xs text-muted-foreground font-medium">{timeLeft}</span>
+    <div className="w-full mb-16 select-none animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Header Info */}
+      <div className="flex justify-between items-end mb-4 px-1">
+        <div className="flex flex-col">
+          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">
+            Corner Blue
+          </span>
+          <span
+            className={cn(
+              "text-2xl font-black italic uppercase leading-none transition-all",
+              userStance === "LEFT" ? "text-blue-600 scale-105" : "text-slate-400 dark:text-slate-600"
+            )}
+          >
+            {stanceLeft}
+          </span>
         </div>
-        <span
-          className={cn(
-            "text-sm font-bold transition-all",
-            userStance === "RIGHT" ? "text-red-600 dark:text-red-400 scale-110" : "text-red-500 dark:text-red-500/80"
-          )}
-        >
-          {stanceRight}
-        </span>
+
+        <div className="flex flex-col items-end">
+          <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mb-1">
+            Corner Red
+          </span>
+          <span
+            className={cn(
+              "text-2xl font-black italic uppercase leading-none transition-all",
+              userStance === "RIGHT" ? "text-red-600 scale-105" : "text-slate-400 dark:text-slate-600"
+            )}
+          >
+            {stanceRight}
+          </span>
+        </div>
       </div>
 
-      {/* Main Split Container */}
-      <div className="relative flex w-full h-[320px] md:h-[400px] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/10">
-        {/* Left Side (Blue) */}
-        <div
-          className={cn(
-            "relative flex-1 flex flex-col items-center justify-center p-6 group transition-all duration-500",
-            userStance === "LEFT" ? "bg-blue-100 dark:bg-blue-900/40 flex-[1.2]" : "bg-blue-50 dark:bg-blue-950/20",
-            userStance === "RIGHT" && "opacity-50 grayscale-[0.5]"
-          )}
-        >
-          <div className="absolute inset-0 bg-blue-200/50 dark:bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <Image
-            src="/blue--glove.svg"
-            width={120}
-            height={120}
-            alt="Blue Glove"
-            className={cn(
-              "drop-shadow-xl mb-6 transition-transform duration-300",
-              userStance === "LEFT" ? "scale-125" : "group-hover:scale-110"
-            )}
-          />
-          <button
-            onClick={() => handleVote("LEFT")}
-            disabled={isVoting || userStance === "LEFT"} // Disable if already selected
-            className={cn(
-              "relative z-10 px-8 py-3 rounded-full font-bold text-lg shadow-lg transition-all transform",
-              userStance === "LEFT"
-                ? "bg-blue-600 text-white ring-4 ring-blue-200 dark:ring-blue-900 scale-105 cursor-default"
-                : "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white hover:-translate-y-1"
-            )}
-          >
-            {isVoting && userStance !== "RIGHT" ? (
-              <Loader2 className="animate-spin w-6 h-6" />
-            ) : userStance === "LEFT" ? (
-              "투표 완료"
-            ) : (
-              stanceLeft
-            )}
-          </button>
-        </div>
-
-        {/* Center Divider & Stats */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center pointer-events-none">
-          <div className="bg-white dark:bg-zinc-800 rounded-full px-6 py-2 shadow-xl border border-gray-100 dark:border-zinc-700 flex items-center gap-4 mb-4">
-            <span className="text-blue-600 dark:text-blue-400 font-black text-xl">{Math.round(leftPercent)}%</span>
-            <div className="h-4 w-px bg-gray-300 dark:bg-zinc-600" />
-            <span className="text-red-600 dark:text-red-400 font-black text-xl">{Math.round(rightPercent)}%</span>
-          </div>
-          <div className="bg-black/80 dark:bg-white/10 text-white text-xs font-bold px-3 py-1 rounded-full backdrop-blur-md animate-pulse border border-white/10">
-            🔥 {totalVotes.toLocaleString()}명 투표 중!
+      {/* Main Fight Container */}
+      <div className="relative flex w-full h-[360px] md:h-[420px] rounded-3xl overflow-hidden shadow-2xl ring-4 ring-slate-100 dark:ring-slate-800">
+        {/* VS Divider (Slanted) */}
+        <div className="absolute inset-0 z-10 pointer-events-none flex justify-center">
+          <div className="h-full w-px bg-white/20 blur-[1px]" />
+          <div className="absolute top-1/2 -translate-y-1/2 w-20 h-20 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center border-4 border-slate-100 dark:border-slate-800 shadow-xl z-20">
+            <span className="font-black italic text-2xl text-slate-800 dark:text-slate-200">VS</span>
           </div>
         </div>
 
-        {/* Right Side (Red) */}
+        {/* LEFT SIDE (BLUE) */}
         <div
+          onClick={() => !userStance && handleVote("LEFT")}
           className={cn(
-            "relative flex-1 flex flex-col items-center justify-center p-6 group transition-all duration-500",
-            userStance === "RIGHT" ? "bg-red-100 dark:bg-red-900/40 flex-[1.2]" : "bg-red-50 dark:bg-red-950/20",
-            userStance === "LEFT" && "opacity-50 grayscale-[0.5]"
+            "relative flex-1 flex flex-col items-center justify-center p-8 transition-all duration-500 cursor-pointer overflow-hidden",
+            "bg-gradient-to-br from-blue-500 to-blue-700",
+            userStance === "LEFT" ? "flex-[1.5] brightness-105" : "flex-1",
+            userStance === "RIGHT" && "flex-[0.5] brightness-50 grayscale"
           )}
         >
-          <div className="absolute inset-0 bg-red-200/50 dark:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <Image
-            src="/red--glove.svg"
-            width={120}
-            height={120}
-            alt="Red Glove"
-            className={cn(
-              "drop-shadow-xl mb-6 transition-transform duration-300 scale-x-[-1]",
-              userStance === "RIGHT" ? "scale-x-[-1] scale-125" : "group-hover:scale-x-[-1] group-hover:scale-110"
-            )}
-          />
-          <button
-            onClick={() => handleVote("RIGHT")}
-            disabled={isVoting || userStance === "RIGHT"}
-            className={cn(
-              "relative z-10 px-8 py-3 rounded-full font-bold text-lg shadow-lg transition-all transform",
-              userStance === "RIGHT"
-                ? "bg-red-600 text-white ring-4 ring-red-200 dark:ring-red-900 scale-105 cursor-default"
-                : "bg-white dark:bg-zinc-800 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:hover:text-white hover:-translate-y-1"
-            )}
-          >
-            {isVoting && userStance !== "LEFT" ? (
-              <Loader2 className="animate-spin w-6 h-6" />
-            ) : userStance === "RIGHT" ? (
-              "투표 완료"
-            ) : (
-              stanceRight
-            )}
-          </button>
+          {/* Background FX */}
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+          <div className="absolute top-0 left-0 w-full h-full bg-blue-400/10 backdrop-blur-[1px]" />
+
+          <div className="relative z-10 flex flex-col items-center transition-transform duration-300 transform group-hover:scale-105">
+            <Image
+              src="/blue--glove.svg"
+              width={160}
+              height={160}
+              alt="Blue Glove"
+              className={cn(
+                "drop-shadow-2xl transition-transform duration-500",
+                userStance === "LEFT" && "scale-110 rotate-12"
+              )}
+            />
+
+            <div className="mt-8 text-center">
+              <div className="text-4xl md:text-5xl font-black text-white drop-shadow-lg mb-2">
+                {Math.round(leftPercent)}%
+              </div>
+              <button
+                disabled={isVoting || !!userStance}
+                className={cn(
+                  "px-8 py-3 rounded-full font-bold text-sm tracking-wider uppercase transition-all shadow-lg",
+                  userStance === "LEFT"
+                    ? "bg-white text-blue-700 ring-4 ring-blue-300"
+                    : "bg-white/20 text-white hover:bg-white hover:text-blue-700 backdrop-blur-md border border-white/30"
+                )}
+              >
+                {isVoting && userStance === "LEFT" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : userStance === "LEFT" ? (
+                  "VOTED"
+                ) : (
+                  "VOTE BLUE"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT SIDE (RED) */}
+        <div
+          onClick={() => !userStance && handleVote("RIGHT")}
+          className={cn(
+            "relative flex-1 flex flex-col items-center justify-center p-8 transition-all duration-500 cursor-pointer overflow-hidden",
+            "bg-gradient-to-bl from-red-500 to-red-700",
+            userStance === "RIGHT" ? "flex-[1.5] brightness-105" : "flex-1",
+            userStance === "LEFT" && "flex-[0.5] brightness-50 grayscale"
+          )}
+        >
+          {/* Background FX */}
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+          <div className="absolute top-0 left-0 w-full h-full bg-red-400/10 backdrop-blur-[1px]" />
+
+          <div className="relative z-10 flex flex-col items-center transition-transform duration-300 transform group-hover:scale-105">
+            <Image
+              src="/red--glove.svg"
+              width={160}
+              height={160}
+              alt="Red Glove"
+              className={cn(
+                "drop-shadow-2xl transition-transform duration-500 scale-x-[-1]",
+                userStance === "RIGHT" && "scale-x-[-1] scale-110 -rotate-12"
+              )}
+            />
+
+            <div className="mt-8 text-center">
+              <div className="text-4xl md:text-5xl font-black text-white drop-shadow-lg mb-2">
+                {Math.round(rightPercent)}%
+              </div>
+              <button
+                disabled={isVoting || !!userStance}
+                className={cn(
+                  "px-8 py-3 rounded-full font-bold text-sm tracking-wider uppercase transition-all shadow-lg",
+                  userStance === "RIGHT"
+                    ? "bg-white text-red-700 ring-4 ring-red-300"
+                    : "bg-white/20 text-white hover:bg-white hover:text-red-700 backdrop-blur-md border border-white/30"
+                )}
+              >
+                {isVoting && userStance === "RIGHT" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : userStance === "RIGHT" ? (
+                  "VOTED"
+                ) : (
+                  "VOTE RED"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Stats / Time */}
+      <div className="mt-6 flex justify-center">
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-full px-6 py-2 flex items-center gap-2 shadow-inner">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+            {totalVotes.toLocaleString()} Votes · {timeLeft || "Ending Soon"}
+          </span>
         </div>
       </div>
     </div>

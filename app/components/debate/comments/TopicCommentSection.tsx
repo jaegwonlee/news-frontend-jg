@@ -225,110 +225,94 @@ export default function TopicCommentSection({
     });
 
   const allCount = comments.length;
-  const leftCount = comments.filter((c) => c.stance === "LEFT").length;
-  const rightCount = comments.filter((c) => c.stance === "RIGHT").length;
 
   return (
-    <div className="py-6 relative">
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-2">
+    <div className="py-8 relative animate-fade-in transition-colors duration-300">
+      {/* 1. Header & Filters */}
+      <div className="flex flex-col gap-6 mb-10">
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-black italic uppercase flex items-center gap-3 tracking-tighter">
+            <span className="text-black dark:text-white">Live Discussion</span>
+            <span className="flex h-3 w-3 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+            </span>
+            <span className="px-3 py-1 rounded-full text-sm font-bold bg-zinc-100 dark:bg-zinc-800 text-black dark:text-white border border-zinc-200 dark:border-zinc-700">
+              {allCount}
+            </span>
+          </h3>
+
+          {/* Sort Dropdown - Minimalist */}
+          <div className="relative group">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as "LATEST" | "OLDEST" | "LIKES" | "REPLIES")}
+              className="appearance-none bg-transparent text-sm font-bold text-zinc-500 hover:text-black dark:text-zinc-400 dark:hover:text-white cursor-pointer outline-none pr-6 text-right transition-colors"
+            >
+              <option value="LATEST">최신순</option>
+              <option value="OLDEST">오래된순</option>
+              <option value="LIKES">공감순</option>
+              <option value="REPLIES">답글순</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Stance Filters - Modern Pill Design */}
+        <div className="flex items-center p-1.5 bg-zinc-100 dark:bg-zinc-900/50 rounded-2xl w-full sm:w-auto self-start border border-zinc-200 dark:border-zinc-800 backdrop-blur-sm">
           {(["ALL", "LEFT", "RIGHT"] as const).map((s) => {
             const isActive = stance === s || (s === "ALL" && stance === "NEUTRAL");
-            let label = "";
-            let count = 0;
-            let activeClass = "";
-            const inactiveClass = "text-muted-foreground hover:bg-gray-100 dark:hover:bg-zinc-800";
 
-            if (s === "ALL") {
-              label = "전체";
-              count = allCount;
-              activeClass = "bg-gray-900 text-white dark:bg-white dark:text-black shadow-md md:scale-105";
-            } else if (s === "LEFT") {
-              label = stanceLeft;
-              count = leftCount;
-              activeClass = "bg-blue-600 text-white shadow-md md:scale-105";
-            } else {
-              label = stanceRight;
-              count = rightCount;
-              activeClass = "bg-red-600 text-white shadow-md md:scale-105";
-            }
+            let label = "전체보기";
+            if (s === "LEFT") label = `🔵 ${stanceLeft}`;
+            if (s === "RIGHT") label = `🔴 ${stanceRight}`;
 
             return (
               <button
                 key={s}
                 onClick={() => setStance(s === "ALL" ? "NEUTRAL" : s)}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 border border-transparent",
-                  isActive ? activeClass : inactiveClass
+                  "flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300",
+                  isActive
+                    ? "bg-white dark:bg-zinc-800 text-black dark:text-white shadow-md shadow-black/5 ring-1 ring-black/5 dark:ring-white/10 scale-[1.02]"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"
                 )}
               >
-                {label} <span className="ml-1 opacity-80 text-xs">({count})</span>
+                {label}
               </button>
             );
           })}
         </div>
-
-        {/* Sort Controls */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary p-1 rounded-lg">
-          <button
-            onClick={() => setSortBy("LATEST")}
-            className={cn(
-              "px-3 py-1 rounded-md transition-all",
-              sortBy === "LATEST" ? "bg-background text-foreground shadow-sm font-bold" : "hover:text-foreground"
-            )}
-          >
-            최신순
-          </button>
-          <button
-            onClick={() => setSortBy("OLDEST")}
-            className={cn(
-              "px-3 py-1 rounded-md transition-all",
-              sortBy === "OLDEST" ? "bg-background text-foreground shadow-sm font-bold" : "hover:text-foreground"
-            )}
-          >
-            오래된순
-          </button>
-          <button
-            onClick={() => setSortBy("LIKES")}
-            className={cn(
-              "px-3 py-1 rounded-md transition-all",
-              sortBy === "LIKES" ? "bg-background text-foreground shadow-sm font-bold" : "hover:text-foreground"
-            )}
-          >
-            좋아요순
-          </button>
-          <button
-            onClick={() => setSortBy("REPLIES")}
-            className={cn(
-              "px-3 py-1 rounded-md transition-all",
-              sortBy === "REPLIES" ? "bg-background text-foreground shadow-sm font-bold" : "hover:text-foreground"
-            )}
-          >
-            답글순
-          </button>
-        </div>
       </div>
 
-      <div className="relative">
+      {/* 2. Input Area */}
+      <div className="relative mb-12 z-20">
         {user && <CommentInput onSubmit={handlePostComment} />}
         {!userVoteStance && user && (
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center text-center p-4 border rounded-lg border-border">
-            <p className="text-lg font-bold mb-2">투표 후 의견을 남길 수 있습니다.</p>
-            <p className="text-sm text-muted-foreground">상단에서 입장을 선택해주세요.</p>
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-6 rounded-3xl overflow-hidden">
+            <div className="absolute inset-0 bg-white/10 dark:bg-zinc-900/40 backdrop-blur-md" />
+            <div className="relative z-10 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 transform shadow-black/20">
+              <span className="text-4xl mb-3 block">🗳️</span>
+              <p className="text-lg font-black text-black dark:text-white mb-1">참여가 필요합니다</p>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                투표를 완료하고 토론에 참여해보세요!
+              </p>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="mt-8 pt-4 border-t border-border">
+      {/* 3. Comment Stream */}
+      <div className="relative min-h-[400px]">
         {isLoading ? (
-          <div className="flex justify-center p-8">
+          <div className="flex justify-center pt-20">
             <LoadingSpinner />
           </div>
         ) : error ? (
-          <p className="text-destructive text-center">{error}</p>
+          <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/50 rounded-2xl p-6 text-center">
+            <p className="text-red-600 dark:text-red-400 font-bold">{error}</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {filteredComments.map((comment) => (
               <TopicCommentItem
                 key={comment.id}
@@ -343,7 +327,13 @@ export default function TopicCommentSection({
               />
             ))}
             {filteredComments.length === 0 && (
-              <p className="text-muted-foreground text-center py-8">아직 의견이 없습니다.</p>
+              <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
+                <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-6 text-4xl grayscale">
+                  💬
+                </div>
+                <h4 className="text-xl font-black text-black dark:text-white mb-2">아직 댓글이 없습니다</h4>
+                <p className="text-zinc-500 dark:text-zinc-400 font-medium">첫 번째 의견의 주인공이 되어보세요!</p>
+              </div>
             )}
           </div>
         )}

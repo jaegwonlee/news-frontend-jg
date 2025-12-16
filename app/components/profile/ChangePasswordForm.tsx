@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useAuth } from "@/app/context/AuthContext";
-import { useRouter } from "next/navigation";
-import { changePassword } from "@/lib/api/user"; // Will create this function
-import LoadingSpinner from "@/app/components/common/LoadingSpinner";
 import ErrorMessage from "@/app/components/common/ErrorMessage";
+import { useAuth } from "@/app/context/AuthContext";
+import { changePassword } from "@/lib/api/user"; // Will create this function
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function ChangePasswordForm() {
   const { token, logout } = useAuth();
@@ -32,7 +31,8 @@ export default function ChangePasswordForm() {
       return;
     }
 
-    if (newPassword.length < 6) { // Example minimum length
+    if (newPassword.length < 6) {
+      // Example minimum length
       setError("새 비밀번호는 최소 6자 이상이어야 합니다.");
       return;
     }
@@ -63,56 +63,101 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <div className="p-6 sm:p-8">
-      <h2 className="text-2xl font-bold text-foreground mb-6">비밀번호 변경</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="currentPassword" className="block text-sm font-medium text-muted-foreground">
-            현재 비밀번호
-          </label>
-          <input
-            type="password"
-            id="currentPassword"
-            className="mt-1 block w-full rounded-md border-border bg-input text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            required
-          />
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 md:p-10 shadow-xl overflow-hidden relative">
+      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-zinc-200 via-zinc-400 to-zinc-200 dark:from-zinc-800 dark:via-zinc-600 dark:to-zinc-800 opacity-50" />
+
+      <div className="relative z-10 mb-8 border-b border-zinc-200 dark:border-zinc-800 pb-6 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 mb-4 text-zinc-900 dark:text-white mb-4">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 15V17M6 10V8C6 4.68629 8.68629 2 12 2C15.3137 2 18 4.68629 18 8V10C19.1046 10 20 10.8954 20 12V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V12C4 10.8954 4.89543 10 6 10Z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
-        <div>
-          <label htmlFor="newPassword" className="block text-sm font-medium text-muted-foreground">
-            새 비밀번호
-          </label>
-          <input
-            type="password"
-            id="newPassword"
-            className="mt-1 block w-full rounded-md border-border bg-input text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-          />
+        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white mb-2">
+          Locker Room <span className="text-blue-600">Access</span>
+        </h2>
+        <p className="text-zinc-500 font-medium">Secure your account with a strong combination.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label
+              htmlFor="currentPassword"
+              className="block text-xs font-bold uppercase tracking-widest text-zinc-500 ml-1"
+            >
+              Current Password
+            </label>
+            <input
+              type="password"
+              id="currentPassword"
+              className="w-full bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-bold text-zinc-900 dark:text-white text-lg tracking-widest placeholder:tracking-normal placeholder:font-medium placeholder:text-zinc-400"
+              placeholder="Enter current code"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="newPassword"
+              className="block text-xs font-bold uppercase tracking-widest text-zinc-500 ml-1"
+            >
+              New Password
+            </label>
+            <input
+              type="password"
+              id="newPassword"
+              className="w-full bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-bold text-zinc-900 dark:text-white text-lg tracking-widest placeholder:tracking-normal placeholder:font-medium placeholder:text-zinc-400"
+              placeholder="Enter new code"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="confirmNewPassword"
+              className="block text-xs font-bold uppercase tracking-widest text-zinc-500 ml-1"
+            >
+              Confirm New Password
+            </label>
+            <input
+              type="password"
+              id="confirmNewPassword"
+              className="w-full bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-bold text-zinc-900 dark:text-white text-lg tracking-widest placeholder:tracking-normal placeholder:font-medium placeholder:text-zinc-400"
+              placeholder="Confirm new code"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+              required
+            />
+          </div>
         </div>
-        <div>
-          <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-muted-foreground">
-            새 비밀번호 확인
-          </label>
-          <input
-            type="password"
-            id="confirmNewPassword"
-            className="mt-1 block w-full rounded-md border-border bg-input text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            value={confirmNewPassword}
-            onChange={(e) => setConfirmNewPassword(e.target.value)}
-            required
-          />
-        </div>
-        {error && <ErrorMessage message={error} />}
-        {success && <p className="text-green-500 text-sm">{success}</p>}
+
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <ErrorMessage message={error} />
+          </div>
+        )}
+        {success && (
+          <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-600 font-bold text-center">
+            {success}
+          </div>
+        )}
+
         <button
           type="submit"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+          className="w-full py-4 mt-4 bg-black dark:bg-white text-white dark:text-black font-black uppercase text-lg tracking-wider rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl hover:shadow-2xl"
           disabled={isLoading}
         >
-          {isLoading ? <LoadingSpinner size="small" /> : "비밀번호 변경"}
+          {isLoading ? "Updating..." : "Update Security Code"}
         </button>
       </form>
     </div>

@@ -9,13 +9,16 @@ interface TrendingTopicsProps {
 }
 
 export default function TrendingTopics({ topics, displayMode, onTopicSelect }: TrendingTopicsProps) {
+  // Ensure we only show top 4 for popular mode to fit the layout perfectly
+  const displayTopics = displayMode === "popular" ? topics.slice(0, 4) : topics;
+
   return (
-    <div className="h-full overflow-y-auto">
+    <div className={cn("h-full flex flex-col", displayMode === "popular" ? "overflow-hidden" : "overflow-y-auto")}>
       {topics.length === 0 ? (
         <p className="text-muted-foreground text-center pt-10">표시할 토픽이 없습니다.</p>
       ) : (
-        <div className="flex flex-col gap-0">
-          {topics.map((topic, index) => {
+        <div className="flex flex-col flex-1 gap-0">
+          {displayTopics.map((topic, index) => {
             const rank = index + 1;
             const isPopular = displayMode === "popular";
             const isTopThree = isPopular && rank <= 3;
@@ -74,10 +77,10 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
                 onClick={() => onTopicSelect(topic)}
                 key={topic.id}
                 className={cn(
-                  "group relative w-full overflow-hidden transition-all duration-500",
+                  "group relative w-full overflow-hidden transition-all duration-500 flex-1", // Used flex-1 to fill height
                   "hover:shadow-xl",
                   "outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  isTopThree ? "min-h-[160px]" : "min-h-[130px]"
+                  "min-h-[140px]" // Standardized min-height
                 )}
                 draggable="true"
                 onDragStart={(e) => {
@@ -95,7 +98,7 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
                 />
 
                 {/* Content */}
-                <div className="relative h-full flex flex-col p-3 text-white z-10">
+                <div className="relative h-full flex flex-col justify-center p-4 text-white z-10">
                   {/* Top Row: Rank/Medal + End Date */}
                   <div className="flex items-start justify-between mb-2">
                     {/* Rank/Medal */}
@@ -112,8 +115,8 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
                           <Trophy size={16} className={medalColors[rank - 1].icon} />
                         </div>
                       ) : (
-                        <div className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                          <span className="text-xs font-black">{isPopular ? rank : "•"}</span>
+                        <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                          <span className="text-sm font-black">{isPopular ? rank : "•"}</span>
                         </div>
                       )}
                     </div>
@@ -127,48 +130,45 @@ export default function TrendingTopics({ topics, displayMode, onTopicSelect }: T
                   </div>
 
                   {/* Topic Title */}
-                  <div className="flex-1 mb-2">
+                  <div className="flex-1 flex flex-col justify-center mb-2">
                     <p
                       className={cn(
                         "font-black leading-tight line-clamp-2 drop-shadow-md",
-                        isTopThree ? "text-sm" : "text-xs"
+                        isTopThree ? "text-lg" : "text-base" // Slightly larger text
                       )}
                     >
                       {topic.display_name}
                     </p>
-                    {topic.summary && isTopThree && (
-                      <p className="text-[10px] text-white/70 line-clamp-1 mt-1 font-medium">{topic.summary}</p>
+                    {topic.summary && (
+                      <p className="text-xs text-white/80 line-clamp-1 mt-1 font-medium">{topic.summary}</p>
                     )}
                   </div>
 
                   {/* Stats Row */}
-                  <div className="flex items-center gap-2 text-[10px] text-white/80 mb-2">
-                    <div className="flex items-center gap-0.5 bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded">
-                      <Users size={9} />
+                  <div className="flex items-center gap-2 text-[10px] text-white/90">
+                    <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <Users size={10} />
                       <span className="font-bold">{totalVotes.toLocaleString()}</span>
                     </div>
-                    <div className="flex items-center gap-0.5 bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded">
-                      <MessageCircle size={9} />
+                    <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <MessageCircle size={10} />
                       <span className="font-bold">{topic.comment_count?.toLocaleString() || 0}</span>
                     </div>
-                    <div className="flex items-center gap-0.5 bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded">
-                      <Eye size={9} />
+                    <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <Eye size={10} />
                       <span className="font-bold">{topic.view_count.toLocaleString()}</span>
                     </div>
-                    <span className="text-white/50 text-[9px] ml-auto">{formatRelativeTime(topic.published_at)}</span>
+                    <span className="text-white/60 text-[10px] ml-auto">{formatRelativeTime(topic.published_at)}</span>
                   </div>
 
-                  {/* Vote Bar (for top 3 only) */}
-                  {/* Vote Bar removed as per user request */}
-
                   {/* Arrow Icon */}
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 transform transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
-                    <ArrowRight size={16} className="text-white drop-shadow-md" />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 transform transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
+                    <ArrowRight size={20} className="text-white drop-shadow-md" />
                   </div>
                 </div>
 
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
                 {/* Shine Effect */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-linear-to-tr from-transparent via-white/10 to-transparent" />

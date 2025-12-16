@@ -2,6 +2,7 @@
 
 import { Button } from "@/app/components/common/Button";
 import { useAuth } from "@/app/context/AuthContext";
+import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -19,11 +20,12 @@ export default function CommentInput({
   initialContent = "",
   onCancel,
   parentId = null,
-  placeholder = "당신의 의견을 남겨주세요...",
+  placeholder = "이 토픽에 대한 당신의 날카로운 의견을 남겨주세요...",
 }: CommentInputProps) {
   const { user } = useAuth();
   const [content, setContent] = useState(initialContent);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,57 +43,84 @@ export default function CommentInput({
 
   if (!user) {
     return (
-      <div className="border border-border rounded-lg p-4 text-center text-muted-foreground">
-        댓글을 작성하려면{" "}
-        <a href="/login" className="text-primary hover:underline">
-          로그인
+      <div className="flex flex-col items-center justify-center p-8 text-center bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl border-dashed">
+        <p className="text-zinc-500 dark:text-zinc-400 mb-2 font-medium">로그인이 필요합니다</p>
+        <a
+          href="/login"
+          className="px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-full text-sm font-bold hover:opacity-80 transition-opacity shadow-lg"
+        >
+          로그인하고 참여하기
         </a>
-        해주세요.
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-4 items-start">
-      <div className="shrink-0 pt-1">
+    <form onSubmit={handleSubmit} className="flex gap-4 items-start w-full group">
+      <div className="shrink-0 pt-1 hidden sm:block">
         <Image
           src={user.profile_image_url || "/user-placeholder.svg"}
           alt={user.nickname || "user"}
-          width={42}
-          height={42}
-          className="rounded-full border border-border/50 shadow-sm"
+          width={48}
+          height={48}
+          className="rounded-full border border-zinc-200 dark:border-zinc-800 shadow-sm object-cover bg-zinc-100 dark:bg-zinc-800"
         />
       </div>
-      <div className="grow group relative">
-        <div className="absolute inset-0 bg-linear-to-b from-primary/5 to-transparent opacity-0 group-focus-within:opacity-100 rounded-xl transition-opacity pointer-events-none" />
+      <div
+        className={cn(
+          "grow relative transition-all duration-300 rounded-2xl border overflow-hidden",
+          isFocused
+            ? "shadow-lg ring-1 ring-black/5 dark:ring-white/10 border-zinc-400 dark:border-zinc-600 bg-white dark:bg-zinc-800"
+            : "shadow-sm border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800/50"
+        )}
+      >
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
-          className="w-full p-4 bg-background dark:bg-zinc-900 border border-border/80 rounded-xl text-[15px] text-foreground placeholder-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all duration-200 resize-none shadow-sm min-h-[100px]"
+          className={cn(
+            "w-full p-5 text-[15px] leading-relaxed transition-all duration-200 resize-none min-h-[120px]",
+            "bg-transparent",
+            "text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500",
+            "focus:outline-none"
+          )}
           disabled={isSubmitting}
         />
-        <div className="flex justify-end gap-2 mt-2">
-          {onCancel && (
+
+        {/* Actions Bar */}
+        <div className="flex items-center justify-between px-3 pb-3 pt-2 bg-transparent">
+          {/* Left side actions (optional later: markdown help etc) */}
+          <div />
+
+          <div className="flex gap-2">
+            {onCancel && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onCancel}
+                disabled={isSubmitting}
+                className="text-zinc-500 hover:text-black dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
+              >
+                취소
+              </Button>
+            )}
             <Button
-              variant="ghost"
+              type="submit"
               size="sm"
-              onClick={onCancel}
-              disabled={isSubmitting}
-              className="text-muted-foreground hover:text-foreground"
+              disabled={!content.trim() || isSubmitting}
+              className={cn(
+                "rounded-xl font-bold transition-all transform active:scale-95 px-6",
+                content.trim()
+                  ? "bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black shadow-lg"
+                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
+              )}
             >
-              취소
+              {isSubmitting && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              {isSubmitting ? "등록 중..." : initialContent ? "수정완료" : "등록하기"}
             </Button>
-          )}
-          <Button
-            type="submit"
-            size="sm"
-            disabled={!content.trim() || isSubmitting}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md px-6 rounded-lg font-medium transition-all transform active:scale-95"
-          >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "등록 중..." : initialContent ? "수정완료" : "의견 남기기"}
-          </Button>
+          </div>
         </div>
       </div>
     </form>

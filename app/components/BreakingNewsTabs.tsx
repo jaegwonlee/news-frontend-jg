@@ -10,7 +10,15 @@ interface BreakingNewsTabsProps {
   exclusiveNews?: Article[];
 }
 
-const ArticleItem = ({ article, type }: { article: Article; type: "breaking" | "exclusive" }) => {
+const ArticleItem = ({
+  article,
+  type,
+  isDarkMode,
+}: {
+  article: Article;
+  type: "breaking" | "exclusive";
+  isDarkMode: boolean;
+}) => {
   // Remove existing [속보], [단독], (속보), (단독) etc from the title to avoid duplication
   const cleanedTitle = article.title
     .replace(/^\[(속보|단독)\]\s*/, "")
@@ -22,12 +30,23 @@ const ArticleItem = ({ article, type }: { article: Article; type: "breaking" | "
     e.dataTransfer.effectAllowed = "copy";
   };
 
+  const breakingClasses = isDarkMode
+    ? "bg-neutral-900 hover:bg-red-950/30 border-red-900/50"
+    : "bg-red-50 hover:bg-red-100 border-red-100";
+
+  const exclusiveClasses = isDarkMode
+    ? "bg-neutral-900 hover:bg-blue-950/30 border-blue-900/50"
+    : "bg-blue-50 hover:bg-blue-100 border-blue-100";
+
   return (
     <a
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-3 group p-2 rounded-lg hover:bg-accent transition-colors bg-card"
+      className={cn(
+        "flex items-center gap-3 group p-2 rounded-lg transition-colors border",
+        type === "breaking" ? breakingClasses : exclusiveClasses
+      )}
       draggable
       onDragStart={handleDragStart}
     >
@@ -116,7 +135,9 @@ export default function BreakingNewsTabs({ breakingNews = [], exclusiveNews = []
         ) : (
           currentArticles
             .slice(0, 5)
-            .map((article) => <ArticleItem key={article.id} article={article} type={activeTab} />)
+            .map((article) => (
+              <ArticleItem key={article.id} article={article} type={activeTab} isDarkMode={isDarkMode} />
+            ))
         )}
       </div>
     </div>

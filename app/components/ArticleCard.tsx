@@ -26,6 +26,7 @@ interface ArticleCardProps {
   rel?: string; // Add rel prop for link relations
   hideImage?: boolean;
   customHoverColor?: string; // Add this prop
+  disableHover?: boolean;
 }
 
 export default function ArticleCard({
@@ -39,6 +40,7 @@ export default function ArticleCard({
   rel = "noopener noreferrer", // Default rel to noopener noreferrer
   hideImage = false,
   customHoverColor, // Add this
+  disableHover = false,
 }: ArticleCardProps) {
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
@@ -60,8 +62,10 @@ export default function ArticleCard({
 
   // Common hover and transition classes
 
-  const cardBaseClasses =
-    "group relative overflow-hidden rounded-xl bg-card border border-border/50 transition-all duration-300 hover:shadow-lg hover:border-primary/20";
+  const cardBaseClasses = cn(
+    "group relative overflow-hidden rounded-xl bg-card border border-border/50 transition-all duration-300",
+    !disableHover && "hover:shadow-lg hover:border-primary/20"
+  );
 
   const handleCommentClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -298,7 +302,7 @@ export default function ArticleCard({
             src={thumbnail_url || "/placeholder.png"}
             alt={title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className={cn("object-cover transition-transform duration-500", !disableHover && "group-hover:scale-105")}
             sizes="(max-width: 768px) 100vw, 33vw"
             unoptimized
           />

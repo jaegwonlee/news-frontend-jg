@@ -36,6 +36,9 @@ export interface Topic {
   pro_votes?: number;
   con_votes?: number;
   category?: string;
+  // Alternative naming from different API endpoints
+  left_count?: number;
+  right_count?: number;
 }
 
 /**

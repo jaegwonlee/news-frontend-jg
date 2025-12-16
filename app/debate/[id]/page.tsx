@@ -93,17 +93,13 @@ export default function TopicDetailPage() {
 
   const { topic, articles } = topicDetail;
 
-  // Aesthetic Gradients (consistent with Main Page)
+  // Aesthetic Gradients (consistent with ArenaMatchCard)
   const gradients = [
-    { bg: "from-blue-600 via-blue-900 to-slate-900", accent: "text-blue-400", border: "border-blue-500/30" },
-    { bg: "from-purple-600 via-purple-900 to-slate-900", accent: "text-purple-400", border: "border-purple-500/30" },
-    { bg: "from-orange-600 via-red-900 to-slate-900", accent: "text-orange-400", border: "border-orange-500/30" },
-    { bg: "from-emerald-600 via-teal-900 to-slate-900", accent: "text-emerald-400", border: "border-emerald-500/30" },
-    {
-      bg: "from-indigo-600 via-indigo-900 to-slate-900",
-      accent: "text-indigo-400",
-      border: "border-indigo-500/30",
-    },
+    { bg: "from-blue-600 via-blue-500 to-cyan-400", border: "border-blue-500/30" },
+    { bg: "from-purple-600 via-purple-500 to-pink-500", border: "border-purple-500/30" },
+    { bg: "from-orange-500 via-red-500 to-pink-600", border: "border-orange-500/30" },
+    { bg: "from-emerald-500 via-teal-500 to-cyan-500", border: "border-emerald-500/30" },
+    { bg: "from-indigo-600 via-blue-600 to-purple-600", border: "border-indigo-500/30" },
   ];
   const gradient = gradients[topic.id % gradients.length];
 
@@ -116,7 +112,7 @@ export default function TopicDetailPage() {
 
   if (isClosed) {
     statusText = "종료됨";
-    statusColor = "bg-gray-500";
+    statusColor = "bg-slate-500";
   } else if (topic.collection_status === "SCHEDULED") {
     statusText = "예정됨";
     statusColor = "bg-yellow-500";
@@ -136,9 +132,11 @@ export default function TopicDetailPage() {
   const dDayBadge = getDDay(topic.vote_end_at);
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-20 bg-background text-foreground transition-colors">
       {/* 1. Hero Header */}
-      <div className={cn("relative w-full overflow-hidden text-white shadow-2xl", "bg-linear-to-br", gradient.bg)}>
+      <div
+        className={cn("relative w-full overflow-hidden text-white shadow-2xl pb-24", "bg-gradient-to-br", gradient.bg)}
+      >
         {/* Background Noise & Overlay */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-150 mix-blend-soft-light" />
         <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" />
@@ -216,9 +214,9 @@ export default function TopicDetailPage() {
           {/* Main Content Column */}
           <main className="lg:col-span-2">
             {/* Vote Section */}
-            <div className="bg-card rounded-3xl shadow-xl p-6 md:p-8 mb-10 ring-1 ring-black/5 dark:ring-white/10">
-              <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <BarChart2 className="text-blue-500" />
+            <div className="mb-12">
+              <h3 className="text-2xl font-black mb-8 flex items-center gap-2 text-slate-800 dark:text-slate-100">
+                <BarChart2 className="text-blue-500 w-6 h-6" />
                 투표 현황
               </h3>
               {topic && (

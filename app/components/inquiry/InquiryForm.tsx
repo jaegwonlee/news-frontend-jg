@@ -102,64 +102,79 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
 
   if (isSuccess) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-in fade-in zoom-in duration-500">
-        <div className="w-20 h-20 bg-green-500/10 text-green-600 rounded-full flex items-center justify-center mb-6 ring-4 ring-green-500/20">
-          <CheckCircle2 className="w-10 h-10" />
+      <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-in fade-in zoom-in duration-500 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800">
+        <div className="w-24 h-24 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-full flex items-center justify-center mb-6 ring-4 ring-green-100 dark:ring-green-900/10">
+          <CheckCircle2 className="w-12 h-12" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">문의가 접수되었습니다</h2>
-        <p className="text-muted-foreground">담당자가 확인 후 신속하게 답변 드리겠습니다.</p>
+        <h2 className="text-3xl font-black uppercase italic mb-2 tracking-tight">Registration Complete</h2>
+        <p className="text-zinc-500 font-medium">
+          링 위에 오를 준비가 완료되었습니다. <br /> 곧 담당 코치가 내용을 확인합니다.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-background/50">
-      <div className="p-6 md:p-8 border-b border-border/50">
-        <h2 className="text-2xl font-bold text-foreground">새 문의 작성</h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          궁금한 점이나 불편한 사항을 남겨주시면 친절히 안내해 드립니다.
-        </p>
+    <div className="h-full flex flex-col bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800">
+      {/* Header */}
+      <div className="relative overflow-hidden bg-zinc-900 text-white p-8">
+        <div className="absolute top-0 right-0 p-8 opacity-10 font-black text-8xl italic leading-none select-none pointer-events-none">
+          VS
+        </div>
+        <div className="relative z-10">
+          <h2 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-3">
+            <span className="text-red-600">NEW</span> CHALLENGE
+          </h2>
+          <p className="text-zinc-400 font-medium mt-1 max-w-md">
+            정확한 사실 확인과 공정한 토론을 위한 문의를 등록해주세요.
+          </p>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
         <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl mx-auto">
           {/* Subject */}
-          <div className="space-y-2">
-            <label htmlFor="inquirySubject" className="text-sm font-semibold text-foreground flex items-center gap-2">
-              제목 <span className="text-red-500">*</span>
+          <div className="space-y-3">
+            <label htmlFor="inquirySubject" className="text-sm font-black uppercase tracking-wider text-zinc-400">
+              Title / Subject <span className="text-red-500">*</span>
             </label>
             <input
               id="inquirySubject"
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="제목을 입력해주세요"
-              className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+              placeholder="문의 제목을 입력하세요 (ex. 토픽 주제 제안, 시스템 오류 제보)"
+              className="w-full px-5 py-4 text-lg font-bold rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:border-black dark:focus:border-white transition-all outline-none placeholder:text-zinc-400"
               required
               disabled={isLoading}
             />
           </div>
 
           {/* Content */}
-          <div className="space-y-2">
-            <label htmlFor="inquiryContent" className="text-sm font-semibold text-foreground flex items-center gap-2">
-              문의 내용 <span className="text-red-500">*</span>
+          <div className="space-y-3">
+            <label htmlFor="inquiryContent" className="text-sm font-black uppercase tracking-wider text-zinc-400">
+              Description <span className="text-red-500">*</span>
             </label>
-            <textarea
-              id="inquiryContent"
-              rows={8}
-              className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none outline-none leading-relaxed"
-              placeholder="문의하실 내용을 상세히 적어주세요."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-              disabled={isLoading}
-            ></textarea>
+            <div className="relative">
+              <textarea
+                id="inquiryContent"
+                rows={10}
+                className="w-full px-5 py-4 text-base font-medium rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:border-black dark:focus:border-white transition-all resize-none outline-none leading-relaxed placeholder:text-zinc-400"
+                placeholder="상세 내용을 작성해주세요."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+                disabled={isLoading}
+              ></textarea>
+              <div className="absolute bottom-4 right-4 text-xs font-bold text-zinc-400 pointer-events-none bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
+                Markdown Supported
+              </div>
+            </div>
           </div>
 
           {/* File Upload */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-foreground">첨부 파일 (선택)</label>
+          <div className="space-y-3">
+            <label className="text-sm font-black uppercase tracking-wider text-zinc-400">Evidence (Optional)</label>
 
             <AnimatePresence mode="wait">
               {!file ? (
@@ -175,19 +190,14 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
                     onDragLeave={onDragLeave}
                     onDrop={onDrop}
                     className={cn(
-                      "relative cursor-pointer group flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-border transition-all duration-200 hover:border-primary/50 hover:bg-accent/50",
-                      isDragOver && "border-primary bg-primary/5 scale-[1.01]"
+                      "relative cursor-pointer group flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 transition-all duration-200 hover:border-black dark:hover:border-white hover:bg-zinc-50 dark:hover:bg-zinc-800",
+                      isDragOver && "border-red-500 bg-red-50 dark:bg-red-900/10 scale-[1.01]"
                     )}
                   >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <div className="p-3 bg-secondary rounded-full mb-3 group-hover:scale-110 transition-transform duration-200">
-                        <UploadCloud className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
-                      </div>
-                      <p className="mb-1 text-sm text-foreground font-medium">
-                        <span className="text-primary font-bold hover:underline">클릭하여 업로드</span> 또는 파일을
-                        여기로 드래그
-                      </p>
-                      <p className="text-xs text-muted-foreground">최대 5MB (이미지, 문서 등)</p>
+                    <div className="flex flex-col items-center justify-center">
+                      <UploadCloud className="w-8 h-8 text-zinc-400 group-hover:text-black dark:group-hover:text-white mb-2 transition-colors" />
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 font-bold">Click or Drag to Upload</p>
+                      <p className="text-xs text-zinc-400 mt-1">Max 5MB</p>
                     </div>
                     <input
                       id="attachment"
@@ -204,22 +214,24 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   key="file-preview"
-                  className="flex items-center justify-between w-full p-4 bg-secondary/30 border border-border rounded-xl"
+                  className="flex items-center justify-between w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl"
                 >
                   <div className="flex items-center gap-3 overflow-hidden">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary">
-                      <FileText className="w-5 h-5" />
+                    <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5 text-zinc-700 dark:text-zinc-300" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium truncate pr-4">{file.name}</span>
-                      <span className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</span>
+                      <span className="text-sm font-bold truncate pr-4 text-zinc-900 dark:text-zinc-100">
+                        {file.name}
+                      </span>
+                      <span className="text-xs text-zinc-500">{(file.size / 1024).toFixed(1)} KB</span>
                     </div>
                   </div>
                   <button
                     onClick={handleRemoveFile}
                     type="button"
                     disabled={isLoading}
-                    className="p-2 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    className="p-2 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500 hover:text-red-500 transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -228,25 +240,28 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
             </AnimatePresence>
           </div>
 
-          {/* Privacy Checkbox */}
-          <div className="pt-4 border-t border-border/50">
-            <label className="flex items-start gap-3 p-4 rounded-lg hover:bg-accent/30 cursor-pointer transition-colors border border-transparent hover:border-border/50">
+          {/* Privacy Checkbox - Styled as Agreement */}
+          <div className="pt-6 border-t border-dashed border-zinc-200 dark:border-zinc-700">
+            <label className="flex items-start gap-4 p-4 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700">
               <div className="relative flex items-center h-5 mt-0.5">
                 <input
                   type="checkbox"
                   checked={privacyAgreement}
                   onChange={(e) => setPrivacyAgreement(e.target.checked)}
-                  className="peer h-4 w-4 shrink-0 rounded-sm border-2 border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none checked:bg-primary checked:border-primary"
+                  className="peer h-5 w-5 shrink-0 rounded border-2 border-zinc-300 dark:border-zinc-600 focus:ring-0 checked:bg-black dark:checked:bg-white checked:border-black dark:checked:border-white transition-all appearance-none"
                   required
                 />
-                <CheckCircle2 className="pointer-events-none absolute h-3 w-3 top-0.5 left-0.5 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity" />
+                <CheckCircle2
+                  className="pointer-events-none absolute h-3.5 w-3.5 top-[3px] left-[3px] text-white dark:text-black opacity-0 peer-checked:opacity-100 transition-opacity"
+                  strokeWidth={3}
+                />
               </div>
               <div className="space-y-1">
-                <span className="text-sm font-medium leading-none">개인정보 수집 및 이용 동의</span>
-                <p className="text-xs text-muted-foreground">
-                  문의 처리를 위해 이메일, 이름, 문의 내용을 수집합니다. 수집된 정보는 문의 처리 목적으로만 이용되며,
-                  관련 법령에 따라 일정 기간 보관될 수 있습니다.
-                  <span className="text-primary hover:underline ml-1">자세히 보기</span>
+                <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-none">
+                  개인정보 수집 및 이용 동의
+                </span>
+                <p className="text-xs text-zinc-500">
+                  문의 처리를 위해 최소한의 정보를 수집합니다. 동의하지 않을 경우 서비스 이용이 제한될 수 있습니다.
                 </p>
               </div>
             </label>
@@ -263,15 +278,15 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onSuccess }) => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.99]"
+              className="w-full h-14 text-lg font-black italic uppercase tracking-wider bg-red-600 hover:bg-red-500 text-white shadow-xl shadow-red-600/20 transition-all active:scale-[0.98] rounded-xl"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  제출 중...
+                  Processing...
                 </>
               ) : (
-                "문의 제출하기"
+                "Submit Inquiry"
               )}
             </Button>
           </div>

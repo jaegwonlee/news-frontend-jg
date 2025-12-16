@@ -1,4 +1,5 @@
 // src/components/auth/FormField.tsx
+import { cn } from "@/lib/utils";
 import React from "react";
 
 interface FormFieldProps {
@@ -14,6 +15,7 @@ interface FormFieldProps {
   autoComplete?: string;
   disabled?: boolean;
   icon?: React.ReactNode;
+  className?: string;
 }
 
 /**
@@ -34,6 +36,7 @@ const FormField: React.FC<FormFieldProps> = ({
   autoComplete,
   disabled,
   icon,
+  className,
 }) => {
   const hasIcon = icon != null;
 
@@ -62,9 +65,11 @@ const FormField: React.FC<FormFieldProps> = ({
           onBlur={onBlur}
           onFocus={onFocus}
           disabled={disabled}
-          className={`w-full py-1.5 text-sm font-medium text-foreground bg-input border border-border rounded-lg shadow-sm focus:outline-none transition-all duration-200 placeholder:text-muted-foreground ${
-            hasIcon ? "pl-10 pr-4" : "px-4"
-          }`}
+          className={cn(
+            "w-full py-1.5 text-sm font-medium text-foreground bg-input border border-border rounded-lg shadow-sm focus:outline-none transition-all duration-200 placeholder:text-muted-foreground",
+            hasIcon ? "pl-10 pr-4" : "px-4",
+            className
+          )}
         />
       </div>
     </div>

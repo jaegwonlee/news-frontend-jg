@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from "react";
-import { useAuth } from "@/app/context/AuthContext";
-import { useRouter } from "next/navigation";
-import { deleteAccount } from "@/lib/api/user";
-import ErrorMessage from "@/app/components/common/ErrorMessage";
 import ConfirmationModal from "@/app/components/common/ConfirmationModal";
+import ErrorMessage from "@/app/components/common/ErrorMessage";
+import { useAuth } from "@/app/context/AuthContext";
+import { deleteAccount } from "@/lib/api/user";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function DeleteAccountSection() {
   const { token, logout } = useAuth();
   const router = useRouter();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -62,17 +62,43 @@ export default function DeleteAccountSection() {
   };
   return (
     <>
-      <div className="p-6 sm:p-8">
-        <h2 className="text-2xl font-bold text-destructive mb-4">계정 비활성화</h2>
-        <p className="text-muted-foreground mb-4">
-          계정을 비활성화하면 프로필, 저장된 기사, 좋아요 등 모든 활동 기록이 영구적으로 삭제되며, 이 작업은 되돌릴 수 없습니다.
-        </p>
-        <button
-          onClick={handleOpenModal}
-          className="w-full sm:w-auto px-6 py-2 border border-destructive text-destructive rounded-md shadow-sm text-sm font-medium hover:bg-destructive/90 hover:text-destructive-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-destructive transition-colors"
-        >
-          계정 비활성화 진행
-        </button>
+      <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-3xl p-6 md:p-10 shadow-xl overflow-hidden relative">
+        <div className="absolute -right-10 -bottom-10 opacity-5 pointer-events-none text-red-600">
+          <svg width="300" height="300" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22ZM13 13.5V17H11V13.5H13ZM13 11.5H11V7H13V11.5Z" />
+          </svg>
+        </div>
+
+        <div className="relative z-10 text-center md:text-left flex flex-col md:flex-row items-center gap-8">
+          <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center text-red-600 dark:text-red-500 shrink-0">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+
+          <div className="flex-1">
+            <h2 className="text-3xl font-black italic uppercase tracking-tighter text-red-600 dark:text-red-500 mb-2">
+              Retire Fighter
+            </h2>
+            <p className="text-zinc-700 dark:text-zinc-300 font-medium leading-relaxed max-w-xl">
+              Permanently delete your profile and all associated fight records. <br className="hidden md:block" />
+              This action is <span className="font-bold underline decoration-red-400">irreversible</span>.
+            </p>
+          </div>
+
+          <button
+            onClick={handleOpenModal}
+            className="shrink-0 bg-red-600 hover:bg-red-700 text-white font-black uppercase text-sm tracking-wider px-8 py-4 rounded-xl shadow-lg hover:shadow-red-500/30 transition-all hover:scale-105 active:scale-95"
+          >
+            Confirm Deletion
+          </button>
+        </div>
       </div>
 
       <ConfirmationModal
